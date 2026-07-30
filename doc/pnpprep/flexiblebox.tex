@@ -1,0 +1,94 @@
+\section{Allgemeine Boxen}
+
+\subsection{Die Umgebung \texttt{FlexibleBox}}
+
+Die Umgebung \verb|FlexibleBox| ist die grundlegende Box-Umgebung der Klasse.
+
+Sie ermöglicht es, beliebige Inhalte mit einem Titel und frei wählbaren Farben darzustellen.
+
+Viele andere Befehle der Klasse, beispielsweise \verb|\sammelprobe| und \verb|Wertekasten|, verwenden intern diese Umgebung.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{FlexibleBox}
+    {Titel}
+    [Hintergrundfarbe]
+    [Titelfarbe]
+    [Textfarbe]
+
+Inhalt
+
+\end{FlexibleBox}
+\end{Verbatim}
+
+\subsubsection*{Parameter}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+Parameter & Bedeutung & Standardwert\\
+\hline
+Titel & Überschrift der Box & --\\
+\hline
+Hintergrundfarbe & Hintergrund des Inhalts & PergamentHell\\
+\hline
+Titelfarbe & Hintergrund des Titels & PergamentDunkel\\
+\hline
+Textfarbe & Farbe der Titelbeschriftung & white\\
+\hline
+\end{tabular}
+\end{center}
+
+Die Farben können alle von \LaTeX\ bekannten Farben sein, beispielsweise
+\verb|yellow|, \verb|red| oder eigene mit \verb|\definecolor| definierte Farben.
+
+\subsubsection*{Beispiel 1: Standardfarben}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{FlexibleBox}{Hinweis}
+
+Der alte Turm steht seit Jahrhunderten
+verlassen im Wald.
+
+\end{FlexibleBox}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{FlexibleBox}{Hinweis}
+
+Der alte Turm steht seit Jahrhunderten
+verlassen im Wald.
+
+\end{FlexibleBox}
+
+\subsubsection*{Beispiel 2: Eigene Farben}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{FlexibleBox}
+    {Warnung}
+    [yellow]
+    [red]
+    [white]
+
+Die Tür ist magisch versiegelt.
+
+\end{FlexibleBox}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{FlexibleBox}
+    {Warnung}
+    [yellow]
+    [red]
+    [white]
+
+Die Tür ist magisch versiegelt.
+
+\end{FlexibleBox}

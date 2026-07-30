@@ -1,0 +1,113 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-decision}[2026/07/30 Decision Environments]
+
+\RequirePackage{tcolorbox}
+\RequirePackage{xcolor}
+
+% Colors for Question/true-false blocks
+\definecolor{questionblue}{RGB}{220,235,250}
+\definecolor{resultgreen}{RGB}{220,245,220}
+\definecolor{resultred}{RGB}{250,220,220}
+
+\newcommand{\decide}[3]{%
+  \begin{decision}
+    \begin{condition}#1\end{condition}
+    \begin{true}#2\end{true}
+    \begin{false}#3\end{false}
+  \end{decision}
+}
+
+\makeatletter
+
+\newcounter{decisioncount}
+
+\newif\if@indecision
+\@indecisionfalse
+
+\newcommand\decisionerror[1]{%
+  \PackageError{pnp-decision}{#1}{The environment must be used inside a decision environment.}}
+
+\newenvironment{decision}{%
+  \refstepcounter{decisioncount}%
+  \edef\currentdecisiongroup{questionresult\thedecisioncount}%
+  \@indecisiontrue
+  \par\medskip
+  \nopagebreak
+  \noindent
+  \begin{minipage}{\linewidth}
+  \hbadness=10000
+  \ignorespaces
+}{%
+  \end{minipage}
+  \par\medskip
+  \@indecisionfalse
+}
+
+\newenvironment{condition}{%
+  \if@indecision
+  \else
+    \decisionerror{\string\begin{condition} used outside of a decision}
+  \fi
+  \begin{tcolorbox}[colback=questionblue,colframe=black,boxrule=0.5pt,sharp corners,
+      left=4pt,right=4pt,top=4pt,bottom=4pt,before skip=0pt,after skip=0pt]
+    \bfseries\ignorespaces
+}{%
+  \end{tcolorbox}
+}
+
+\newenvironment{true}{%
+  \if@indecision
+  \else
+    \decisionerror{\string\begin{true} used outside of a decision}
+  \fi
+  \begingroup
+  \begin{minipage}[t]{0.48\linewidth}%
+  \begin{tcolorbox}[colback=resultgreen,colframe=black,boxrule=0.5pt,sharp corners,
+      left=4pt,right=4pt,top=4pt,bottom=4pt,equal height group=\currentdecisiongroup]
+    \ignorespaces
+}{%
+  \end{tcolorbox}%
+  \end{minipage}%
+  \hfill%
+  \endgroup
+  \ignorespacesafterend
+}
+
+\newenvironment{longtrue}{%
+  \par\medskip
+\begin{tcolorbox}[colback=resultgreen,colframe=black,boxrule=0.5pt,sharp corners,
+      left=4pt,right=4pt,top=4pt,bottom=4pt]
+    \ignorespaces
+}{%
+  \end{tcolorbox}%
+  \par\medskip
+}
+
+\newenvironment{false}{%
+  \if@indecision
+  \else
+    \decisionerror{\string\begin{false} used outside of a decision}
+  \fi
+  \hfill%
+  \begingroup
+  \begin{minipage}[t]{0.48\linewidth}%
+  \begin{tcolorbox}[colback=resultred,colframe=black,boxrule=0.5pt,sharp corners,
+      left=4pt,right=4pt,top=4pt,bottom=4pt,equal height group=\currentdecisiongroup]
+    \ignorespaces
+}{%
+  \end{tcolorbox}%
+  \end{minipage}%
+  \endgroup
+}
+
+\newenvironment{longfalse}{%
+  \par\medskip
+\begin{tcolorbox}[colback=resultred,colframe=black,boxrule=0.5pt,sharp corners,
+      left=4pt,right=4pt,top=4pt,bottom=4pt]
+    \ignorespaces
+}{%
+  \end{tcolorbox}%
+  \par\medskip
+}
+
+\makeatother

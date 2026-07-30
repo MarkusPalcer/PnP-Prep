@@ -1,0 +1,323 @@
+\section{Entscheidungen}
+
+\subsection{Die Umgebung \texttt{decision}}
+
+Die Umgebung \verb|decision| erzeugt einen Entscheidungsblock.
+
+Ein Entscheidungsblock besteht aus:
+
+\begin{enumerate}
+\item einer Bedingung,
+\item einem Erfolgsfall,
+\item einem Misserfolgsfall.
+\end{enumerate}
+
+Die beiden Ergebnisfelder werden nebeneinander dargestellt.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{decision}
+
+\begin{condition}
+Bedingung
+\end{condition}
+
+\begin{true}
+Erfolg
+\end{true}
+
+\begin{false}
+Misserfolg
+\end{false}
+
+\end{decision}
+\end{Verbatim}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{decision}
+
+\begin{condition}
+Die Helden bestehen die Probe.
+\end{condition}
+
+\begin{true}
+Sie finden den geheimen Eingang.
+\end{true}
+
+\begin{false}
+Sie lösen eine Falle aus.
+\end{false}
+
+\end{decision}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{decision}
+
+\begin{condition}
+Die Helden bestehen die Probe.
+\end{condition}
+
+\begin{true}
+Sie finden den geheimen Eingang.
+\end{true}
+
+\begin{false}
+Sie lösen eine Falle aus.
+\end{false}
+
+\end{decision}
+
+
+\subsection{Die Umgebung \texttt{condition}}
+
+Die Umgebung \verb|condition| erzeugt den oberen, blauen Bereich eines Entscheidungsblocks.
+
+Sie darf nur innerhalb einer \verb|decision|-Umgebung verwendet werden.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{condition}
+Die Frage oder Bedingung
+\end{condition}
+\end{Verbatim}
+
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{condition}
+Ist die Tür verschlossen?
+\end{condition}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{decision}
+\begin{condition}
+Ist die Tür verschlossen?
+\end{condition}
+\begin{true}
+\end{true}
+\begin{false}
+\end{false}
+\end{decision}
+
+
+\subsection{Die Umgebung \texttt{true}}
+
+Die Umgebung \verb|true| erzeugt das grüne Erfolgsfeld innerhalb einer Entscheidung.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{true}
+Ergebnis bei Erfolg
+\end{true}
+\end{Verbatim}
+
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{true}
+Die Helden entdecken den Schatz.
+\end{true}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{decision}
+\begin{condition}
+Probe gelungen?
+\end{condition}
+\begin{true}
+Die Helden entdecken den Schatz.
+\end{true}
+\begin{false}
+\end{false}
+\end{decision}
+
+
+\subsection{Die Umgebung \texttt{false}}
+
+Die Umgebung \verb|false| erzeugt das rote Misserfolgsfeld innerhalb einer Entscheidung.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{false}
+Ergebnis bei Misserfolg
+\end{false}
+\end{Verbatim}
+
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{false}
+Die Falle wird ausgelöst.
+\end{false}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{decision}
+\begin{condition}
+Probe gelungen?
+\end{condition}
+\begin{true}
+\end{true}
+\begin{false}
+Die Falle wird ausgelöst.
+\end{false}
+\end{decision}
+
+\subsection{Die Umgebung \texttt{longtrue}}
+
+Die Umgebung \verb|longtrue| erzeugt einen großen grünen Erfolgsblock.
+
+Im Gegensatz zu \verb|true| ist sie nicht Teil einer
+\verb|decision|-Umgebung und nimmt die komplette Seitenbreite ein.
+
+Sie eignet sich für längere Beschreibungen eines Erfolgsfalls.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{longtrue}
+Text
+\end{longtrue}
+\end{Verbatim}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{longtrue}
+Die Helden überzeugen den Wächter
+und erhalten Zugang zur Burg.
+\end{longtrue}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{longtrue}
+Die Helden überzeugen den Wächter
+und erhalten Zugang zur Burg.
+\end{longtrue}
+
+
+\subsection{Die Umgebung \texttt{longfalse}}
+
+Die Umgebung \verb|longfalse| erzeugt einen großen roten Misserfolgsblock.
+
+Wie \verb|longtrue| verwendet sie die gesamte verfügbare Breite und ist nicht
+an eine \verb|decision|-Umgebung gebunden.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{longfalse}
+Text
+\end{longfalse}
+\end{Verbatim}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{longfalse}
+Die Wachen entdecken die Gruppe
+und schlagen Alarm.
+\end{longfalse}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{longfalse}
+Die Wachen entdecken die Gruppe
+und schlagen Alarm.
+\end{longfalse}
+
+
+\subsection{Der Befehl \texttt{\textbackslash decide}}
+
+Der Befehl \verb|\decide| ist eine Kurzschreibweise für einen vollständigen
+Entscheidungsblock.
+
+Er entspricht funktional:
+
+\begin{Verbatim}
+\begin{decision}
+\begin{condition}
+...
+\end{condition}
+
+\begin{true}
+...
+\end{true}
+
+\begin{false}
+...
+\end{false}
+\end{decision}
+\end{Verbatim}
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\decide
+    {Bedingung}
+    {Erfolg}
+    {Misserfolg}
+\end{Verbatim}
+
+\subsubsection*{Parameter}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Parameter & Bedeutung\\
+\hline
+1 & Bedingung oder Frage\\
+\hline
+2 & Ergebnis bei Erfolg\\
+\hline
+3 & Ergebnis bei Misserfolg\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\decide
+    {Die Helden öffnen das Schloss.}
+    {Die Tür öffnet sich lautlos.}
+    {Ein Alarm ertönt.}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\decide
+    {Die Helden öffnen das Schloss.}
+    {Die Tür öffnet sich lautlos.}
+    {Ein Alarm ertönt.}

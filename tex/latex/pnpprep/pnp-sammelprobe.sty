@@ -1,0 +1,28 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-sammelprobe}[2026/07/30 Sammelprobe Command]
+
+\RequirePackage{xparse}
+\RequirePackage{flexiblebox}
+
+% Sammelprobe-Makro
+\NewDocumentCommand{\sammelprobe}{m m o}{%
+\begin{FlexibleBox}{Sammelprobe}
+
+\begin{center}
+\footnotesize\itshape
+3 TaW* = 1 QS; 10 QS Nötig; Teilerfolg bei 6 QS
+\end{center}
+
+\noindent\textbf{Talent(e):} #1
+
+\medskip
+
+\noindent\textbf{Dauer pro Versuch:} #2
+
+\IfValueT{#3}{%
+    \medskip
+    \noindent\textbf{Ziel:} #3
+}
+
+\end{FlexibleBox}
+}

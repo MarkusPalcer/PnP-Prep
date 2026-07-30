@@ -1,0 +1,29 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-gm}[2026/07/30 GM Notes Environment]
+
+\RequirePackage[most]{tcolorbox}
+
+% Frame support for Meisterinformation blocks.
+\newtcolorbox{gm}{
+  enhanced,
+  breakable,
+  colback=white,
+  colframe=black,
+  boxrule=0pt,
+  leftrule=1.5pt,
+  rightrule=0pt,
+  toprule=0pt,
+  bottomrule=0pt,
+  left=0.8em,
+  right=0.8em,
+  top=0.5em,
+  bottom=0.5em,
+  before skip=\medskipamount,
+  after skip=\medskipamount
+}
+
+\newcommand{\gmnote}[1]{%
+  \begin{gm}
+    #1
+  \end{gm}
+}

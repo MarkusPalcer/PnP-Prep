@@ -1,0 +1,201 @@
+\section{Gegnerwerte}
+
+\subsection{Die Umgebung \texttt{Wertekasten}}
+
+Die Umgebung \verb|Wertekasten| erzeugt einen standardisierten Werteblock
+für Gegner.
+
+Sie basiert auf der Umgebung \verb|FlexibleBox| und stellt innerhalb des
+Blocks zusätzliche Befehle zur Verfügung:
+
+\begin{itemize}
+\item \verb|\wert|
+\item \verb|\waffe|
+\item \verb|\ruestung|
+\end{itemize}
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\begin{Wertekasten}{Name}
+
+...
+
+\end{Wertekasten}
+\end{Verbatim}
+
+Der Parameter gibt den Titel der Box an.
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{Wertekasten}{Goblin}
+
+\wert{MU}{10}
+\wert{KL}{8}
+\wert{KK}{9}
+
+\end{Wertekasten}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{Wertekasten}{Goblin}
+
+\wert{MU}{10}
+\wert{KL}{8}
+\wert{KK}{9}
+
+\end{Wertekasten}
+
+
+\subsection{Der Befehl \texttt{\textbackslash wert}}
+
+Der Befehl \verb|\wert| erzeugt ein einzelnes Wertepaar.
+
+Er ist nur innerhalb einer \verb|Wertekasten|-Umgebung verfügbar.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\wert{Name}{Wert}
+\end{Verbatim}
+
+\subsubsection*{Parameter}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Parameter & Bedeutung\\
+\hline
+Name & Bezeichnung des Wertes\\
+\hline
+Wert & eigentlicher Wert\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{Wertekasten}{Ork}
+
+\wert{MU}{12}
+\wert{LE}{35}
+
+\end{Wertekasten}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{Wertekasten}{Ork}
+
+\wert{MU}{12}
+\wert{LE}{35}
+
+\end{Wertekasten}
+
+
+\subsection{Der Befehl \texttt{\textbackslash waffe}}
+
+Der Befehl \verb|\waffe| erzeugt eine vollständige Waffenzeile.
+
+Er trägt automatisch die Werte für
+
+\begin{itemize}
+\item AT (Attacke)
+\item PA (Parade)
+\item TP (Trefferpunkte)
+\item INI (Initiative)
+\end{itemize}
+
+ein.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\waffe
+    {Name}
+    {AT}
+    {PA}
+    {TP}
+    {INI}
+\end{Verbatim}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{Wertekasten}{Ork-Krieger}
+
+\waffe
+    {Axt}
+    {12}
+    {8}
+    {1W6+3}
+    {10}
+
+\end{Wertekasten}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{Wertekasten}{Ork-Krieger}
+
+\waffe
+    {Axt}
+    {12}
+    {8}
+    {1W6+3}
+    {10}
+
+\end{Wertekasten}
+
+
+\subsection{Der Befehl \texttt{\textbackslash ruestung}}
+
+Der Befehl \verb|\ruestung| erzeugt eine Rüstungszeile.
+
+Automatisch dargestellt werden:
+
+\begin{itemize}
+\item Rüstungsname
+\item RS-Wert (Rüstungsschutz)
+\end{itemize}
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\ruestung
+    {Rüstung}
+    {RS}
+\end{Verbatim}
+
+\subsubsection*{Beispiel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\begin{Wertekasten}{Ork-Krieger}
+
+\ruestung
+    {Lederrüstung}
+    {2}
+
+\end{Wertekasten}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\begin{Wertekasten}{Ork-Krieger}
+
+\ruestung
+    {Lederrüstung}
+    {2}
+
+\end{Wertekasten}

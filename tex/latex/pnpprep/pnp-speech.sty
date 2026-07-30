@@ -1,0 +1,11 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-speech}[2026/07/30 Speech Environment]
+
+\RequirePackage{fancyvrb}
+
+% `speech` environment: italic text, preserve source line breaks, non-monospace
+\DefineVerbatimEnvironment{speech}{Verbatim}{%
+  formatcom=\itshape\rmfamily,
+  fontsize=\normalsize,
+  baselinestretch=1
+}

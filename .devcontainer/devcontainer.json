@@ -1,0 +1,61 @@
+{
+  "name": "LaTeX Development",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "James-Yu.latex-workshop",
+        "DavidAnson.vscode-markdownlint",
+        "ms-vscode.makefile-tools"
+      ],
+      "settings": {
+        "latex-workshop.latex.tools": [
+          {
+            "name": "latexmk",
+            "command": "latexmk",
+            "args": [
+              "-synctex=1",
+              "-interaction=nonstopmode",
+              "-file-line-error",
+              "-pdf",
+              "%DOC%"
+            ]
+          },
+          {
+            "name": "pdflatex",
+            "command": "pdflatex",
+            "args": [
+              "-synctex=1",
+              "-interaction=nonstopmode",
+              "-file-line-error",
+              "%DOC%"
+            ]
+          }
+        ],
+        "latex-workshop.latex.recipes": [
+          {
+            "name": "latexmk",
+            "tools": ["latexmk"]
+          },
+          {
+            "name": "pdflatex",
+            "tools": ["pdflatex"]
+          }
+        ],
+        "latex-workshop.view.pdf.viewer": "tab"
+      }
+    }
+  },
+  "postCreateCommand": "mktexlsr || true && latexmk --version && pdflatex --version",
+  
+  "forwardPorts": [],
+  
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/latex/.gitconfig,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "TEXMFHOME": "${containerWorkspaceFolder}"
+  }
+}

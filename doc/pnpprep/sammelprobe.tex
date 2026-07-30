@@ -1,0 +1,77 @@
+\section{Sammelproben}
+
+\subsection{Der Befehl \texttt{\textbackslash sammleprobe}}
+
+Der Befehl \verb|\sammelprobe| erzeugt einen standardisierten Kasten für Sammelproben.
+
+Er enthält automatisch die Regeln:
+
+\begin{itemize}
+\item 3 TaW* entsprechen 1 QS
+\item 10 QS sind notwendig
+\item Teilerfolg bei 6 QS
+\end{itemize}
+
+Die angegebenen Talente und die Dauer werden automatisch formatiert.
+
+\subsubsection*{Syntax}
+
+\begin{Verbatim}
+\sammelprobe
+    {Talent(e)}
+    {Dauer}
+    [Ziel]
+\end{Verbatim}
+
+Der dritte Parameter ist optional.
+
+\subsubsection*{Parameter}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Parameter & Bedeutung\\
+\hline
+Talent(e) & verwendete Talente oder Fähigkeiten\\
+\hline
+Dauer & Zeit pro Versuch\\
+\hline
+Ziel & optionales Ziel der Probe\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{Beispiel mit Ziel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\sammelprobe
+    {Wildnisleben}
+    {30 Minuten}
+    [Einen sicheren Lagerplatz finden]
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\sammelprobe
+    {Wildnisleben}
+    {30 Minuten}
+    [Einen sicheren Lagerplatz finden]
+
+
+\subsubsection*{Beispiel ohne Ziel}
+
+\paragraph{Quellcode}
+
+\begin{Verbatim}
+\sammelprobe
+    {Orientierung}
+    {1 Stunde}
+\end{Verbatim}
+
+\paragraph{Ergebnis}
+
+\sammelprobe
+    {Orientierung}
+    {1 Stunde}

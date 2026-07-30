@@ -1,0 +1,19 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-music}[2026/07/30 Music Commands]
+
+\RequirePackage{tcolorbox}
+\RequirePackage{xcolor}
+
+% Music note command: centered boxed note with padding and margin after
+\newtcolorbox{musicbox}{colback=gray!10,boxrule=0pt,sharp corners,
+  left=5mm,right=5mm,top=5mm,bottom=5mm,boxsep=0pt,halign=center,valign=center}
+
+\newcommand{\music}[1]{%
+  \par
+  \begin{center}%
+    \begin{musicbox}%
+      {\large ♪\quad #1 \quad \large ♪}%
+    \end{musicbox}%
+  \end{center}%
+  \vspace{5mm}%
+}

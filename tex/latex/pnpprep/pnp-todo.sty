@@ -1,0 +1,13 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-todo}[2026/07/30 Todo Commands]
+
+\RequirePackage{tcolorbox}
+
+\newcommand{\todo}[1]{%
+\leavevmode  
+\par\medskip
+  \begin{tcolorbox}[colback=yellow,colframe=black,boxrule=0.5pt,sharp corners,left=4pt,right=4pt,top=4pt,bottom=4pt]
+    #1
+  \end{tcolorbox}
+  \par\medskip
+}
