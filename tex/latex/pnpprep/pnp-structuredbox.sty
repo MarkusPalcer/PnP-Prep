@@ -1,0 +1,31 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-structuredbox}[2026/08/01 Shared helpers for structured boxes]
+
+\RequirePackage{expl3}
+
+\ExplSyntaxOn
+
+% Shared validation helper: require exactly one item.
+\cs_new_protected:Npn \pnp_struct_require_exactly_one:nnnn #1#2#3#4
+  {
+    \int_compare:nNnTF { #1 } = { 1 }
+      { }
+      {
+        \int_compare:nNnTF { #1 } = { 0 }
+          { \msg_error:nn { #2 } { #3 } }
+          { \msg_error:nn { #2 } { #4 } }
+      }
+  }
+
+% Shared validation helper: require one-or-more items.
+\cs_new_protected:Npn \pnp_struct_require_at_least_one:nnn #1#2#3
+  {
+    \int_compare:nNnT { #1 } < { 1 }
+      { \msg_error:nn { #2 } { #3 } }
+  }
+
+% Shared render utility for multi-entry lists.
+\cs_new_protected:Npn \pnp_struct_render_thin_separator:
+  { \par\smallskip\noindent\rule{\linewidth}{0.4pt}\smallskip\par }
+
+\ExplSyntaxOff

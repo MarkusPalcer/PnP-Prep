@@ -5,6 +5,7 @@
 \RequirePackage{xparse}
 \RequirePackage{tcolorbox}
 \RequirePackage{xcolor}
+\RequirePackage{pnp-structuredbox}
 
 % -----------------------------------------------------------------------------
 % Visual palette
@@ -127,47 +128,27 @@
 % -----------------------------------------------------------------------------
 % Validation phase
 % -----------------------------------------------------------------------------
-% Generic validation helper: require exactly one item.
-\cs_new_protected:Npn \__pnp_struct_require_exactly_one:nnn #1#2#3
-  {
-    \int_compare:nNnTF { #1 } = { 1 }
-      { }
-      {
-        \int_compare:nNnTF { #1 } = { 0 }
-          { \msg_error:nn { pnp-decision } { #2 } }
-          { \msg_error:nn { pnp-decision } { #3 } }
-      }
-  }
-
-% Generic validation helper: require one-or-more items.
-\cs_new_protected:Npn \__pnp_struct_require_at_least_one:nn #1#2
-  {
-    \int_compare:nNnT { #1 } < { 1 }
-      { \msg_error:nn { pnp-decision } { #2 } }
-  }
-
 % Enforce required structure before rendering output.
 \cs_new_protected:Npn \__pnp_decision_validate:
   {
-    \__pnp_struct_require_exactly_one:nnn
+    \pnp_struct_require_exactly_one:nnnn
       { \g__pnp_decision_condition_count_int }
+      { pnp-decision }
       { missing-condition }
       { too-many-conditions }
-    \__pnp_struct_require_at_least_one:nn
+    \pnp_struct_require_at_least_one:nnn
       { \seq_count:N \g__pnp_decision_pass_bodies_seq }
+      { pnp-decision }
       { missing-pass }
-    \__pnp_struct_require_at_least_one:nn
+    \pnp_struct_require_at_least_one:nnn
       { \seq_count:N \g__pnp_decision_fail_bodies_seq }
+      { pnp-decision }
       { missing-fail }
   }
 
 % -----------------------------------------------------------------------------
 % Render helpers
 % -----------------------------------------------------------------------------
-% Shared separator utility for multi-entry lists.
-\cs_new_protected:Npn \__pnp_struct_render_thin_separator:
-  { \par\smallskip\noindent\rule{\linewidth}{0.4pt}\smallskip\par }
-
 % Single-entry layout: optional right-aligned title above body.
 \cs_new_protected:Npn \__pnp_decision_render_single:nn #1#2
   {
@@ -196,7 +177,7 @@
     \int_step_inline:nn { \seq_count:N #2 }
       {
         \int_compare:nNnT { ##1 } > { 1 }
-          { \__pnp_struct_render_thin_separator: }
+          { \pnp_struct_render_thin_separator: }
 
         \noindent
         \makebox[\l__pnp_decision_max_title_dim][r]
