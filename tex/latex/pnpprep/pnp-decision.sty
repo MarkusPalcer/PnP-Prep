@@ -1,11 +1,14 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{pnp-decision}[2026/07/30 Decision Environments]
+\ProvidesPackage{pnp-decision}[2026/08/01 Simplified Decision Environments]
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
 \RequirePackage{tcolorbox}
 \RequirePackage{xcolor}
 
+% -----------------------------------------------------------------------------
+% Visual palette
+% -----------------------------------------------------------------------------
 % Colors for decision sections
 \definecolor{questionblue}{RGB}{220,235,250}
 \definecolor{resultgreen}{RGB}{220,245,220}
@@ -13,16 +16,29 @@
 
 \ExplSyntaxOn
 
+% -----------------------------------------------------------------------------
+% Global decision state (collect phase)
+% -----------------------------------------------------------------------------
+% Tracks whether parser is currently inside a decision block.
 \bool_new:N \g__pnp_decision_inside_bool
+% Number of captured condition blocks (must be exactly 1).
 \int_new:N \g__pnp_decision_condition_count_int
+% Captured condition body.
 \tl_new:N \g__pnp_decision_condition_body_tl
+% Captured pass entries (parallel title/body sequences).
 \seq_new:N \g__pnp_decision_pass_titles_seq
 \seq_new:N \g__pnp_decision_pass_bodies_seq
+% Captured fail entries (parallel title/body sequences).
 \seq_new:N \g__pnp_decision_fail_titles_seq
 \seq_new:N \g__pnp_decision_fail_bodies_seq
+% Sink box for free text in decision body (intentionally ignored).
 \box_new:N \g__pnp_decision_sink_box
+% Scratch dimension for multi-entry title-column width calculation.
 \dim_new:N \l__pnp_decision_max_title_dim
 
+% -----------------------------------------------------------------------------
+% Diagnostics
+% -----------------------------------------------------------------------------
 \msg_new:nnn { pnp-decision } { child-outside-decision }
   { #1~may~only~appear~directly~inside~a~decision~environment. }
 
@@ -56,6 +72,10 @@
     Add~one~or~more~fail~entries.
   }
 
+% -----------------------------------------------------------------------------
+% Collect-phase helpers
+% -----------------------------------------------------------------------------
+% Reset all decision-local state at begin{decision}.
 \cs_new_protected:Npn \__pnp_decision_reset:
   {
     \int_gzero:N \g__pnp_decision_condition_count_int
@@ -66,6 +86,7 @@
     \seq_gclear:N \g__pnp_decision_fail_bodies_seq
   }
 
+% Guard against nested condition/pass/fail blocks inside child bodies.
 \cs_new_protected:Npn \__pnp_decision_check_nested:nn #1#2
   {
     \tl_set:Nx \l_tmpa_tl { \tl_to_str:n {#2} }
@@ -73,6 +94,7 @@
       { \msg_error:nnn { pnp-decision } { nested-child } { #1 } }
   }
 
+% Capture a condition body (cardinality checked later in validation phase).
 \cs_new_protected:Npn \__pnp_decision_add_condition:n #1
   {
     \bool_if:NF \g__pnp_decision_inside_bool
@@ -82,6 +104,7 @@
     \tl_gset:Nn \g__pnp_decision_condition_body_tl { #1 }
   }
 
+% Capture one pass tuple: [title] + body.
 \cs_new_protected:Npn \__pnp_decision_add_pass:nn #1#2
   {
     \bool_if:NF \g__pnp_decision_inside_bool
@@ -91,6 +114,7 @@
     \seq_gput_right:Nn \g__pnp_decision_pass_bodies_seq { #2 }
   }
 
+% Capture one fail tuple: [title] + body.
 \cs_new_protected:Npn \__pnp_decision_add_fail:nn #1#2
   {
     \bool_if:NF \g__pnp_decision_inside_bool
@@ -100,21 +124,51 @@
     \seq_gput_right:Nn \g__pnp_decision_fail_bodies_seq { #2 }
   }
 
-\cs_new_protected:Npn \__pnp_decision_validate:
+% -----------------------------------------------------------------------------
+% Validation phase
+% -----------------------------------------------------------------------------
+% Generic validation helper: require exactly one item.
+\cs_new_protected:Npn \__pnp_struct_require_exactly_one:nnn #1#2#3
   {
-    \int_compare:nNnTF { \g__pnp_decision_condition_count_int } = { 1 }
+    \int_compare:nNnTF { #1 } = { 1 }
       { }
       {
-        \int_compare:nNnTF { \g__pnp_decision_condition_count_int } = { 0 }
-          { \msg_error:nn { pnp-decision } { missing-condition } }
-          { \msg_error:nn { pnp-decision } { too-many-conditions } }
+        \int_compare:nNnTF { #1 } = { 0 }
+          { \msg_error:nn { pnp-decision } { #2 } }
+          { \msg_error:nn { pnp-decision } { #3 } }
       }
-    \int_compare:nNnT { \seq_count:N \g__pnp_decision_pass_bodies_seq } < { 1 }
-      { \msg_error:nn { pnp-decision } { missing-pass } }
-    \int_compare:nNnT { \seq_count:N \g__pnp_decision_fail_bodies_seq } < { 1 }
-      { \msg_error:nn { pnp-decision } { missing-fail } }
   }
 
+% Generic validation helper: require one-or-more items.
+\cs_new_protected:Npn \__pnp_struct_require_at_least_one:nn #1#2
+  {
+    \int_compare:nNnT { #1 } < { 1 }
+      { \msg_error:nn { pnp-decision } { #2 } }
+  }
+
+% Enforce required structure before rendering output.
+\cs_new_protected:Npn \__pnp_decision_validate:
+  {
+    \__pnp_struct_require_exactly_one:nnn
+      { \g__pnp_decision_condition_count_int }
+      { missing-condition }
+      { too-many-conditions }
+    \__pnp_struct_require_at_least_one:nn
+      { \seq_count:N \g__pnp_decision_pass_bodies_seq }
+      { missing-pass }
+    \__pnp_struct_require_at_least_one:nn
+      { \seq_count:N \g__pnp_decision_fail_bodies_seq }
+      { missing-fail }
+  }
+
+% -----------------------------------------------------------------------------
+% Render helpers
+% -----------------------------------------------------------------------------
+% Shared separator utility for multi-entry lists.
+\cs_new_protected:Npn \__pnp_struct_render_thin_separator:
+  { \par\smallskip\noindent\rule{\linewidth}{0.4pt}\smallskip\par }
+
+% Single-entry layout: optional right-aligned title above body.
 \cs_new_protected:Npn \__pnp_decision_render_single:nn #1#2
   {
     \tl_if_blank:nF { #1 }
@@ -125,6 +179,10 @@
     \noindent #2\par
   }
 
+% Multi-entry layout:
+% - compute max title width per section,
+% - render right-aligned title column + body column,
+% - separate entries with thin horizontal rules.
 \cs_new_protected:Npn \__pnp_decision_render_multi:NN #1#2
   {
     \dim_zero:N \l__pnp_decision_max_title_dim
@@ -138,7 +196,7 @@
     \int_step_inline:nn { \seq_count:N #2 }
       {
         \int_compare:nNnT { ##1 } > { 1 }
-          { \par\smallskip\noindent\rule{\linewidth}{0.4pt}\smallskip\par }
+          { \__pnp_struct_render_thin_separator: }
 
         \noindent
         \makebox[\l__pnp_decision_max_title_dim][r]
@@ -151,6 +209,7 @@
       }
   }
 
+% Dispatch to single- vs multi-entry renderer.
 \cs_new_protected:Npn \__pnp_decision_render_entries:NN #1#2
   {
     \int_compare:nNnTF { \seq_count:N #2 } = { 1 }
@@ -162,6 +221,8 @@
       { \__pnp_decision_render_multi:NN #1 #2 }
   }
 
+% Compose final decision output in deterministic section order:
+% condition -> pass -> fail.
 \cs_new_protected:Npn \__pnp_decision_render:
   {
     \begin{center}
@@ -222,6 +283,10 @@
     \end{center}
   }
 
+% -----------------------------------------------------------------------------
+% Public environments (API)
+% -----------------------------------------------------------------------------
+% decision: collect children, then validate + render on close.
 \NewDocumentEnvironment { decision } { }
   {
     \__pnp_decision_reset:
@@ -236,14 +301,17 @@
     \__pnp_decision_render:
   }
 
+% condition: required exactly once (checked in validation phase).
 \NewDocumentEnvironment { condition } { +b }
   { \__pnp_decision_add_condition:n { #1 } }
   { }
 
+% pass: required at least once; optional title in [..].
 \NewDocumentEnvironment { pass } { O{} +b }
   { \__pnp_decision_add_pass:nn { #1 } { #2 } }
   { }
 
+% fail: required at least once; optional title in [..].
 \NewDocumentEnvironment { fail } { O{} +b }
   { \__pnp_decision_add_fail:nn { #1 } { #2 } }
   { }
