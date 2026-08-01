@@ -1,113 +1,251 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pnp-decision}[2026/07/30 Decision Environments]
 
+\RequirePackage{expl3}
+\RequirePackage{xparse}
 \RequirePackage{tcolorbox}
 \RequirePackage{xcolor}
 
-% Colors for Question/true-false blocks
+% Colors for decision sections
 \definecolor{questionblue}{RGB}{220,235,250}
 \definecolor{resultgreen}{RGB}{220,245,220}
 \definecolor{resultred}{RGB}{250,220,220}
 
-\newcommand{\decide}[3]{%
-  \begin{decision}
-    \begin{condition}#1\end{condition}
-    \begin{true}#2\end{true}
-    \begin{false}#3\end{false}
-  \end{decision}
-}
+\ExplSyntaxOn
 
-\makeatletter
+\bool_new:N \g__pnp_decision_inside_bool
+\int_new:N \g__pnp_decision_condition_count_int
+\tl_new:N \g__pnp_decision_condition_body_tl
+\seq_new:N \g__pnp_decision_pass_titles_seq
+\seq_new:N \g__pnp_decision_pass_bodies_seq
+\seq_new:N \g__pnp_decision_fail_titles_seq
+\seq_new:N \g__pnp_decision_fail_bodies_seq
+\box_new:N \g__pnp_decision_sink_box
+\dim_new:N \l__pnp_decision_max_title_dim
 
-\newcounter{decisioncount}
+\msg_new:nnn { pnp-decision } { child-outside-decision }
+  { #1~may~only~appear~directly~inside~a~decision~environment. }
 
-\newif\if@indecision
-\@indecisionfalse
+\msg_new:nnn { pnp-decision } { nested-child }
+  {
+    Child~environments~must~not~be~nested.~Found~a~child~environment~inside~#1.\\
+    Move~child~environments~so~they~are~direct~children~of~decision.
+  }
 
-\newcommand\decisionerror[1]{%
-  \PackageError{pnp-decision}{#1}{The environment must be used inside a decision environment.}}
+\msg_new:nnn { pnp-decision } { missing-condition }
+  {
+    A~decision~environment~must~contain~exactly~one~condition~environment.\\
+    Add~one~condition~entry~inside~the~decision~block.
+  }
 
-\newenvironment{decision}{%
-  \refstepcounter{decisioncount}%
-  \edef\currentdecisiongroup{questionresult\thedecisioncount}%
-  \@indecisiontrue
-  \par\medskip
-  \nopagebreak
-  \noindent
-  \begin{minipage}{\linewidth}
-  \hbadness=10000
-  \ignorespaces
-}{%
-  \end{minipage}
-  \par\medskip
-  \@indecisionfalse
-}
+\msg_new:nnn { pnp-decision } { too-many-conditions }
+  {
+    A~decision~environment~cannot~contain~more~than~one~condition~environment.\\
+    Keep~exactly~one~condition~entry.
+  }
 
-\newenvironment{condition}{%
-  \if@indecision
-  \else
-    \decisionerror{\string\begin{condition} used outside of a decision}
-  \fi
-  \begin{tcolorbox}[colback=questionblue,colframe=black,boxrule=0.5pt,sharp corners,
-      left=4pt,right=4pt,top=4pt,bottom=4pt,before skip=0pt,after skip=0pt]
-    \bfseries\ignorespaces
-}{%
-  \end{tcolorbox}
-}
+\msg_new:nnn { pnp-decision } { missing-pass }
+  {
+    A~decision~environment~must~contain~at~least~one~pass~environment.\\
+    Add~one~or~more~pass~entries.
+  }
 
-\newenvironment{true}{%
-  \if@indecision
-  \else
-    \decisionerror{\string\begin{true} used outside of a decision}
-  \fi
-  \begingroup
-  \begin{minipage}[t]{0.48\linewidth}%
-  \begin{tcolorbox}[colback=resultgreen,colframe=black,boxrule=0.5pt,sharp corners,
-      left=4pt,right=4pt,top=4pt,bottom=4pt,equal height group=\currentdecisiongroup]
+\msg_new:nnn { pnp-decision } { missing-fail }
+  {
+    A~decision~environment~must~contain~at~least~one~fail~environment.\\
+    Add~one~or~more~fail~entries.
+  }
+
+\cs_new_protected:Npn \__pnp_decision_reset:
+  {
+    \int_gzero:N \g__pnp_decision_condition_count_int
+    \tl_gclear:N \g__pnp_decision_condition_body_tl
+    \seq_gclear:N \g__pnp_decision_pass_titles_seq
+    \seq_gclear:N \g__pnp_decision_pass_bodies_seq
+    \seq_gclear:N \g__pnp_decision_fail_titles_seq
+    \seq_gclear:N \g__pnp_decision_fail_bodies_seq
+  }
+
+\cs_new_protected:Npn \__pnp_decision_check_nested:nn #1#2
+  {
+    \tl_set:Nx \l_tmpa_tl { \tl_to_str:n {#2} }
+    \regex_match:nnT { \\begin\{(?:condition|pass|fail)\} } { \l_tmpa_tl }
+      { \msg_error:nnn { pnp-decision } { nested-child } { #1 } }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_add_condition:n #1
+  {
+    \bool_if:NF \g__pnp_decision_inside_bool
+      { \msg_error:nnn { pnp-decision } { child-outside-decision } { condition } }
+    \__pnp_decision_check_nested:nn { condition } { #1 }
+    \int_gincr:N \g__pnp_decision_condition_count_int
+    \tl_gset:Nn \g__pnp_decision_condition_body_tl { #1 }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_add_pass:nn #1#2
+  {
+    \bool_if:NF \g__pnp_decision_inside_bool
+      { \msg_error:nnn { pnp-decision } { child-outside-decision } { pass } }
+    \__pnp_decision_check_nested:nn { pass } { #2 }
+    \seq_gput_right:Nn \g__pnp_decision_pass_titles_seq { #1 }
+    \seq_gput_right:Nn \g__pnp_decision_pass_bodies_seq { #2 }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_add_fail:nn #1#2
+  {
+    \bool_if:NF \g__pnp_decision_inside_bool
+      { \msg_error:nnn { pnp-decision } { child-outside-decision } { fail } }
+    \__pnp_decision_check_nested:nn { fail } { #2 }
+    \seq_gput_right:Nn \g__pnp_decision_fail_titles_seq { #1 }
+    \seq_gput_right:Nn \g__pnp_decision_fail_bodies_seq { #2 }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_validate:
+  {
+    \int_compare:nNnTF { \g__pnp_decision_condition_count_int } = { 1 }
+      { }
+      {
+        \int_compare:nNnTF { \g__pnp_decision_condition_count_int } = { 0 }
+          { \msg_error:nn { pnp-decision } { missing-condition } }
+          { \msg_error:nn { pnp-decision } { too-many-conditions } }
+      }
+    \int_compare:nNnT { \seq_count:N \g__pnp_decision_pass_bodies_seq } < { 1 }
+      { \msg_error:nn { pnp-decision } { missing-pass } }
+    \int_compare:nNnT { \seq_count:N \g__pnp_decision_fail_bodies_seq } < { 1 }
+      { \msg_error:nn { pnp-decision } { missing-fail } }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_render_single:nn #1#2
+  {
+    \tl_if_blank:nF { #1 }
+      {
+        \noindent\makebox[\linewidth][r]{\textbf{#1}}\par
+        \smallskip
+      }
+    \noindent #2\par
+  }
+
+\cs_new_protected:Npn \__pnp_decision_render_multi:NN #1#2
+  {
+    \dim_zero:N \l__pnp_decision_max_title_dim
+    \seq_map_inline:Nn #1
+      {
+        \hbox_set:Nn \l_tmpa_box { \textbf{##1} }
+        \dim_set:Nn \l__pnp_decision_max_title_dim
+          { \dim_max:nn { \l__pnp_decision_max_title_dim } { \box_wd:N \l_tmpa_box } }
+      }
+
+    \int_step_inline:nn { \seq_count:N #2 }
+      {
+        \int_compare:nNnT { ##1 } > { 1 }
+          { \par\smallskip\noindent\rule{\linewidth}{0.4pt}\smallskip\par }
+
+        \noindent
+        \makebox[\l__pnp_decision_max_title_dim][r]
+          { \textbf{\seq_item:Nn #1 { ##1 }} }
+        \hspace{0.75em}
+        \parbox[t]
+          { \dim_eval:n { \linewidth - \l__pnp_decision_max_title_dim - 0.75em } }
+          { \seq_item:Nn #2 { ##1 } }
+        \par
+      }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_render_entries:NN #1#2
+  {
+    \int_compare:nNnTF { \seq_count:N #2 } = { 1 }
+      {
+        \__pnp_decision_render_single:nn
+          { \seq_item:Nn #1 { 1 } }
+          { \seq_item:Nn #2 { 1 } }
+      }
+      { \__pnp_decision_render_multi:NN #1 #2 }
+  }
+
+\cs_new_protected:Npn \__pnp_decision_render:
+  {
+    \begin{center}
+      \begin{tcolorbox}[
+        enhanced,
+        breakable,
+        width=0.9\linewidth,
+        colback=white,
+        colframe=black,
+        boxrule=0.8pt,
+        boxsep=0pt,
+        left=0pt,
+        right=0pt,
+        top=0pt,
+        bottom=0pt
+      ]
+        \begin{tcolorbox}[
+          enhanced,
+          breakable,
+          colback=questionblue,
+          colframe=questionblue,
+          boxrule=0pt,
+          left=6pt,right=6pt,top=6pt,bottom=6pt
+        ]
+          {\noindent\bfseries \g__pnp_decision_condition_body_tl\par}
+        \end{tcolorbox}
+
+        \par\nointerlineskip\noindent\rule{\linewidth}{1.1pt}\par\nointerlineskip
+
+        \begin{tcolorbox}[
+          enhanced,
+          breakable,
+          colback=resultgreen,
+          colframe=resultgreen,
+          boxrule=0pt,
+          left=6pt,right=6pt,top=6pt,bottom=6pt
+        ]
+          \__pnp_decision_render_entries:NN
+            \g__pnp_decision_pass_titles_seq
+            \g__pnp_decision_pass_bodies_seq
+        \end{tcolorbox}
+
+        \par\nointerlineskip\noindent\rule{\linewidth}{1.1pt}\par\nointerlineskip
+
+        \begin{tcolorbox}[
+          enhanced,
+          breakable,
+          colback=resultred,
+          colframe=resultred,
+          boxrule=0pt,
+          left=6pt,right=6pt,top=6pt,bottom=6pt
+        ]
+          \__pnp_decision_render_entries:NN
+            \g__pnp_decision_fail_titles_seq
+            \g__pnp_decision_fail_bodies_seq
+        \end{tcolorbox}
+      \end{tcolorbox}
+    \end{center}
+  }
+
+\NewDocumentEnvironment { decision } { }
+  {
+    \__pnp_decision_reset:
+    \bool_gset_true:N \g__pnp_decision_inside_bool
+    \setbox\g__pnp_decision_sink_box=\vbox\bgroup
     \ignorespaces
-}{%
-  \end{tcolorbox}%
-  \end{minipage}%
-  \hfill%
-  \endgroup
-  \ignorespacesafterend
-}
+  }
+  {
+    \unskip\egroup
+    \bool_gset_false:N \g__pnp_decision_inside_bool
+    \__pnp_decision_validate:
+    \__pnp_decision_render:
+  }
 
-\newenvironment{longtrue}{%
-  \par\medskip
-\begin{tcolorbox}[colback=resultgreen,colframe=black,boxrule=0.5pt,sharp corners,
-      left=4pt,right=4pt,top=4pt,bottom=4pt]
-    \ignorespaces
-}{%
-  \end{tcolorbox}%
-  \par\medskip
-}
+\NewDocumentEnvironment { condition } { +b }
+  { \__pnp_decision_add_condition:n { #1 } }
+  { }
 
-\newenvironment{false}{%
-  \if@indecision
-  \else
-    \decisionerror{\string\begin{false} used outside of a decision}
-  \fi
-  \hfill%
-  \begingroup
-  \begin{minipage}[t]{0.48\linewidth}%
-  \begin{tcolorbox}[colback=resultred,colframe=black,boxrule=0.5pt,sharp corners,
-      left=4pt,right=4pt,top=4pt,bottom=4pt,equal height group=\currentdecisiongroup]
-    \ignorespaces
-}{%
-  \end{tcolorbox}%
-  \end{minipage}%
-  \endgroup
-}
+\NewDocumentEnvironment { pass } { O{} +b }
+  { \__pnp_decision_add_pass:nn { #1 } { #2 } }
+  { }
 
-\newenvironment{longfalse}{%
-  \par\medskip
-\begin{tcolorbox}[colback=resultred,colframe=black,boxrule=0.5pt,sharp corners,
-      left=4pt,right=4pt,top=4pt,bottom=4pt]
-    \ignorespaces
-}{%
-  \end{tcolorbox}%
-  \par\medskip
-}
+\NewDocumentEnvironment { fail } { O{} +b }
+  { \__pnp_decision_add_fail:nn { #1 } { #2 } }
+  { }
 
-\makeatother
+\ExplSyntaxOff

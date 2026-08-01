@@ -2,37 +2,50 @@
 
 \subsection{Die Umgebung \texttt{decision}}
 
-Die Umgebung \verb|decision| erzeugt einen Entscheidungsblock.
+Die Umgebung \verb|decision| bildet einen vollständigen Entscheidungsblock
+mit einer Bedingung und mehreren möglichen Ausgängen.
 
-Ein Entscheidungsblock besteht aus:
+Ein gültiger Block enthält immer:
 
 \begin{enumerate}
-\item einer Bedingung,
-\item einem Erfolgsfall,
-\item einem Misserfolgsfall.
+\item genau eine \verb|condition|,
+\item mindestens eine \verb|pass|,
+\item mindestens eine \verb|fail|.
 \end{enumerate}
 
-Die beiden Ergebnisfelder werden nebeneinander dargestellt.
+Werden diese Strukturregeln verletzt, bricht die Kompilierung mit einer
+verständlichen Fehlermeldung ab.
 
 \subsubsection*{Syntax}
 
 \begin{Verbatim}
 \begin{decision}
 
-\begin{condition}
-Bedingung
-\end{condition}
+    \begin{condition}
+    Bedingung
+    \end{condition}
 
-\begin{true}
-Erfolg
-\end{true}
+    \begin{pass}[Optionaler Titel]
+    Erfolgstext
+    \end{pass}
 
-\begin{false}
-Misserfolg
-\end{false}
+    \begin{fail}[Optionaler Titel]
+    Misserfolgstext
+    \end{fail}
 
 \end{decision}
 \end{Verbatim}
+
+\subsubsection*{Hinweise}
+
+\begin{itemize}
+\item Text direkt in \verb|decision| außerhalb der Kind-Umgebungen wird ignoriert.
+\item Leerräume und Kommentare zwischen Kind-Umgebungen werden ignoriert.
+\item Die Reihenfolge im Quelltext beeinflusst die Ausgabe nicht:
+      dargestellt wird immer \emph{condition}, dann \emph{pass}, dann \emph{fail}.
+\item Die Reihenfolge innerhalb der \verb|pass|-Einträge bzw. \verb|fail|-Einträge
+      bleibt erhalten.
+\end{itemize}
 
 \subsubsection*{Beispiel}
 
@@ -41,17 +54,25 @@ Misserfolg
 \begin{Verbatim}
 \begin{decision}
 
-\begin{condition}
-Die Helden bestehen die Probe.
-\end{condition}
+    \begin{condition}
+    Wahrnehmungsprobe -2
+    \end{condition}
 
-\begin{true}
-Sie finden den geheimen Eingang.
-\end{true}
+    \begin{pass}[0]
+    Du siehst ein seltsames Glühen.
+    \end{pass}
 
-\begin{false}
-Sie lösen eine Falle aus.
-\end{false}
+    \begin{pass}[Kritischer Erfolg]
+    Du erkennst sofort die Energiequelle eines elektronischen Attentäters.
+    \end{pass}
+
+    \begin{fail}
+    Der Korridor ist dunkel und wirkt unheimlich.
+    \end{fail}
+
+    \begin{fail}[Kritischer Fehlschlag]
+    Für dich sieht der Gang vollkommen harmlos aus.
+    \end{fail}
 
 \end{decision}
 \end{Verbatim}
@@ -60,264 +81,215 @@ Sie lösen eine Falle aus.
 
 \begin{decision}
 
-\begin{condition}
-Die Helden bestehen die Probe.
-\end{condition}
+    \begin{condition}
+    Wahrnehmungsprobe -2
+    \end{condition}
 
-\begin{true}
-Sie finden den geheimen Eingang.
-\end{true}
+    \begin{pass}[0]
+    Du siehst ein seltsames Glühen.
+    \end{pass}
 
-\begin{false}
-Sie lösen eine Falle aus.
-\end{false}
+    \begin{pass}[Kritischer Erfolg]
+    Du erkennst sofort die Energiequelle eines elektronischen Attentäters.
+    \end{pass}
+
+    \begin{fail}
+    Der Korridor ist dunkel und wirkt unheimlich.
+    \end{fail}
+
+    \begin{fail}[Kritischer Fehlschlag]
+    Für dich sieht der Gang vollkommen harmlos aus.
+    \end{fail}
 
 \end{decision}
 
 
 \subsection{Die Umgebung \texttt{condition}}
 
-Die Umgebung \verb|condition| erzeugt den oberen, blauen Bereich eines Entscheidungsblocks.
+\verb|condition| definiert die Bedingung des Entscheidungsblocks
+(oberer, bläulicher Bereich).
 
-Sie darf nur innerhalb einer \verb|decision|-Umgebung verwendet werden.
+Sie darf nur \emph{direkt} innerhalb einer \verb|decision|-Umgebung stehen
+und genau einmal vorkommen.
 
 \subsubsection*{Syntax}
 
 \begin{Verbatim}
 \begin{condition}
-Die Frage oder Bedingung
+Frage oder Bedingung
 \end{condition}
 \end{Verbatim}
-
 
 \subsubsection*{Beispiel}
 
 \paragraph{Quellcode}
 
 \begin{Verbatim}
-\begin{condition}
-Ist die Tür verschlossen?
-\end{condition}
+\begin{decision}
+    \begin{condition}
+    Ist die Tür verschlossen?
+    \end{condition}
+    \begin{pass}
+    Nein, sie ist offen.
+    \end{pass}
+    \begin{fail}
+    Ja, du brauchst einen Dietrich.
+    \end{fail}
+\end{decision}
 \end{Verbatim}
 
 \paragraph{Ergebnis}
 
 \begin{decision}
-\begin{condition}
-Ist die Tür verschlossen?
-\end{condition}
-\begin{true}
-\end{true}
-\begin{false}
-\end{false}
+    \begin{condition}
+    Ist die Tür verschlossen?
+    \end{condition}
+    \begin{pass}
+    Nein, sie ist offen.
+    \end{pass}
+    \begin{fail}
+    Ja, du brauchst einen Dietrich.
+    \end{fail}
 \end{decision}
 
 
-\subsection{Die Umgebung \texttt{true}}
+\subsection{Die Umgebung \texttt{pass}}
 
-Die Umgebung \verb|true| erzeugt das grüne Erfolgsfeld innerhalb einer Entscheidung.
+\verb|pass| definiert einen möglichen Erfolgs-Eintrag
+(grünlicher Bereich).
 
-\subsubsection*{Syntax}
-
-\begin{Verbatim}
-\begin{true}
-Ergebnis bei Erfolg
-\end{true}
-\end{Verbatim}
-
-
-\subsubsection*{Beispiel}
-
-\paragraph{Quellcode}
-
-\begin{Verbatim}
-\begin{true}
-Die Helden entdecken den Schatz.
-\end{true}
-\end{Verbatim}
-
-\paragraph{Ergebnis}
-
-\begin{decision}
-\begin{condition}
-Probe gelungen?
-\end{condition}
-\begin{true}
-Die Helden entdecken den Schatz.
-\end{true}
-\begin{false}
-\end{false}
-\end{decision}
-
-
-\subsection{Die Umgebung \texttt{false}}
-
-Die Umgebung \verb|false| erzeugt das rote Misserfolgsfeld innerhalb einer Entscheidung.
+Es können beliebig viele \verb|pass|-Einträge angegeben werden,
+mindestens jedoch einer.
 
 \subsubsection*{Syntax}
 
 \begin{Verbatim}
-\begin{false}
-Ergebnis bei Misserfolg
-\end{false}
+\begin{pass}[Optionaler Titel]
+Erfolgseintrag
+\end{pass}
 \end{Verbatim}
 
+\subsubsection*{Titel und Ausrichtung}
+
+\begin{itemize}
+\item Einträge dürfen einen optionalen Titel in eckigen Klammern besitzen.
+\item Bei genau einem Eintrag wird der Titel (falls vorhanden) fett über dem Inhalt gesetzt.
+\item Bei mehreren Einträgen werden Titel links neben dem Inhalt ausgerichtet;
+      die Einrückung richtet sich nach der breitesten \verb|pass|-Überschrift.
+\item Einträge ohne Titel gelten als leerer Titel und reservieren denselben Titelbereich.
+\end{itemize}
 
 \subsubsection*{Beispiel}
 
 \paragraph{Quellcode}
-
-\begin{Verbatim}
-\begin{false}
-Die Falle wird ausgelöst.
-\end{false}
-\end{Verbatim}
-
-\paragraph{Ergebnis}
-
-\begin{decision}
-\begin{condition}
-Probe gelungen?
-\end{condition}
-\begin{true}
-\end{true}
-\begin{false}
-Die Falle wird ausgelöst.
-\end{false}
-\end{decision}
-
-\subsection{Die Umgebung \texttt{longtrue}}
-
-Die Umgebung \verb|longtrue| erzeugt einen großen grünen Erfolgsblock.
-
-Im Gegensatz zu \verb|true| ist sie nicht Teil einer
-\verb|decision|-Umgebung und nimmt die komplette Seitenbreite ein.
-
-Sie eignet sich für längere Beschreibungen eines Erfolgsfalls.
-
-\subsubsection*{Syntax}
-
-\begin{Verbatim}
-\begin{longtrue}
-Text
-\end{longtrue}
-\end{Verbatim}
-
-\subsubsection*{Beispiel}
-
-\paragraph{Quellcode}
-
-\begin{Verbatim}
-\begin{longtrue}
-Die Helden überzeugen den Wächter
-und erhalten Zugang zur Burg.
-\end{longtrue}
-\end{Verbatim}
-
-\paragraph{Ergebnis}
-
-\begin{longtrue}
-Die Helden überzeugen den Wächter
-und erhalten Zugang zur Burg.
-\end{longtrue}
-
-
-\subsection{Die Umgebung \texttt{longfalse}}
-
-Die Umgebung \verb|longfalse| erzeugt einen großen roten Misserfolgsblock.
-
-Wie \verb|longtrue| verwendet sie die gesamte verfügbare Breite und ist nicht
-an eine \verb|decision|-Umgebung gebunden.
-
-\subsubsection*{Syntax}
-
-\begin{Verbatim}
-\begin{longfalse}
-Text
-\end{longfalse}
-\end{Verbatim}
-
-\subsubsection*{Beispiel}
-
-\paragraph{Quellcode}
-
-\begin{Verbatim}
-\begin{longfalse}
-Die Wachen entdecken die Gruppe
-und schlagen Alarm.
-\end{longfalse}
-\end{Verbatim}
-
-\paragraph{Ergebnis}
-
-\begin{longfalse}
-Die Wachen entdecken die Gruppe
-und schlagen Alarm.
-\end{longfalse}
-
-
-\subsection{Der Befehl \texttt{\textbackslash decide}}
-
-Der Befehl \verb|\decide| ist eine Kurzschreibweise für einen vollständigen
-Entscheidungsblock.
-
-Er entspricht funktional:
 
 \begin{Verbatim}
 \begin{decision}
-\begin{condition}
-...
-\end{condition}
-
-\begin{true}
-...
-\end{true}
-
-\begin{false}
-...
-\end{false}
+    \begin{condition}
+    Probe geschafft?
+    \end{condition}
+    \begin{pass}[Standard]
+    Du findest eine verwertbare Spur.
+    \end{pass}
+    \begin{pass}[Kritischer Erfolg]
+    Du findest die Spur und gewinnst sofort einen taktischen Vorteil.
+    \end{pass}
+    \begin{fail}
+    Du findest nichts.
+    \end{fail}
 \end{decision}
 \end{Verbatim}
+
+
+\subsection{Die Umgebung \texttt{fail}}
+
+\verb|fail| definiert einen möglichen Misserfolgs-Eintrag
+(rötlicher Bereich).
+
+Es können beliebig viele \verb|fail|-Einträge angegeben werden,
+mindestens jedoch einer.
 
 \subsubsection*{Syntax}
 
 \begin{Verbatim}
-\decide
-    {Bedingung}
-    {Erfolg}
-    {Misserfolg}
+\begin{fail}[Optionaler Titel]
+Misserfolgseintrag
+\end{fail}
 \end{Verbatim}
 
-\subsubsection*{Parameter}
+\subsubsection*{Titel und Ausrichtung}
 
-\begin{center}
-\begin{tabular}{|l|l|}
-\hline
-Parameter & Bedeutung\\
-\hline
-1 & Bedingung oder Frage\\
-\hline
-2 & Ergebnis bei Erfolg\\
-\hline
-3 & Ergebnis bei Misserfolg\\
-\hline
-\end{tabular}
-\end{center}
+Die Layoutregeln entsprechen \verb|pass|, werden aber unabhängig berechnet:
+
+\begin{itemize}
+\item Für die Einrückung werden nur \verb|fail|-Titel betrachtet.
+\item \verb|pass|-Titel beeinflussen die \verb|fail|-Ausrichtung nicht.
+\end{itemize}
 
 \subsubsection*{Beispiel}
 
 \paragraph{Quellcode}
 
 \begin{Verbatim}
-\decide
-    {Die Helden öffnen das Schloss.}
-    {Die Tür öffnet sich lautlos.}
-    {Ein Alarm ertönt.}
+\begin{decision}
+    \begin{condition}
+    Schleichprobe gelungen?
+    \end{condition}
+    \begin{pass}
+    Ihr bleibt unentdeckt.
+    \end{pass}
+    \begin{fail}[Fehlschlag]
+    Eine Wache wird misstrauisch.
+    \end{fail}
+    \begin{fail}[Kritischer Fehlschlag]
+    Alarm wird ausgelöst.
+    \end{fail}
+\end{decision}
 \end{Verbatim}
 
-\paragraph{Ergebnis}
 
-\decide
-    {Die Helden öffnen das Schloss.}
-    {Die Tür öffnet sich lautlos.}
-    {Ein Alarm ertönt.}
+\subsection{Verschachtelung und Gültigkeit}
+
+Kind-Umgebungen dürfen nicht ineinander verschachtelt werden.
+
+Ungültig sind insbesondere:
+
+\begin{itemize}
+\item \verb|condition| innerhalb von \verb|condition|, \verb|pass| oder \verb|fail|,
+\item \verb|pass| innerhalb einer anderen Kind-Umgebung,
+\item \verb|fail| innerhalb einer anderen Kind-Umgebung.
+\end{itemize}
+
+Kind-Umgebungen sind nur direkt unter \verb|decision| erlaubt.
+Bei Verstößen bricht die Kompilierung mit einer Fehlermeldung ab.
+
+
+\subsection{Leere Einträge}
+
+Leere \verb|pass|- und \verb|fail|-Einträge sind gültig.
+
+\subsubsection*{Beispiele}
+
+\begin{Verbatim}
+\begin{pass}
+\end{pass}
+
+\begin{fail}[Kritischer Fehlschlag]
+\end{fail}
+\end{Verbatim}
+
+
+\subsection{Darstellung und Seitenumbrüche}
+
+Der Entscheidungsblock wird als zusammenhängende Einheit dargestellt:
+
+\begin{itemize}
+\item Breite: 90\% der verfügbaren Zeilenbreite,
+\item horizontal zentriert,
+\item Inhalt linksbündig,
+\item farblich getrennte Bereiche für \verb|condition|, \verb|pass| und \verb|fail|,
+\item deutliche Trennlinien zwischen den Bereichen.
+\end{itemize}
+
+Seitenumbrüche innerhalb langer Inhalte sind erlaubt.
+Inhalte werden über Seiten hinweg fortgesetzt und nicht abgeschnitten.
