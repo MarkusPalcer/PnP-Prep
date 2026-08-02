@@ -9,8 +9,9 @@
     
     \begin{render}
         \begin{FlexibleBox}{\namevalue}
-            \textbf{KK: }\kkvalue
-            \textbf{KL: }\kkvalue
+            \ifpresent{kk}{\textbf{KK: }\kkvalue}
+            \ifpresent{kl}{\textbf{KL: }\kkvalue}
+            \ifmissing{kk}{No KK}
         \end{FlexibleBox}
     \end{render}
 \end{databox}
