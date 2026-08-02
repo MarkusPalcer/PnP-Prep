@@ -6,12 +6,28 @@
     \field{name}
     \field[optional]{kk}
     \field[optional]{kl}
+
+    \begin{dblist}{waffe}
+        \field{name}
+        \field{at}
+        \field[optional]{pa}
+        \field{tp}
+
+        \begin{render}
+            \textbf{\namevalue :}
+            \textbf{AT: }\atvalue
+            \ifpresent{pa}{\textbf{PA: }\pavalue}
+            \textbf{TP: }\tpvalue
+            \\
+        \end{render}
+    \end{dblist}
     
     \begin{render}
         \begin{FlexibleBox}{\namevalue}
             \ifpresent{kk}{\textbf{KK: }\kkvalue}
             \ifpresent{kl}{\textbf{KL: }\kkvalue}
-            \ifmissing{kk}{No KK}
+            \\
+            \waffevalue
         \end{FlexibleBox}
     \end{render}
 \end{databox}
