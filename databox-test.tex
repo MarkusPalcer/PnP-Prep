@@ -4,33 +4,54 @@
 
 \begin{databox}{gegner}
     \field{name}
-    \field[optional]{KK}
+
+    \field[optional]{MU}
     \field[optional]{KL}
+    \field[optional]{IN}
+    \field[optional]{CH}
+    \field[optional]{FF}
+    \field[optional]{GE}
+    \field[optional]{KO}
+    \field[optional]{KK}
 
-    \begin{dblist}{waffe}
-        \field{name}
-        \field{AT}
-        \field[optional]{PA}
-        \field{TP}
+    \field{waffe}
+    \field{AT}
+    \field[optional]{PA}
+    \field{TP}
+    \field{INI}
 
-        \begin{renderentry}
-            \textbf{\namevalue :}
-            \textbf{AT: }\ATvalue
-            \ifpresent{PA}{\textbf{PA: }\PAvalue}
-            \textbf{TP: }\TPvalue
-            \\
-        \end{renderentry}
-    \end{dblist}
-    
+    \field[optional]{ruestung}
+    \field[optional]{RS}
+
     \begin{render}
         \begin{FlexibleBox}{\namevalue}
-            \ifpresent{KK}{\textbf{KK: }\KKvalue}
-            \ifpresent{KL}{\textbf{KL: }\KLvalue}
-            \\
-            \waffevalue
+            \ifpresent{MU}{\textbf{MU: }\MUvalue\hfill}
+            \ifpresent{KL}{\textbf{KL: }\KLvalue\hfill}
+            \ifpresent{IN}{\textbf{IN: }\INvalue\hfill}
+            \ifpresent{CH}{\textbf{CH: }\CHvalue\hfill}
+            \ifpresent{FF}{\textbf{FF: }\FFvalue\hfill}
+            \ifpresent{GE}{\textbf{GE: }\GEvalue\hfill}
+            \ifpresent{KO}{\textbf{KO: }\KOvalue\hfill}
+            \ifpresent{KK}{\textbf{KK: }\KKvalue\hfill}
+            \par
+
+            \textbf{\waffevalue :}\quad
+            \textbf{AT: }\ATvalue\quad
+            \ifpresent{PA}{\textbf{PA: }\PAvalue}\quad
+            \textbf{TP: }\TPvalue\quad
+            \textbf{INI: }\INIvalue\quad
+            \par
+            
+            \ifpresent{ruestung}{
+                \textbf{\ruestungvalue :}\quad
+                \ifpresent{RS}{\textbf{RS: }\RSvalue}\quad
+                \ifmissing{RS}{\textbf{RS: }0}\quad
+                \par
+            }
         \end{FlexibleBox}
     \end{render}
 \end{databox}
+
 
 
 \begin{databox}{pflanze}
@@ -48,6 +69,7 @@
     \AT{12}
     \PA{4}
     \TP{1W+1}
+    \INI{12}
     \ruestung{Lumpen}
 \end{gegner}
 
@@ -62,6 +84,7 @@
     \AT{12}
     \PA{4}
     \TP{1W+1}
+    \INI{15}
     \ruestung{Lederharhnisch}
     \RS{2}
 \end{gegner}
