@@ -32,6 +32,7 @@
 \tl_new:N \l__pnp_databox_field_value_tl
 \bool_new:N \l__pnp_databox_render_environment_is_set_bool
 \tl_new:N \l__pnp_databox_render_body_tl
+\tl_new:N \l__pnp_databox_extras_tl
 
 \keys_define:nn { pnp-databox / field }
   {
@@ -92,6 +93,11 @@
       }
   }
 
+\cs_new_protected:Npn \__pnp_databox_add_extra:n #1
+  {
+    \tl_put_right:Nn \l__pnp_databox_extras_tl {#1}
+  }
+
 \cs_new_protected:Npn \__pnp_databox_define_field_setter:n #1
   {
     \cs_set_protected:cpn {#1} ##1
@@ -144,6 +150,19 @@
       }
   }
 
+  \cs_new_protected:Npn \__pnp_databox_render_extras:
+    {
+      \tl_use:N \l__pnp_databox_extras_tl
+    }
+
+  \cs_new_protected:Npn \__pnp_databox_define_render_extras_command:
+  {
+    \cs_set_protected:Npn \renderExtras
+      {
+        \__pnp_databox_render_extras:
+      }
+  }
+
 \cs_new_protected:Npn \__pnp_databox_define_generated_environment:nnnn #1#2#3#4
   {
     \group_begin:
@@ -151,6 +170,13 @@
       \exp_args:No \NewDocumentEnvironment {#1} { }
         {
           \prop_clear:N \l__pnp_databox_field_values_prop
+          \tl_clear:N \l__pnp_databox_extras_tl
+
+          \cs_set_protected:Npn \databoxAddExtra ####1
+            {
+              \__pnp_databox_add_extra:n {####1}
+            }
+
           #2
         }
         {
@@ -189,6 +215,7 @@
         \exp_not:V \l__pnp_databox_field_render_value_commands_tl
         \exp_not:N \__pnp_databox_define_ifpresent_command:
         \exp_not:N \__pnp_databox_define_ifmissing_command:
+        \exp_not:N \__pnp_databox_define_render_extras_command:
         \exp_not:V \l__pnp_databox_render_body_tl
       }
     \exp_args:Noooo \__pnp_databox_define_generated_environment:nnnn
