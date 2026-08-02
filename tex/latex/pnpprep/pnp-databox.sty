@@ -1,0 +1,44 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pnp-databox}[2026/08/01 Databox Templates]
+
+\RequirePackage{expl3}
+\RequirePackage{xparse}
+\RequirePackage{flexiblebox}
+
+\ExplSyntaxOn
+
+\msg_new:nnn { pnp-databox } { name-already-exists }
+  {
+    Cannot~create~databox~environment~'#1':~a~command~or~environment~with~this~name~already~exists.
+  }
+
+\cs_new_protected:Npn \__pnp_databox_assert_name_available:n #1
+  {
+    \cs_if_exist:cTF {#1}
+      { \msg_error:nnn { pnp-databox } { name-already-exists } {#1} }
+      {
+        \cs_if_exist:cT { end#1 }
+          { \msg_error:nnn { pnp-databox } { name-already-exists } {#1} }
+      }
+  }
+
+\cs_new_protected:Npn \__pnp_databox_define_generated_environment:n #1
+  {
+    \group_begin:
+      \tex_globaldefs:D = 1\scan_stop:
+      \exp_args:No \NewDocumentEnvironment {#1} { +b }
+        { }
+        { Test }
+    \group_end:
+  }
+
+\NewDocumentEnvironment { databox } { m +b }
+  {
+    \__pnp_databox_assert_name_available:n {#1}
+  }
+  {
+    \__pnp_databox_define_generated_environment:n {#1}
+  }
+
+
+\ExplSyntaxOff

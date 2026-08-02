@@ -43,6 +43,7 @@
 \RequirePackage{pnp-decision}
 \RequirePackage{pnp-sammelprobe}
 \RequirePackage{pnp-wertekasten}
+\RequirePackage{pnp-databox}
 
 % Seitenränder
 \geometry{
