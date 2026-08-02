@@ -12,11 +12,13 @@ clean:
 		-name '*.fls' -o \
 		-name '*.fdb_latexmk' -o \
 		-name '*.pdf' -o \
-		-name '*.dvi' \
+		-name '*.dvi' -o \
+		-name '*.toc' \
 	\) -delete
 
 doc:
 	$(MAKE) doc/pnpprep/Readme.pdf
 
 %.pdf: %.tex
+	cd $(dir $<) && pdflatex -interaction=nonstopmode -halt-on-error $(notdir $<)
 	cd $(dir $<) && pdflatex -interaction=nonstopmode -halt-on-error $(notdir $<)
