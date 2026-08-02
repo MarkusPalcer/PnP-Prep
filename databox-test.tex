@@ -7,7 +7,9 @@
     \field{anotherField}
 
     \begin{render}
-        Gegner!
+        \textbf{Gegner}\\
+        \textbf{myField: }\myFieldvalue \\
+        \textbf{anotherField}\anotherFieldvalue
     \end{render}
 \end{databox}
 
@@ -15,12 +17,14 @@
     \field{myField}
 
     \begin{render}
-        Pflanze!
+        \textbf{Pflanze}\\
+        \textbf{myField: }\myFieldvalue \\
     \end{render}
 \end{databox}
 
 \begin{gegner}
     \myField{someValue}
+    \anotherField{value}
 \end{gegner}
 
 \begin{pflanze}
@@ -29,6 +33,7 @@
 
 \begin{gegner}
     \myField{thirdValue}
+    \anotherField{thirdAnotherValue}
 \end{gegner}
 
 \end{document}
