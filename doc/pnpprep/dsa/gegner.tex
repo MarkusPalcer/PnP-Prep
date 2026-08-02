@@ -1,0 +1,57 @@
+\chapter{Gegnerkästen}
+
+Um einen Gegnerkasten zu bauen kann die Umgebung \texttt{gegner} verwendet werden.
+
+\section{Syntax}
+
+\begin{verbatim}
+\begin{gegner}
+    \name{Name des Gegners oder Gegnertyps}
+
+    \MU{Mut-Wert}
+    \KL{Klugheits-Wert}
+    % Dies wiederholt sich für alle Attribute. Jedes Attribut ist optional
+
+    \waffe{Waffenname}
+    \AT{AT-Wert der Waffe}
+    \PA{Optional: PA-Wert der Waffe}
+    \TP{Schaden der Waffe}
+
+    \ruestung{Name der Rüstung}
+    \RS{Optional: RS der Rüstung}
+\end{gegner}
+\end{verbatim}
+
+\section{Beispiel}
+
+\subsection{Quellcode}
+
+\begin{verbatim}
+\begin{gegner}
+    \name{Soldat}
+    \KK{12}
+
+    \waffe{Schwert}
+    \AT{12}
+    \PA{4}
+    \TP{1W+1}
+
+    \ruestung{Lederharnisch}
+    \RS{2}
+\end{gegner}
+\end{verbatim}
+
+\subsection{Ausgabe}
+
+\begin{gegner}
+    \name{Soldat}
+    \KK{12}
+
+    \waffe{Schwert}
+    \AT{12}
+    \PA{4}
+    \TP{1W+1}
+
+    \ruestung{Lederharnisch}
+    \RS{2}
+\end{gegner}

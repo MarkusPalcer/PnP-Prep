@@ -18,6 +18,7 @@ clean:
 
 doc:
 	$(MAKE) doc/pnpprep/Readme.pdf
+	$(MAKE) doc/pnpprep/dsa/Readme.pdf
 
 %.pdf: %.tex
 	cd $(dir $<) && pdflatex -interaction=nonstopmode -halt-on-error $(notdir $<)
