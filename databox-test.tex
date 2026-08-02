@@ -4,33 +4,34 @@
 
 \begin{databox}{gegner}
     \field{name}
-    \field[optional]{kk}
-    \field[optional]{kl}
+    \field[optional]{KK}
+    \field[optional]{KL}
 
     \begin{dblist}{waffe}
         \field{name}
-        \field{at}
-        \field[optional]{pa}
-        \field{tp}
+        \field{AT}
+        \field[optional]{PA}
+        \field{TP}
 
-        \begin{render}
+        \begin{renderentry}
             \textbf{\namevalue :}
-            \textbf{AT: }\atvalue
-            \ifpresent{pa}{\textbf{PA: }\pavalue}
-            \textbf{TP: }\tpvalue
+            \textbf{AT: }\ATvalue
+            \ifpresent{PA}{\textbf{PA: }\PAvalue}
+            \textbf{TP: }\TPvalue
             \\
-        \end{render}
+        \end{renderentry}
     \end{dblist}
     
     \begin{render}
         \begin{FlexibleBox}{\namevalue}
-            \ifpresent{kk}{\textbf{KK: }\kkvalue}
-            \ifpresent{kl}{\textbf{KL: }\kkvalue}
+            \ifpresent{KK}{\textbf{KK: }\KKvalue}
+            \ifpresent{KL}{\textbf{KL: }\KLvalue}
             \\
             \waffevalue
         \end{FlexibleBox}
     \end{render}
 \end{databox}
+
 
 \begin{databox}{pflanze}
     \field{myField}
@@ -43,6 +44,11 @@
 
 \begin{gegner}
     \name{Goblin}
+    \waffe{Schwert}
+    \AT{12}
+    \PA{4}
+    \TP{1W+1}
+    \ruestung{Lumpen}
 \end{gegner}
 
 \begin{pflanze}
@@ -51,7 +57,13 @@
 
 \begin{gegner}
     \name{Soldat}
-    \kk{12}
+    \KK{12}
+    \waffe{Schwert}
+    \AT{12}
+    \PA{4}
+    \TP{1W+1}
+    \ruestung{Lederharhnisch}
+    \RS{2}
 \end{gegner}
 
 \end{document}
