@@ -28,8 +28,17 @@
 \tl_new:N \l__pnp_databox_field_required_checks_tl
 \tl_new:N \l__pnp_databox_field_render_value_commands_tl
 \tl_new:N \l__pnp_databox_generated_end_code_tl
+\bool_new:N \l__pnp_databox_field_optional_bool
+\tl_new:N \l__pnp_databox_field_value_tl
 \bool_new:N \l__pnp_databox_render_environment_is_set_bool
 \tl_new:N \l__pnp_databox_render_body_tl
+
+\keys_define:nn { pnp-databox / field }
+  {
+    optional .bool_set:N = \l__pnp_databox_field_optional_bool,
+    optional .default:n = true,
+    optional .initial:n = false
+  }
 
 \cs_new_protected:Npn \__pnp_databox_assert_name_available:n #1
   {
@@ -53,11 +62,21 @@
         \seq_put_right:Nn \l__pnp_databox_field_names_seq {#1}
         \tl_put_right:Nn \l__pnp_databox_field_setters_tl
           { \__pnp_databox_define_field_setter:n {#1} }
-        \tl_put_right:Nn \l__pnp_databox_field_required_checks_tl
-          { \__pnp_databox_assert_field_is_set:n {#1} }
+        \bool_if:NF \l__pnp_databox_field_optional_bool
+          {
+            \tl_put_right:Nn \l__pnp_databox_field_required_checks_tl
+              { \__pnp_databox_assert_field_is_set:n {#1} }
+          }
         \tl_put_right:Nn \l__pnp_databox_field_render_value_commands_tl
           { \__pnp_databox_define_field_value_command:n {#1} }
       }
+  }
+
+\cs_new_protected:Npn \__pnp_databox_declare_field:nn #1#2
+  {
+    \bool_set_false:N \l__pnp_databox_field_optional_bool
+    \keys_set:nn { pnp-databox / field } {#1}
+    \__pnp_databox_declare_field:n {#2}
   }
 
 \cs_new_protected:Npn \__pnp_databox_declare_render:n #1
@@ -101,7 +120,9 @@
   {
     \cs_set:cpn {#1value}
       {
-        \prop_item:Nn \l__pnp_databox_field_values_prop {#1}
+        \prop_get:NnNTF \l__pnp_databox_field_values_prop {#1} \l__pnp_databox_field_value_tl
+          { \tl_use:N \l__pnp_databox_field_value_tl }
+          { }
       }
   }
 
@@ -130,7 +151,10 @@
     \tl_clear:N \l__pnp_databox_field_render_value_commands_tl
     \bool_set_false:N \l__pnp_databox_render_environment_is_set_bool
     \tl_clear:N \l__pnp_databox_render_body_tl
-    \cs_set_eq:NN \field \__pnp_databox_declare_field:n
+    \DeclareDocumentCommand \field { O{} m }
+      {
+        \__pnp_databox_declare_field:nn {##1} {##2}
+      }
     \NewDocumentEnvironment { render } { +b }
       { \__pnp_databox_declare_render:n {##1} }
       { }
