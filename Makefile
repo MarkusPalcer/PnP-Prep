@@ -11,7 +11,7 @@ clean:
 		-name '*.synctex.gz' -o \
 		-name '*.fls' -o \
 		-name '*.fdb_latexmk' -o \
-		-name '*.pdf' \
+		-name '*.pdf' -o \
 		-name '*.dvi' \
 	\) -delete
 
