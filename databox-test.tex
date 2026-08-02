@@ -3,10 +3,31 @@
 \begin{document}
 
 \begin{databox}{gegner}
+    \field{myField}
+
+    \begin{render}
+        Gegner!
+    \end{render}
+\end{databox}
+
+\begin{databox}{pflanze}
+    \field{myField}
+
+    \begin{render}
+        Pflanze!
+    \end{render}
 \end{databox}
 
 \begin{gegner}
-ignored content
+    \myField{someValue}
+\end{gegner}
+
+\begin{pflanze}
+    \myField{anotherValue}
+\end{pflanze}
+
+\begin{gegner}
+    \myField{thirdValue}
 \end{gegner}
 
 \end{document}

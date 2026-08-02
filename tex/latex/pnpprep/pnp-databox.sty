@@ -12,6 +12,22 @@
     Cannot~create~databox~environment~'#1':~a~command~or~environment~with~this~name~already~exists.
   }
 
+\msg_new:nnn { pnp-databox } { item-used-multiple-times }
+  {
+    #1~'#2'~may~occur~once.
+  }
+
+\msg_new:nnn { pnp-databox } { item-must-be-present }
+  {
+    #1~'#2'~must~be~present.
+  }
+
+\tl_new:N \l__pnp_databox_field_name_tl
+\bool_new:N \l__pnp_databox_field_is_set_bool
+\tl_new:N \l__pnp_databox_field_value_tl
+\bool_new:N \l__pnp_databox_render_environment_is_set_bool
+\tl_new:N \l__pnp_databox_render_body_tl
+
 \cs_new_protected:Npn \__pnp_databox_assert_name_available:n #1
   {
     \cs_if_exist:cTF {#1}
@@ -22,22 +38,75 @@
       }
   }
 
-\cs_new_protected:Npn \__pnp_databox_define_generated_environment:n #1
+\cs_new_protected:Npn \__pnp_databox_declare_field:n #1
+  {
+    \__pnp_databox_assert_name_available:n {#1}
+    \tl_set:Nn \l__pnp_databox_field_name_tl {#1}
+  }
+
+\cs_new_protected:Npn \__pnp_databox_declare_render:n #1
+  {
+    \bool_if:NTF \l__pnp_databox_render_environment_is_set_bool
+      {
+        \msg_error:nnnn { pnp-databox } { item-used-multiple-times }
+          { Environment } { render }
+      }
+      {
+        \bool_gset_true:N \l__pnp_databox_render_environment_is_set_bool
+        \tl_gset:Nn \l__pnp_databox_render_body_tl {#1}
+      }
+  }
+
+\cs_new_protected:Npn \__pnp_databox_define_generated_environment:nnn #1#2#3
   {
     \group_begin:
       \tex_globaldefs:D = 1\scan_stop:
       \exp_args:No \NewDocumentEnvironment {#1} { +b }
-        { }
-        { Test }
+        {
+          \bool_set_false:N \l__pnp_databox_field_is_set_bool
+          \tl_clear:N \l__pnp_databox_field_value_tl
+          \exp_args:No \cs_set_protected:cpn {#2} ####1
+            {
+              \bool_if:NTF \l__pnp_databox_field_is_set_bool
+                {
+                  \msg_error:nnnn { pnp-databox } { item-used-multiple-times }
+                    { Field } {#2}
+                }
+                {
+                  \bool_set_true:N \l__pnp_databox_field_is_set_bool
+                  \tl_set:Nn \l__pnp_databox_field_value_tl {####1}
+                }
+            }
+        }
+        {
+          ##1
+          #3
+        }
     \group_end:
   }
 
 \NewDocumentEnvironment { databox } { m +b }
   {
     \__pnp_databox_assert_name_available:n {#1}
+    \tl_clear:N \l__pnp_databox_field_name_tl
+    \bool_set_false:N \l__pnp_databox_render_environment_is_set_bool
+    \tl_clear:N \l__pnp_databox_render_body_tl
+    \cs_set_eq:NN \field \__pnp_databox_declare_field:n
+    \NewDocumentEnvironment { render } { +b }
+      { \__pnp_databox_declare_render:n {##1} }
+      { }
+    #2
   }
   {
-    \__pnp_databox_define_generated_environment:n {#1}
+    \bool_if:NF \l__pnp_databox_render_environment_is_set_bool
+      {
+        \msg_error:nnnn { pnp-databox } { item-must-be-present }
+          { Environment } { render }
+      }
+    \exp_args:Nooo \__pnp_databox_define_generated_environment:nnn
+      {#1}
+      {\l__pnp_databox_field_name_tl}
+      {\l__pnp_databox_render_body_tl}
   }
 
 
