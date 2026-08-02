@@ -35,7 +35,8 @@
 \RequirePackage{fancyvrb}
 \RequirePackage{xparse}
 \RequirePackage{geometry}
-\RequirePackage{flexiblebox}
+
+\RequirePackage{pnp-flexiblebox}
 \RequirePackage{pnp-gm}
 \RequirePackage{pnp-speech}
 \RequirePackage{pnp-music}
