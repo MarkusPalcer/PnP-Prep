@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{pnp-flexiblebox}[2026/07/30 Flexible Box Environment]
+\ProvidesPackage{pnp-panel}[2026/07/30 Flexible Box Environment]
 
 \RequirePackage{xcolor}
 \RequirePackage{tcolorbox}
@@ -10,7 +10,7 @@
 \definecolor{PergamentDunkel}{RGB}{173,140,82}
 
 % Flexible Box
-\NewDocumentEnvironment{FlexibleBox}{m O{PergamentHell} O{PergamentDunkel} O{white}}
+\NewDocumentEnvironment{panel}{m O{PergamentHell} O{PergamentDunkel} O{white}}
 {%
   \if@nobreak
     \everypar{}%

@@ -36,7 +36,7 @@
 \RequirePackage{xparse}
 \RequirePackage{geometry}
 
-\RequirePackage{pnp-flexiblebox}
+\RequirePackage{pnp-panel}
 \RequirePackage{pnp-gm}
 \RequirePackage{pnp-speech}
 \RequirePackage{pnp-music}
