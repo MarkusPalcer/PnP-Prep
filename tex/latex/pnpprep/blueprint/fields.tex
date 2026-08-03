@@ -1,0 +1,170 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint fields
+% -----------------------------------------------------------------------------
+%
+% This module implements field handling for blueprints.
+%
+% It provides functionality for declaring fields, generating field setter
+% commands, validating required fields, and creating commands used by render
+% definitions to access stored field values.
+%
+% -----------------------------------------------------------------------------
+
+
+% -----------------------------------------------------------------------------
+% Defines the available options for field declarations.
+%
+% The options configured here are evaluated when a field is declared using
+% \field[<options>]{<name>}. The options modify the behavior of the field
+% declaration process.
+%
+% Parameters:
+%   optional
+%     Boolean option. If set, the declared field is treated as optional.
+%     If omitted, fields are required by default.
+% -----------------------------------------------------------------------------
+\keys_define:nn { pnp-blueprint / field }
+  {
+    optional .bool_set:N = \l__pnp_blueprint_field_optional_bool,
+    optional .default:n = true,
+    optional .initial:n = false
+  }
+
+  % -----------------------------------------------------------------------------
+% Summary:
+%   Declares a field for the current blueprint definition.
+%
+% Description:
+%   Registers the field name, validates that it is not already used, and
+%   generates the code required for setting, validating, and rendering the
+%   field value when a blueprint instance is created.
+%
+% Parameters:
+%   #1
+%     The name of the field to declare.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_declare_field:n #1
+  {
+    \__pnp_blueprint_assert_name_available:n {#1}
+    \seq_if_in:NnTF \l__pnp_blueprint_field_names_seq {#1}
+      {
+        \msg_error:nnnn { pnp-blueprint } { item-used-multiple-times }
+          { Field } {#1}
+      }
+      {
+        \seq_put_right:Nn \l__pnp_blueprint_field_names_seq {#1}
+        \tl_put_right:Nn \l__pnp_blueprint_field_setters_tl
+          { \__pnp_blueprint_define_field_setter:n {#1} }
+        \bool_if:NF \l__pnp_blueprint_field_optional_bool
+          {
+            \tl_put_right:Nn \l__pnp_blueprint_field_required_checks_tl
+              { \__pnp_blueprint_assert_field_is_set:n {#1} }
+          }
+        \tl_put_right:Nn \l__pnp_blueprint_field_render_value_commands_tl
+          { \__pnp_blueprint_define_field_value_command:n {#1} }
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Processes field declaration options and declares a field.
+%
+% Description:
+%   Resets the field declaration options to their defaults, applies the
+%   provided field options, and delegates the actual field registration to the
+%   internal field declaration function.
+%
+% Parameters:
+%   #1
+%     Field declaration options, such as 'optional'.
+%
+%   #2
+%     The name of the field to declare.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_declare_field:nn #1#2
+  {
+    \bool_set_false:N \l__pnp_blueprint_field_optional_bool
+    \keys_set:nn { pnp-blueprint / field } {#1}
+    \__pnp_blueprint_declare_field:n {#2}
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Creates the setter command for a field.
+%
+% Description:
+%   Generates a command with the field name that stores the assigned value in
+%   the current blueprint instance. Multiple assignments to the same field are
+%   rejected.
+%
+% Parameters:
+%   #1
+%     The name of the field for which the setter command is created.
+%
+% -----------------------------------------------------------------------------
+
+\cs_new_protected:Npn \__pnp_blueprint_define_field_setter:n #1
+  {
+    \cs_set_protected:cpn {#1} ##1
+      {
+        \prop_if_in:NnTF \l__pnp_blueprint_field_values_prop {#1}
+          {
+            \msg_error:nnnn { pnp-blueprint } { item-used-multiple-times }
+              { Field } {#1}
+          }
+          {
+            \prop_put:Nnn \l__pnp_blueprint_field_values_prop {#1} {##1}
+          }
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Checks whether a required field has been assigned a value.
+%
+% Description:
+%   Verifies that the given field exists in the current blueprint instance's
+%   field values. An error is raised if the field has not been set.
+%
+% Parameters:
+%   #1
+%     The name of the field to check.
+%
+% -----------------------------------------------------------------------------
+
+\cs_new_protected:Npn \__pnp_blueprint_assert_field_is_set:n #1
+  {
+    \prop_if_in:NnF \l__pnp_blueprint_field_values_prop {#1}
+      {
+        \msg_error:nnnn { pnp-blueprint } { item-must-be-present }
+          { Field } {#1}
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Creates the render-time value command for a field.
+%
+% Description:
+%   Generates a command that expands to the value assigned to the field in the
+%   current blueprint instance. If no value was assigned, the command expands
+%   to an empty value.
+%
+% Parameters:
+%   #1
+%     The name of the field for which the value command is created.
+%
+% -----------------------------------------------------------------------------
+
+\cs_new_protected:Npn \__pnp_blueprint_define_field_value_command:n #1
+  {
+    \cs_set:cpn {#1value}
+      {
+        \prop_get:NnNTF \l__pnp_blueprint_field_values_prop {#1} \l__pnp_blueprint_field_value_tl
+          { \tl_use:N \l__pnp_blueprint_field_value_tl }
+          { }
+      }
+  }
+

@@ -1,5 +1,19 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint
+% -----------------------------------------------------------------------------
+%
+% This package provides a framework for defining reusable document components
+% ("blueprints") which can later be instantiated as environments with structured
+% data and customizable rendering.
+%
+% The implementation is split into several internal modules. This file acts as
+% the public package entry point and is responsible for loading required
+% dependencies and assembling the internal components.
+%
+% -----------------------------------------------------------------------------
+
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{pnp-blueprint}[2026/08/01 Blueprint Templates]
+\ProvidesPackage{pnp-blueprint}
 
 \RequirePackage{expl3}
 \RequirePackage{xparse}
@@ -7,43 +21,26 @@
 
 \ExplSyntaxOn
 
-\msg_new:nnn { pnp-blueprint } { name-already-exists }
-  {
-    Cannot~create~blueprint~environment~'#1':~a~command~or~environment~with~this~name~already~exists.
-  }
+% Error and warning messages used by the pnp-blueprint framework.
+\input{blueprint/messages}
 
-\msg_new:nnn { pnp-blueprint } { item-used-multiple-times }
-  {
-    #1~'#2'~may~occur~once.
-  }
+% -----------------------------------------------------------------------------
+% Internal helper functions
+% -----------------------------------------------------------------------------
 
-\msg_new:nnn { pnp-blueprint } { item-must-be-present }
-  {
-    #1~'#2'~must~be~present.
-  }
-
-\seq_new:N \l__pnp_blueprint_field_names_seq
-\prop_new:N \l__pnp_blueprint_field_values_prop
-\tl_new:N \l__pnp_blueprint_field_setters_tl
-\tl_new:N \l__pnp_blueprint_field_required_checks_tl
-\tl_new:N \l__pnp_blueprint_field_render_value_commands_tl
-\tl_new:N \l__pnp_blueprint_generated_end_code_tl
-\bool_new:N \l__pnp_blueprint_field_optional_bool
-\tl_new:N \l__pnp_blueprint_field_value_tl
-\bool_new:N \l__pnp_blueprint_render_environment_is_set_bool
-\tl_new:N \l__pnp_blueprint_render_body_tl
-\tl_new:N \l__pnp_blueprint_children_tl
-\seq_new:N \l__pnp_blueprint_children_stack_seq
-\tl_new:N \l__pnp_blueprint_child_environment_definitions_tl
-\tl_new:N \l__pnp_blueprint_generated_begin_code_tl
-
-\keys_define:nn { pnp-blueprint / field }
-  {
-    optional .bool_set:N = \l__pnp_blueprint_field_optional_bool,
-    optional .default:n = true,
-    optional .initial:n = false
-  }
-
+% -----------------------------------------------------------------------------
+% Summary:
+%   Checks whether a name is available for creating a new command or environment.
+%
+% Description:
+%   Verifies that no existing control sequence or environment end command uses
+%   the given name. If the name is already in use, an error is raised.
+%
+% Parameters:
+%   #1
+%     The name to check for availability.
+%
+% -----------------------------------------------------------------------------
 \cs_new_protected:Npn \__pnp_blueprint_assert_name_available:n #1
   {
     \cs_if_exist:cTF {#1}
@@ -54,181 +51,39 @@
       }
   }
 
-\cs_new_protected:Npn \__pnp_blueprint_declare_field:n #1
-  {
-    \__pnp_blueprint_assert_name_available:n {#1}
-    \seq_if_in:NnTF \l__pnp_blueprint_field_names_seq {#1}
-      {
-        \msg_error:nnnn { pnp-blueprint } { item-used-multiple-times }
-          { Field } {#1}
-      }
-      {
-        \seq_put_right:Nn \l__pnp_blueprint_field_names_seq {#1}
-        \tl_put_right:Nn \l__pnp_blueprint_field_setters_tl
-          { \__pnp_blueprint_define_field_setter:n {#1} }
-        \bool_if:NF \l__pnp_blueprint_field_optional_bool
-          {
-            \tl_put_right:Nn \l__pnp_blueprint_field_required_checks_tl
-              { \__pnp_blueprint_assert_field_is_set:n {#1} }
-          }
-        \tl_put_right:Nn \l__pnp_blueprint_field_render_value_commands_tl
-          { \__pnp_blueprint_define_field_value_command:n {#1} }
-      }
-  }
+% Internal data structures used to store blueprint definition and instance state.
+\input{blueprint/state}
 
-\cs_new_protected:Npn \__pnp_blueprint_declare_field:nn #1#2
-  {
-    \bool_set_false:N \l__pnp_blueprint_field_optional_bool
-    \keys_set:nn { pnp-blueprint / field } {#1}
-    \__pnp_blueprint_declare_field:n {#2}
-  }
+% Field declaration, value storage, validation, and access functionality.
+\input{blueprint/fields}
 
-\cs_new_protected:Npn \__pnp_blueprint_declare_render:n #1
-  {
-    \bool_if:NTF \l__pnp_blueprint_render_environment_is_set_bool
-      {
-        \msg_error:nnnn { pnp-blueprint } { item-used-multiple-times }
-          { Environment } { render }
-      }
-      {
-        \bool_gset_true:N \l__pnp_blueprint_render_environment_is_set_bool
-        \tl_gset:Nn \l__pnp_blueprint_render_body_tl {#1}
-      }
-  }
+% Rendering definition and execution support for blueprint instances.
+\input{blueprint/render}
 
-\cs_new_protected:Npn \__pnp_blueprint_register_child_environment:nn #1#2
-  {
-    \tl_put_right:Nn
-      \l__pnp_blueprint_child_environment_definitions_tl
-      {
-        \__pnp_blueprint_define_child_environment:nn
-          {#1}
-          {#2}
-      }
-  }
+% Support for registering and rendering nested child blueprint instances.
+\input{blueprint/children}
 
-\cs_new_protected:Npn \__pnp_blueprint_define_child_environment:nn #1#2
-  {
-    \NewDocumentEnvironment {#1} { +b }
-      {
-        \__pnp_blueprint_add_child:n
-          {
-            \begin{#2}
-              ##1
-            \end{#2}
-          }
-      }
-      {
-      }
-  }
+% Generation and execution of environments created from blueprint definitions.
+\input{blueprint/instance}
 
-\cs_new_protected:Npn \__pnp_blueprint_add_child:n #1
-{
-  \tl_gput_right:Nn
-    \l__pnp_blueprint_children_tl
-    {#1}
-}
-
-\cs_new_protected:Npn \__pnp_blueprint_define_field_setter:n #1
-  {
-    \cs_set_protected:cpn {#1} ##1
-      {
-        \prop_if_in:NnTF \l__pnp_blueprint_field_values_prop {#1}
-          {
-            \msg_error:nnnn { pnp-blueprint } { item-used-multiple-times }
-              { Field } {#1}
-          }
-          {
-            \prop_put:Nnn \l__pnp_blueprint_field_values_prop {#1} {##1}
-          }
-      }
-  }
-
-\cs_new_protected:Npn \__pnp_blueprint_assert_field_is_set:n #1
-  {
-    \prop_if_in:NnF \l__pnp_blueprint_field_values_prop {#1}
-      {
-        \msg_error:nnnn { pnp-blueprint } { item-must-be-present }
-          { Field } {#1}
-      }
-  }
-
-\cs_new_protected:Npn \__pnp_blueprint_define_field_value_command:n #1
-  {
-    \cs_set:cpn {#1value}
-      {
-        \prop_get:NnNTF \l__pnp_blueprint_field_values_prop {#1} \l__pnp_blueprint_field_value_tl
-          { \tl_use:N \l__pnp_blueprint_field_value_tl }
-          { }
-      }
-  }
-
-\cs_new_protected:Npn \__pnp_blueprint_define_ifpresent_command:
-  {
-    \cs_set:Npn \ifpresent ##1##2
-      {
-        \prop_if_in:NnT \l__pnp_blueprint_field_values_prop {##1}
-          {##2}
-      }
-  }
-
-\cs_new_protected:Npn \__pnp_blueprint_define_ifmissing_command:
-  {
-    \cs_set:Npn \ifmissing ##1##2
-      {
-        \prop_if_in:NnF \l__pnp_blueprint_field_values_prop {##1}
-          {##2}
-      }
-  }
-
-\cs_new_protected:Npn \__pnp_blueprint_render_children:
-  {
-    \tl_use:N \l__pnp_blueprint_children_tl
-  }
-
-  \cs_new_protected:Npn \__pnp_blueprint_define_render_children_command:
-  {
-    \cs_set_protected:Npn \renderChildren
-      {
-        \__pnp_blueprint_render_children:
-      }
-  }
-
-  \cs_new_protected:Npn \__pnp_blueprint_define_generated_environment:nnnn #1#2#3#4
-  {
-    \group_begin:
-      \tex_globaldefs:D = 1\scan_stop:
-      \exp_args:No \NewDocumentEnvironment {#1} { }
-        {
-          \cs_set_protected:Npn \addBlueprintChild ####1
-          {
-            \__pnp_blueprint_add_child:n {####1}
-          }
-
-          \prop_clear:N \l__pnp_blueprint_field_values_prop
-
-          \seq_gput_right:NV
-            \l__pnp_blueprint_children_stack_seq
-            \l__pnp_blueprint_children_tl
-
-          \tl_clear:N \l__pnp_blueprint_children_tl
-
-          #2
-        }
-        {
-          
-          #3
-
-          #4
-
-          \seq_gpop_right:NN
-            \l__pnp_blueprint_children_stack_seq
-            \l__pnp_blueprint_children_tl
-
-        }
-    \group_end:
-  }
-
+% -----------------------------------------------------------------------------
+% Summary:
+%   Defines the blueprint declaration environment.
+%
+% Description:
+%   Collects fields, child environment registrations, and the render definition
+%   of a blueprint. After the declaration is complete, the collected information
+%   is used to generate the runtime environment for blueprint instances.
+%
+% Parameters:
+%   #1
+%     The name of the generated blueprint environment.
+%
+%   #2
+%     The blueprint definition body containing field, child, and render
+%     declarations.
+%
+% -----------------------------------------------------------------------------
 \NewDocumentEnvironment { blueprint } { m +b }
   {
     \__pnp_blueprint_assert_name_available:n {#1}

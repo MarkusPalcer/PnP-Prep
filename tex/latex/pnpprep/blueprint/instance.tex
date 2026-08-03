@@ -1,0 +1,71 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint instance
+% -----------------------------------------------------------------------------
+%
+% This module implements the creation of executable environments generated from
+% blueprint definitions.
+%
+% It combines field handling, rendering information, and child support into a
+% runtime environment that users can instantiate to create document content.
+%
+% -----------------------------------------------------------------------------
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Creates the runtime environment generated from a blueprint definition.
+%
+% Description:
+%   Generates the LaTeX environment representing a blueprint instance. The
+%   generated environment initializes instance state, installs child handling,
+%   restores nested child state using the child stack, and executes the
+%   generated begin and end code.
+%
+% Parameters:
+%   #1
+%     The name of the generated blueprint environment.
+%
+%   #2
+%     The generated begin code executed when entering the environment.
+%
+%   #3
+%     The generated validation code executed before rendering the environment.
+%
+%   #4
+%     The generated render code executed when leaving the environment.
+%
+% -----------------------------------------------------------------------------
+  \cs_new_protected:Npn \__pnp_blueprint_define_generated_environment:nnnn #1#2#3#4
+  {
+    \group_begin:
+      \tex_globaldefs:D = 1\scan_stop:
+      \exp_args:No \NewDocumentEnvironment {#1} { }
+        {
+          \cs_set_protected:Npn \addBlueprintChild ####1
+          {
+            \__pnp_blueprint_add_child:n {####1}
+          }
+
+          \prop_clear:N \l__pnp_blueprint_field_values_prop
+
+          \seq_gput_right:NV
+            \l__pnp_blueprint_children_stack_seq
+            \l__pnp_blueprint_children_tl
+
+          \tl_clear:N \l__pnp_blueprint_children_tl
+
+          #2
+        }
+        {
+          
+          #3
+
+          #4
+
+          \seq_gpop_right:NN
+            \l__pnp_blueprint_children_stack_seq
+            \l__pnp_blueprint_children_tl
+
+        }
+    \group_end:
+  }
+

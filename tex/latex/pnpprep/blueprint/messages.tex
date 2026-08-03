@@ -1,0 +1,26 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint messages
+% -----------------------------------------------------------------------------
+%
+% This module contains all user-facing messages emitted by the pnp-blueprint
+% framework.
+%
+% Keeping messages centralized makes it easier to maintain consistent wording
+% and allows the implementation modules to focus on their actual functionality.
+%
+% -----------------------------------------------------------------------------
+
+\msg_new:nnn { pnp-blueprint } { name-already-exists }
+  {
+    Cannot~create~blueprint~environment~'#1':~a~command~or~environment~with~this~name~already~exists.
+  }
+
+\msg_new:nnn { pnp-blueprint } { item-used-multiple-times }
+  {
+    #1~'#2'~may~occur~once.
+  }
+
+\msg_new:nnn { pnp-blueprint } { item-must-be-present }
+  {
+    #1~'#2'~must~be~present.
+  }

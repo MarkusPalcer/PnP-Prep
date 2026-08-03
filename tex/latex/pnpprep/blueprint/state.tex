@@ -1,0 +1,28 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint state
+% -----------------------------------------------------------------------------
+%
+% This module defines the internal state containers used by the framework.
+%
+% It declares the expl3 variables required during blueprint definition and
+% environment execution, including field storage, rendering information, child
+% instance storage, and temporary generation data.
+%
+% No user-facing commands are defined here.
+%
+% -----------------------------------------------------------------------------
+
+\seq_new:N \l__pnp_blueprint_field_names_seq
+\prop_new:N \l__pnp_blueprint_field_values_prop
+\tl_new:N \l__pnp_blueprint_field_setters_tl
+\tl_new:N \l__pnp_blueprint_field_required_checks_tl
+\tl_new:N \l__pnp_blueprint_field_render_value_commands_tl
+\tl_new:N \l__pnp_blueprint_generated_end_code_tl
+\bool_new:N \l__pnp_blueprint_field_optional_bool
+\tl_new:N \l__pnp_blueprint_field_value_tl
+\bool_new:N \l__pnp_blueprint_render_environment_is_set_bool
+\tl_new:N \l__pnp_blueprint_render_body_tl
+\tl_new:N \l__pnp_blueprint_children_tl
+\seq_new:N \l__pnp_blueprint_children_stack_seq
+\tl_new:N \l__pnp_blueprint_child_environment_definitions_tl
+\tl_new:N \l__pnp_blueprint_generated_begin_code_tl

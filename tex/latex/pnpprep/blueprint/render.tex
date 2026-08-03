@@ -1,0 +1,104 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint render
+% -----------------------------------------------------------------------------
+%
+% This module implements the rendering layer of the pnp-blueprint framework.
+%
+% It collects rendering definitions from blueprints and provides the commands
+% required to evaluate field values, conditional content, and child instances
+% while an instantiated environment is rendered.
+%
+% -----------------------------------------------------------------------------
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Stores the render definition of the current blueprint.
+%
+% Description:
+%   Registers the body of the render environment and ensures that each
+%   blueprint contains at most one render definition. The stored render body is
+%   later used when the generated blueprint environment is executed.
+%
+% Parameters:
+%   #1
+%     The content of the render environment.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_declare_render:n #1
+  {
+    \bool_if:NTF \l__pnp_blueprint_render_environment_is_set_bool
+      {
+        \msg_error:nnnn { pnp-blueprint } { item-used-multiple-times }
+          { Environment } { render }
+      }
+      {
+        \bool_gset_true:N \l__pnp_blueprint_render_environment_is_set_bool
+        \tl_gset:Nn \l__pnp_blueprint_render_body_tl {#1}
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Creates the conditional command for checking field presence during rendering.
+%
+% Description:
+%   Generates the \ifpresent command used by render definitions to conditionally
+%   include content depending on whether a field has been assigned a value in
+%   the current blueprint instance.
+%
+% Parameters:
+%   None.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_define_ifpresent_command:
+  {
+    \cs_set:Npn \ifpresent ##1##2
+      {
+        \prop_if_in:NnT \l__pnp_blueprint_field_values_prop {##1}
+          {##2}
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Creates the conditional command for checking field absence during rendering.
+%
+% Description:
+%   Generates the \ifmissing command used by render definitions to conditionally
+%   include content when a field has not been assigned a value in the current
+%   blueprint instance.
+%
+% Parameters:
+%   None.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_define_ifmissing_command:
+  {
+    \cs_set:Npn \ifmissing ##1##2
+      {
+        \prop_if_in:NnF \l__pnp_blueprint_field_values_prop {##1}
+          {##2}
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Creates the public command for rendering child instances.
+%
+% Description:
+%   Defines the \renderChildren command available inside a blueprint render
+%   block. The command delegates the actual child expansion to the internal
+%   child rendering implementation.
+%
+% Parameters:
+%   None.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_define_render_children_command:
+  {
+    \cs_set_protected:Npn \renderChildren
+      {
+        \__pnp_blueprint_render_children:
+      }
+  }
+

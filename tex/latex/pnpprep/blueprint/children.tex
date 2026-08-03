@@ -1,0 +1,109 @@
+% -----------------------------------------------------------------------------
+% pnp-blueprint children
+% -----------------------------------------------------------------------------
+%
+% This module implements support for nested blueprint instances.
+%
+% It provides mechanisms for registering child environment aliases, collecting
+% child instances during execution, and maintaining the required context when
+% rendering nested structures.
+%
+% -----------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------- 
+% Summary:
+%   Registers a child environment for a blueprint definition.
+%
+% Description:
+%   Stores the code required to create a child environment wrapper. The wrapper
+%   is not created immediately but is added to the generated instance setup.
+%
+% Parameters:
+%   #1
+%     The name of the wrapper environment that will be available inside the
+%     parent blueprint instance.
+%
+%   #2
+%     The name of the blueprint environment used to create the child instance.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_register_child_environment:nn #1#2
+  {
+    \tl_put_right:Nn
+      \l__pnp_blueprint_child_environment_definitions_tl
+      {
+        \__pnp_blueprint_define_child_environment:nn
+          {#1}
+          {#2}
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Registers a child environment wrapper for the current blueprint.
+%
+% Description:
+%   Stores the definition of a child environment wrapper. The actual wrapper
+%   environment is generated later when the blueprint instance environment is
+%   created.
+%
+% Parameters:
+%   #1
+%     The name of the child wrapper environment to create.
+%
+%   #2
+%     The name of the blueprint used for the child instance.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_define_child_environment:nn #1#2
+  {
+    \NewDocumentEnvironment {#1} { +b }
+      {
+        \__pnp_blueprint_add_child:n
+          {
+            \begin{#2}
+              ##1
+            \end{#2}
+          }
+      }
+      {
+      }
+  }
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Adds a child instance to the current blueprint instance.
+%
+% Description:
+%   Appends the token list representing a child instance to the collection of
+%   children that will later be rendered by the parent blueprint.
+%
+% Parameters:
+%   #1
+%     The token list containing the child instance to add.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_add_child:n #1
+{
+  \tl_gput_right:Nn
+    \l__pnp_blueprint_children_tl
+    {#1}
+}
+
+% -----------------------------------------------------------------------------
+% Summary:
+%   Renders all collected child instances.
+%
+% Description:
+%   Expands the token list containing all child instances that were registered
+%   for the current blueprint instance.
+%
+% Parameters:
+%   None.
+%
+% -----------------------------------------------------------------------------
+\cs_new_protected:Npn \__pnp_blueprint_render_children:
+  {
+    \tl_use:N \l__pnp_blueprint_children_tl
+  }
+
