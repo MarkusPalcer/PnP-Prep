@@ -2,7 +2,7 @@
 
 \begin{document}
 
-% \begin{databox}{gegner}
+% \begin{blueprint}{gegner}
 %     \field{name}
 
 %     \field[optional]{MU}
@@ -36,9 +36,9 @@
 %             \renderChildren
 %         \end{FlexibleBox}
 %     \end{render}
-% \end{databox}
+% \end{blueprint}
 
-% \begin{databox}{gegnerwaffe}
+% \begin{blueprint}{gegnerwaffe}
 %     \field{name}
 %     \field{AT}
 %     \field[optional]{PA}
@@ -55,9 +55,9 @@
 %         \renderChildren
 %         \par
 %     \end{render}
-% \end{databox}
+% \end{blueprint}
 
-% \begin{databox}{gegnerruestung}
+% \begin{blueprint}{gegnerruestung}
 %     \field{name}
 %     \field[optional]{RS}
 
@@ -69,22 +69,22 @@
 %         \renderChildren
 %         \par
 %     \end{render}
-% \end{databox}
+% \end{blueprint}
 
-% \begin{databox}{pflanze}
+% \begin{blueprint}{pflanze}
 %     \field{myField}
 
 %     \begin{render}
 %         \textbf{Pflanze}\\
 %         \textbf{myField: }\myFieldvalue \\
 %     \end{render}
-% \end{databox}
+% \end{blueprint}
 
 % \ExplSyntaxOn
 
 % \NewDocumentEnvironment{waffe}{+b}
 %   {
-%     \__pnp_databox_add_child:n
+%     \__pnp_blueprint_add_child:n
 %     {
 %       \begin{gegnerwaffe}
 %         #1
@@ -96,7 +96,7 @@
 
 % \NewDocumentEnvironment{reustung}{+b}
 %   {
-%     \__pnp_databox_add_child:n
+%     \__pnp_blueprint_add_child:n
 %     {
 %       \begin{gegnerruestung}
 %         #1
@@ -127,7 +127,7 @@
 % \begin{gegner}
 %     \name{Soldat 2}
 
-%     \__pnp_databox_add_child:n
+%     \__pnp_blueprint_add_child:n
 %     {
 %         \begin{gegnerwaffe}
 %             \name{Schwert}
@@ -136,7 +136,7 @@
 %             \TP{1W+2}
 %             \INI{8}
 
-%             \__pnp_databox_add_child:n
+%             \__pnp_blueprint_add_child:n
 %             {
 %                 \begin{gegnerruestung}
 %                     \name{Harnisch}
@@ -169,7 +169,7 @@
      \ExplSyntaxOn
 
  % (a)
-    \begin{databox}{Parent}
+    \begin{blueprint}{Parent}
         \field{test}
 
         % Erstellt (e)
@@ -182,10 +182,10 @@
             \renderChildren
             Parent End\par
         \end{render}
-    \end{databox}
+    \end{blueprint}
 
     % Normal (a), innerhalb von Parent aber (d), wenn als OuterChildWrapper aufgerufen
-    \begin{databox}{OuterChild}
+    \begin{blueprint}{OuterChild}
     \field{test}
         % Erstellt (e)
         \registerChildEnvironment{InnerChildWrapper}{InnerChild}
@@ -196,10 +196,10 @@
             \renderChildren
             OuterChild End\par
         \end{render}
-    \end{databox}
+    \end{blueprint}
 
     % Normal (a), innerhalb von OuterChild aber (d), wenn als InnerChildWrapper aufgerufen
-    \begin{databox}{InnerChild}
+    \begin{blueprint}{InnerChild}
         \field{test}
 
         % (b)
@@ -209,7 +209,7 @@
             \renderChildren
             InnerChild End\par
         \end{render}
-    \end{databox}
+    \end{blueprint}
 
     % (c)
     \begin{Parent}
