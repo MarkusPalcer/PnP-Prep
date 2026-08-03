@@ -43,7 +43,6 @@
 \RequirePackage{pnp-todo}
 \RequirePackage{pnp-decision}
 \RequirePackage{pnp-sammelprobe}
-\RequirePackage{pnp-wertekasten}
 \RequirePackage{pnp-blueprint}
 
 % Seitenränder
