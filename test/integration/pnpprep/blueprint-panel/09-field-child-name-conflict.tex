@@ -1,0 +1,51 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected result:
+%
+% Compilation fails.
+%
+% Expected error:
+% Cannot register child environment 'ruestung':
+% name already used by field.
+%
+% End expected result
+
+
+\begin{blueprint}{gegnerruestung}
+
+    \field{name}
+
+    \begin{render}
+        Armor: \namevalue
+    \end{render}
+
+\end{blueprint}
+
+
+\begin{blueprint}{gegner}
+
+    \field[optional]{ruestung}
+
+    \registerChildEnvironment{ruestung}{gegnerruestung}
+
+    \begin{render}
+        Test
+    \end{render}
+
+\end{blueprint}
+
+
+\begin{gegner}
+
+    Test
+
+    \begin{ruestung}
+        \name{Leather}
+    \end{ruestung}
+
+\end{gegner}
+
+
+\end{document}

@@ -1,0 +1,81 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% +--------------------------------+
+% | Parent A                       |
+% +--------------------------------+
+% | Parent: A                      |
+% | Weapon: Sword                  |
+% | AT: 12                         |
+% +--------------------------------+
+%
+% +--------------------------------+
+% | Parent B                       |
+% +--------------------------------+
+% | Parent: B                      |
+% | Weapon: Axe                    |
+% | AT: 10                         |
+% +--------------------------------+
+%
+% Requirements:
+% - The first panel must only contain data from Parent A.
+% - The second panel must only contain data from Parent B.
+% - Children must not leak between parent instances.
+% - Field values must not leak between parent instances.
+%
+% End expected output
+
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{weapon}{weaponBlueprint}
+
+    \begin{render}
+        \begin{panel}{\namevalue}
+            Parent: \namevalue
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{weaponBlueprint}
+    \field{name}
+    \field{AT}
+
+    \begin{render}
+        Weapon: \namevalue
+        \par
+        AT: \ATvalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{A}
+
+    \begin{weapon}
+        \name{Sword}
+        \AT{12}
+    \end{weapon}
+\end{parent}
+
+
+\begin{parent}
+    \name{B}
+
+    \begin{weapon}
+        \name{Axe}
+        \AT{10}
+    \end{weapon}
+\end{parent}
+
+
+\end{document}

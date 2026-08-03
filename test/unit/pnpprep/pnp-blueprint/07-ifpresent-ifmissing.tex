@@ -1,0 +1,51 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% Object A
+% Present: VALUE
+%
+% Object B
+% Missing: DEFAULT
+%
+% Requirements:
+% - \ifpresent only renders content for existing fields.
+% - \ifmissing only renders content for missing fields.
+% - Missing optional fields must not cause an error.
+%
+% End expected output
+
+
+\begin{blueprint}{testobject}
+    \field{name}
+    \field[optional]{testvalue}
+
+    \begin{render}
+        \namevalue
+        \par
+
+        \ifpresent{testvalue}
+            {Present: \testvaluevalue}
+
+        \ifmissing{testvalue}
+            {Missing: DEFAULT}
+
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{testobject}
+    \name{Object A}
+    \testvalue{VALUE}
+\end{testobject}
+
+
+\begin{testobject}
+    \name{Object B}
+\end{testobject}
+
+
+\end{document}

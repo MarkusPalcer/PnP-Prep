@@ -1,0 +1,58 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{childA}{childAEnvironment}
+    \registerChildEnvironment{childB}{childBEnvironment}
+
+    \begin{render}
+        Parent: \namevalue
+        \par
+
+        \renderChildren
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childAEnvironment}
+    \field{name}
+
+    \begin{render}
+        Child A: \namevalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childBEnvironment}
+    \field{name}
+
+    \begin{render}
+        Child B: \namevalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{P}
+
+    \begin{childA}
+        \name{A}
+    \end{childA}
+
+    \begin{childB}
+        \name{B}
+    \end{childB}
+
+\end{parent}
+
+\end{document}
+
+% Expected
+% Parent: P
+% Child A: A
+% Child B: B

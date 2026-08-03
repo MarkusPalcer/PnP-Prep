@@ -1,0 +1,35 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+\begin{blueprint}{person}
+    \field{name}
+    \field[optional]{age}
+
+    \begin{render}
+        Name: \namevalue
+
+        \ifpresent{age}
+        {
+            Age: \agevalue
+        }
+    \end{render}
+\end{blueprint}
+
+
+\begin{person}
+    \name{Alice}
+    \age{42}
+\end{person}
+
+\begin{person}
+    \name{Bob}
+\end{person}
+
+\end{document}
+
+% Expected output:
+% Name: Alice
+% Age: 42
+
+% Name: Bob

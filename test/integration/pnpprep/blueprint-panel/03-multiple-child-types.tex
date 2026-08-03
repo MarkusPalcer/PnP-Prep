@@ -1,0 +1,98 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% +--------------------------------+
+% | Parent                         |
+% +--------------------------------+
+% | Parent: Goblin                 |
+% | Weapon: Sword                  |
+% | AT: 12 PA: 8 TP: 1W+2 INI: 8   |
+% | Armor: Leather Armor           |
+% | RS: 2                          |
+% +--------------------------------+
+%
+% Requirements:
+% - The panel title must be "Parent".
+% - The parent content must appear inside the panel.
+% - Both child types must appear inside the panel.
+% - Child order must be preserved.
+% - Field values of each child must not overwrite each other.
+%
+% End expected output
+
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{weapon}{weaponBlueprint}
+    \registerChildEnvironment{armor}{armorBlueprint}
+
+    \begin{render}
+        \begin{panel}{Parent}
+            Parent: \namevalue
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{weaponBlueprint}
+    \field{name}
+    \field{AT}
+    \field{PA}
+    \field{TP}
+    \field{INI}
+
+    \begin{render}
+        Weapon: \namevalue
+        \par
+        AT: \ATvalue
+        \quad
+        PA: \PAvalue
+        \quad
+        TP: \TPvalue
+        \quad
+        INI: \INIvalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{armorBlueprint}
+    \field{name}
+    \field{RS}
+
+    \begin{render}
+        Armor: \namevalue
+        \par
+        RS: \RSvalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{Goblin}
+
+    \begin{weapon}
+        \name{Sword}
+        \AT{12}
+        \PA{8}
+        \TP{1W+2}
+        \INI{8}
+    \end{weapon}
+
+    \begin{armor}
+        \name{Leather Armor}
+        \RS{2}
+    \end{armor}
+
+\end{parent}
+
+
+\end{document}

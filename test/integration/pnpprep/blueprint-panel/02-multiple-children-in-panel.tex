@@ -1,0 +1,75 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% +--------------------------------+
+% | P                              |
+% +--------------------------------+
+% | Parent: P                      |
+% | Child A: A                     |
+% | Child B: B                     |
+% +--------------------------------+
+%
+% Requirements:
+% - The panel title must be "P".
+% - All children must be rendered inside the panel content area.
+% - Children must appear in registration order.
+% - No child content may appear outside the panel.
+%
+% End expected output
+
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{childA}{childAEnvironment}
+    \registerChildEnvironment{childB}{childBEnvironment}
+
+    \begin{render}
+        \begin{panel}{\namevalue}
+            Parent: \namevalue
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childAEnvironment}
+    \field{name}
+
+    \begin{render}
+        Child A: \namevalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childBEnvironment}
+    \field{name}
+
+    \begin{render}
+        Child B: \namevalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{P}
+
+    \begin{childA}
+        \name{A}
+    \end{childA}
+
+    \begin{childB}
+        \name{B}
+    \end{childB}
+
+\end{parent}
+
+
+\end{document}

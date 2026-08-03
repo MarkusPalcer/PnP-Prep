@@ -1,0 +1,138 @@
+% Expected output:
+%
+% Two panels are rendered:
+%
+% +-----------------------------------------------+
+% | Soldat 1                                      |
+% +-----------------------------------------------+
+% | Schwert1 : AT: 12 PA: 8 TP: 1W+2 INI: 8       |
+% | Rüstung1 : RS: 4                              |
+% +-----------------------------------------------+
+%
+% +-----------------------------------------------+
+% | Soldat                                        |
+% +-----------------------------------------------+
+% | KK: 12                                        |
+% | Schwert : AT: 12 PA: 4 TP: 1W+1 INI: 15       |
+% +-----------------------------------------------+
+%
+%
+% Requirements:
+% - Each blueprint instance must create its own panel.
+% - The panel title must contain the blueprint instance name.
+% - Child instances must be rendered inside their parent panel.
+% - Child order must be preserved.
+% - Child values must not leak between parent instances.
+% - Fields with the same name in different blueprints must remain independent.
+% - Optional fields must only be rendered when present.
+% - Missing optional values must not cause a compilation error.
+%
+% End expected output
+
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+\begin{blueprint}{gegner}
+    \field{name}
+
+    \field[optional]{MU}
+    \field[optional]{KL}
+    \field[optional]{IN}
+    \field[optional]{CH}
+    \field[optional]{FF}
+    \field[optional]{GE}
+    \field[optional]{KO}
+    \field[optional]{KK}
+
+
+
+    \field[optional]{ruestung}
+    \field[optional]{RS}
+
+    \registerChildEnvironment{waffe}{gegnerwaffe}
+    \registerChildEnvironment{ruestung}{gegnerruestung}
+
+    \begin{render}
+        \begin{panel}{\namevalue}
+            \ifpresent{MU}{\textbf{MU: }\MUvalue\hfill}
+            \ifpresent{KL}{\textbf{KL: }\KLvalue\hfill}
+            \ifpresent{IN}{\textbf{IN: }\INvalue\hfill}
+            \ifpresent{CH}{\textbf{CH: }\CHvalue\hfill}
+            \ifpresent{FF}{\textbf{FF: }\FFvalue\hfill}
+            \ifpresent{GE}{\textbf{GE: }\GEvalue\hfill}
+            \ifpresent{KO}{\textbf{KO: }\KOvalue\hfill}
+            \ifpresent{KK}{\textbf{KK: }\KKvalue\hfill}
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+\begin{blueprint}{gegnerwaffe}
+    \field{name}
+    \field{AT}
+    \field[optional]{PA}
+    \field{TP}
+    \field{INI}
+
+    \begin{render}
+        \textbf{\namevalue :}\quad
+        \textbf{AT: }\ATvalue\quad
+        \ifpresent{PA}{\textbf{PA: }\PAvalue}\quad
+        \textbf{TP: }\TPvalue\quad
+        \textbf{INI: }\INIvalue\quad
+        \par
+        \renderChildren
+        \par
+    \end{render}
+\end{blueprint}
+
+\begin{blueprint}{gegnerruestung}
+    \field{name}
+    \field[optional]{RS}
+
+    \begin{render}
+        \textbf{\namevalue :}\quad
+        \ifpresent{RS}{\textbf{RS: }\RSvalue}
+        \ifmissing{RS}{\textbf{RS: }0}\quad
+        \par
+        \renderChildren
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{gegner}
+    \name{Soldat 1}
+
+    \begin{waffe}
+        \name{Schwert1}
+        \AT{12}
+        \PA{8}
+        \TP{1W+2}
+        \INI{8}
+    \end{waffe}
+
+    \begin{ruestung}
+        \name{Rüstung1}
+        \RS{4}
+    \end{ruestung}
+\end{gegner}
+
+\begin{gegner}
+    \name{Soldat}
+    \KK{12}
+
+    \begin{waffe}
+        \name{Schwert}
+        \AT{12}
+        \PA{4} 
+        \TP{1W+1}
+        \INI{15}
+    \end{waffe}
+\end{gegner}
+    
+
+\end{document}

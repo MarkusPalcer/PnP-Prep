@@ -1,0 +1,55 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% +-------------------------+
+% | P                       |
+% +-------------------------+
+% | Parent: P               |
+% | Child: C                |
+% +-------------------------+
+%
+% The child content must appear inside the panel content area.
+% The child must not be rendered outside the panel.
+%
+% End expected output
+
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{child}{childenvironment}
+
+    \begin{render}
+        \begin{panel}{\namevalue}
+            Parent: \namevalue
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childenvironment}
+    \field{name}
+
+    \begin{render}
+        Child: \namevalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{P}
+
+    \begin{child}
+        \name{C}
+    \end{child}
+
+\end{parent}
+
+\end{document}

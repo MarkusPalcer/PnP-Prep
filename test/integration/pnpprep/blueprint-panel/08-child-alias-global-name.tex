@@ -1,0 +1,59 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% Enemy: Goblin Enemy armor: Leather
+%
+% Requirements:
+% - A globally defined blueprint environment may have the same name
+%   as a child alias in another blueprint.
+% - Child aliases are resolved locally inside their parent blueprint.
+% - The child alias "ruestung" must resolve to "gegnerruestung"
+%   inside the "gegner" blueprint.
+%
+% End expected output
+
+
+\begin{blueprint}{ruestung}
+    \field{name}
+
+    \begin{render}
+        Armor: \namevalue
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{gegnerruestung}
+    \field{name}
+
+    \begin{render}
+        Enemy armor: \namevalue
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{gegner}
+    \field{name}
+
+    \registerChildEnvironment{ruestung}{gegnerruestung}
+
+    \begin{render}
+        Enemy: \namevalue
+        \par
+        \renderChildren
+    \end{render}
+\end{blueprint}
+
+
+\begin{gegner}
+    \name{Goblin}
+
+    \begin{ruestung}
+        \name{Leather}
+    \end{ruestung}
+\end{gegner}
+
+
+\end{document}

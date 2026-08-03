@@ -1,0 +1,59 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{child}{childenvironment}
+
+    \begin{render}
+        Parent: \namevalue
+
+        \renderChildren
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childenvironment}
+    \field{name}
+
+    \registerChildEnvironment{grandchild}{grandchildenvironment}
+
+    \begin{render}
+        Child: \namevalue
+
+        \renderChildren
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{grandchildenvironment}
+    \field{name}
+
+    \begin{render}
+        Grandchild: \namevalue
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{P}
+
+    \begin{child}
+        \name{C}
+
+        \begin{grandchild}
+            \name{GC}
+        \end{grandchild}
+
+    \end{child}
+
+\end{parent}
+
+\end{document}
+
+% Expectation:
+% Parent: P
+% Child: C
+% Grandchild: GC

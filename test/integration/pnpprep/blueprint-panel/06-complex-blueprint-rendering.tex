@@ -1,0 +1,108 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% +--------------------------------+
+% | Goblin                         |
+% +--------------------------------+
+% | Name: Goblin                   |
+% | Courage: 8                     |
+% | Weapon: Club                   |
+% | Damage: 1W+2                   |
+% | Modifier: 0                    |
+% | Armor: Hide                    |
+% | Protection: 1                  |
+% +--------------------------------+
+%
+% Requirements:
+% - The panel title must be the parent name.
+% - Parent fields must be rendered correctly.
+% - Child fields must not overwrite parent fields.
+% - Optional fields must be handled correctly.
+% - \ifpresent must only show existing optional values.
+% - \ifmissing must show fallback values.
+% - Children must remain inside the parent panel.
+%
+% End expected output
+
+
+\begin{blueprint}{creature}
+    \field{name}
+    \field[optional]{courage}
+
+    \registerChildEnvironment{weapon}{weaponBlueprint}
+    \registerChildEnvironment{armor}{armorBlueprint}
+
+    \begin{render}
+        \begin{panel}{\namevalue}
+            Name: \namevalue
+            \par
+
+            \ifpresent{courage}
+                {Courage: \couragevalue}
+
+            \ifmissing{courage}
+                {Courage: unknown}
+
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{weaponBlueprint}
+    \field{name}
+    \field{damage}
+    \field[optional]{modifier}
+
+    \begin{render}
+        Weapon: \namevalue
+        \par
+        Damage: \damagevalue
+        \par
+
+        \ifpresent{modifier}
+            {Modifier: \modifiervalue}
+
+        \ifmissing{modifier}
+            {Modifier: none}
+
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{armorBlueprint}
+    \field{name}
+    \field{protection}
+
+    \begin{render}
+        Armor: \namevalue
+        \par
+        Protection: \protectionvalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{creature}
+    \name{Goblin}
+    \courage{8}
+
+    \begin{weapon}
+        \name{Club}
+        \damage{1W+2}
+    \end{weapon}
+
+    \begin{armor}
+        \name{Hide}
+        \protection{1}
+    \end{armor}
+\end{creature}
+
+
+\end{document}

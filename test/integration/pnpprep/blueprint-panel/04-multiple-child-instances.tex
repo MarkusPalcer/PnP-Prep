@@ -1,0 +1,93 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected output:
+%
+% +--------------------------------+
+% | Parent                         |
+% +--------------------------------+
+% | Parent: Character              |
+% | Weapon: Sword                  |
+% | AT: 12                         |
+% | Weapon: Axe                    |
+% | AT: 10                         |
+% | Armor: Leather Armor           |
+% | RS: 2                          |
+% +--------------------------------+
+%
+% Requirements:
+% - The panel title must be "Parent".
+% - All child instances must appear inside the panel.
+% - Child instances must appear in creation order.
+% - Each child instance must keep its own field values.
+% - The second weapon must not reuse values from the first weapon.
+%
+% End expected output
+
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{weapon}{weaponBlueprint}
+    \registerChildEnvironment{armor}{armorBlueprint}
+
+    \begin{render}
+        \begin{panel}{Parent}
+            Parent: \namevalue
+            \par
+
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{weaponBlueprint}
+    \field{name}
+    \field{AT}
+
+    \begin{render}
+        Weapon: \namevalue
+        \par
+        AT: \ATvalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{armorBlueprint}
+    \field{name}
+    \field{RS}
+
+    \begin{render}
+        Armor: \namevalue
+        \par
+        RS: \RSvalue
+        \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{Character}
+
+    \begin{weapon}
+        \name{Sword}
+        \AT{12}
+    \end{weapon}
+
+    \begin{weapon}
+        \name{Axe}
+        \AT{10}
+    \end{weapon}
+
+    \begin{armor}
+        \name{Leather Armor}
+        \RS{2}
+    \end{armor}
+
+\end{parent}
+
+
+\end{document}

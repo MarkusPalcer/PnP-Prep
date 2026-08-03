@@ -1,0 +1,39 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{child}{childenvironment}
+
+    \begin{render}
+        Parent: \namevalue
+
+        \renderChildren
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childenvironment}
+    \field{name}
+
+    \begin{render}
+        Child: \namevalue
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{Parent 1}
+
+    \begin{child}
+        \name{Child 1}
+    \end{child}
+\end{parent}
+
+\end{document}
+
+% Expected Output:
+% Parent: Parent 1
+% Child: Child 1

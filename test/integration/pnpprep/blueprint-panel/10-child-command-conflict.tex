@@ -1,0 +1,49 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+% Expected result:
+%
+% Compilation fails.
+%
+% Expected error:
+% Cannot register child environment 'textbf':
+% name already exists.
+%
+% End expected result
+
+
+\begin{blueprint}{child}
+
+    \field{name}
+
+    \begin{render}
+        Child: \namevalue
+    \end{render}
+
+\end{blueprint}
+
+
+\begin{blueprint}{test}
+
+    \registerChildEnvironment{textbf}{child}
+
+    \begin{render}
+        Test
+    \end{render}
+
+\end{blueprint}
+
+
+\begin{test}
+
+    Test
+
+    \begin{child}
+        \name{Example}
+    \end{child}
+
+\end{test}
+
+
+\end{document}
