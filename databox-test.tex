@@ -2,97 +2,228 @@
 
 \begin{document}
 
-\begin{databox}{gegner}
-    \field{name}
+% \begin{databox}{gegner}
+%     \field{name}
 
-    \field[optional]{MU}
-    \field[optional]{KL}
-    \field[optional]{IN}
-    \field[optional]{CH}
-    \field[optional]{FF}
-    \field[optional]{GE}
-    \field[optional]{KO}
-    \field[optional]{KK}
-
-    \field{waffe}
-    \field{AT}
-    \field[optional]{PA}
-    \field{TP}
-    \field{INI}
-
-    \field[optional]{ruestung}
-    \field[optional]{RS}
-
-    \begin{render}
-        \begin{FlexibleBox}{\namevalue}
-            \ifpresent{MU}{\textbf{MU: }\MUvalue\hfill}
-            \ifpresent{KL}{\textbf{KL: }\KLvalue\hfill}
-            \ifpresent{IN}{\textbf{IN: }\INvalue\hfill}
-            \ifpresent{CH}{\textbf{CH: }\CHvalue\hfill}
-            \ifpresent{FF}{\textbf{FF: }\FFvalue\hfill}
-            \ifpresent{GE}{\textbf{GE: }\GEvalue\hfill}
-            \ifpresent{KO}{\textbf{KO: }\KOvalue\hfill}
-            \ifpresent{KK}{\textbf{KK: }\KKvalue\hfill}
-            \par
-
-            \textbf{\waffevalue :}\quad
-            \textbf{AT: }\ATvalue\quad
-            \ifpresent{PA}{\textbf{PA: }\PAvalue}\quad
-            \textbf{TP: }\TPvalue\quad
-            \textbf{INI: }\INIvalue\quad
-            \par
-            
-            \ifpresent{ruestung}{
-                \textbf{\ruestungvalue :}\quad
-                \ifpresent{RS}{\textbf{RS: }\RSvalue}\quad
-                \ifmissing{RS}{\textbf{RS: }0}\quad
-                \par
-            }
-
-            \renderExtras
-        \end{FlexibleBox}
-    \end{render}
-\end{databox}
+%     \field[optional]{MU}
+%     \field[optional]{KL}
+%     \field[optional]{IN}
+%     \field[optional]{CH}
+%     \field[optional]{FF}
+%     \field[optional]{GE}
+%     \field[optional]{KO}
+%     \field[optional]{KK}
 
 
 
-\begin{databox}{pflanze}
-    \field{myField}
+%     \field[optional]{ruestung}
+%     \field[optional]{RS}
 
-    \begin{render}
-        \textbf{Pflanze}\\
-        \textbf{myField: }\myFieldvalue \\
-    \end{render}
-\end{databox}
+%     % \registerChildEnvironment{waffe}{gegnerwaffe}
 
-\begin{gegner}
-    \name{Goblin}
-    \waffe{Schwert}
-    \AT{12}
-    \PA{4}
-    \TP{1W+1}
-    \INI{12}
-    \ruestung{Lumpen}
-\end{gegner}
+%     \begin{render}
+%         \begin{FlexibleBox}{\namevalue}
+%             \ifpresent{MU}{\textbf{MU: }\MUvalue\hfill}
+%             \ifpresent{KL}{\textbf{KL: }\KLvalue\hfill}
+%             \ifpresent{IN}{\textbf{IN: }\INvalue\hfill}
+%             \ifpresent{CH}{\textbf{CH: }\CHvalue\hfill}
+%             \ifpresent{FF}{\textbf{FF: }\FFvalue\hfill}
+%             \ifpresent{GE}{\textbf{GE: }\GEvalue\hfill}
+%             \ifpresent{KO}{\textbf{KO: }\KOvalue\hfill}
+%             \ifpresent{KK}{\textbf{KK: }\KKvalue\hfill}
+%             \par
 
-\begin{pflanze}
-    \myField{anotherValue}
-\end{pflanze}
+%             \renderChildren
+%         \end{FlexibleBox}
+%     \end{render}
+% \end{databox}
 
-\begin{gegner}
-    \name{Soldat}
-    \KK{12}
-    \waffe{Schwert}
-    \AT{12}
-    \PA{4}
-    \TP{1W+1}
-    \INI{15}
-    \ruestung{Lederharhnisch}
-    \RS{2}
+% \begin{databox}{gegnerwaffe}
+%     \field{name}
+%     \field{AT}
+%     \field[optional]{PA}
+%     \field{TP}
+%     \field{INI}
 
-    \databoxAddExtra{
-        Testausgabe
-    }
-\end{gegner}
+%     \begin{render}
+%         \textbf{\namevalue :}\quad
+%         \textbf{AT: }\ATvalue\quad
+%         \ifpresent{PA}{\textbf{PA: }\PAvalue}\quad
+%         \textbf{TP: }\TPvalue\quad
+%         \textbf{INI: }\INIvalue\quad
+%         \par
+%         \renderChildren
+%         \par
+%     \end{render}
+% \end{databox}
+
+% \begin{databox}{gegnerruestung}
+%     \field{name}
+%     \field[optional]{RS}
+
+%     \begin{render}
+%         \textbf{\namevalue :}\quad
+%         \ifpresent{RS}{\textbf{RS: }\RSvalue}\quad
+%         \ifmissing{RS}{\textbf{RS: }0}\quad
+%         \par
+%         \renderChildren
+%         \par
+%     \end{render}
+% \end{databox}
+
+% \begin{databox}{pflanze}
+%     \field{myField}
+
+%     \begin{render}
+%         \textbf{Pflanze}\\
+%         \textbf{myField: }\myFieldvalue \\
+%     \end{render}
+% \end{databox}
+
+% \ExplSyntaxOn
+
+% \NewDocumentEnvironment{waffe}{+b}
+%   {
+%     \__pnp_databox_add_child:n
+%     {
+%       \begin{gegnerwaffe}
+%         #1
+%       \end{gegnerwaffe}
+%     }
+%   }
+%   {
+%   }
+
+% \NewDocumentEnvironment{reustung}{+b}
+%   {
+%     \__pnp_databox_add_child:n
+%     {
+%       \begin{gegnerruestung}
+%         #1
+%       \end{gegnerruestung}
+%     }
+%   }
+%   {
+%   }
+
+% \begin{gegner}
+%     \name{Soldat 1}
+
+%     \begin{waffe}
+%         \name{Schwert1}
+%         \AT{12}
+%         \PA{8}
+%         \TP{1W+2}
+%         \INI{8}
+
+%         \begin{ruestung}
+%             \name{Rüstung1}
+%             \RS{4}
+%         \end{ruestung}
+%     \end{waffe}
+
+% \end{gegner}
+
+% \begin{gegner}
+%     \name{Soldat 2}
+
+%     \__pnp_databox_add_child:n
+%     {
+%         \begin{gegnerwaffe}
+%             \name{Schwert}
+%             \AT{12}
+%             \PA{8}
+%             \TP{1W+2}
+%             \INI{8}
+
+%             \__pnp_databox_add_child:n
+%             {
+%                 \begin{gegnerruestung}
+%                     \name{Harnisch}
+%                     \RS{1}
+%                 \end{gegnerruestung}
+%             }
+%         \end{gegnerwaffe}
+%     }
+% \end{gegner}
+
+% \ExplSyntaxOff
+
+
+% % \begin{pflanze}
+% %     \myField{anotherValue}
+% % \end{pflanze}
+
+% % \begin{gegner}
+% %     \name{Soldat}
+% %     \KK{12}
+
+% %     \begin{waffe}
+% %         \name{Schwert}
+% %         \AT{12}
+% %         \PA{4} 
+% %         \TP{1W+1}
+% %         \INI{15}
+% %     \end{waffe}
+% % \end{gegner}
+     \ExplSyntaxOn
+
+ % (a)
+    \begin{databox}{Parent}
+        \field{test}
+
+        % Erstellt (e)
+        \registerChildEnvironment{OuterChildWrapper}{OuterChild}
+
+        % (b)
+        \begin{render}
+            Parent Start\par
+            \textbf{Test: }\testvalue\par
+            \renderChildren
+            Parent End\par
+        \end{render}
+    \end{databox}
+
+    % Normal (a), innerhalb von Parent aber (d), wenn als OuterChildWrapper aufgerufen
+    \begin{databox}{OuterChild}
+    \field{test}
+        % Erstellt (e)
+        \registerChildEnvironment{InnerChildWrapper}{InnerChild}
+
+        \begin{render}
+            OuterChild Start\par
+            \textbf{Test: }\testvalue\par
+            \renderChildren
+            OuterChild End\par
+        \end{render}
+    \end{databox}
+
+    % Normal (a), innerhalb von OuterChild aber (d), wenn als InnerChildWrapper aufgerufen
+    \begin{databox}{InnerChild}
+        \field{test}
+
+        % (b)
+        \begin{render}
+            InnerChild Start\par
+            \textbf{Test: }\testvalue\par
+            \renderChildren
+            InnerChild End\par
+        \end{render}
+    \end{databox}
+
+    % (c)
+    \begin{Parent}
+        \test{123}
+
+        % (e)
+        \begin{OuterChildWrapper}
+            \test{456}
+
+            \begin{InnerChildWrapper}
+                \test{789}
+            \end{InnerChildWrapper}
+        \end{OuterChildWrapper}
+    \end{Parent}
+ \ExplSyntaxOff
 
 \end{document}
