@@ -26,5 +26,5 @@ TEST_PDF := $(TEST_TEX:.tex=.pdf)
 test: $(TEST_PDF)
 
 %.pdf: %.tex
-	cd $(dir $<) && latex -pdf -shell-escape -interaction=nonstopmode -halt-on-error $(notdir $<)
-	cd $(dir $<) && latex -pdf -shell-escape -interaction=nonstopmode -halt-on-error $(notdir $<)
+	cd $(dir $<) && pdflatex -shell-escape -interaction=nonstopmode -halt-on-error $(notdir $<)
+	cd $(dir $<) && pdflatex -shell-escape -interaction=nonstopmode -halt-on-error $(notdir $<)
