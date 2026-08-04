@@ -43,6 +43,23 @@
 
   \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
 
+  % If nothing found locally, search PNP_LIBRARY (if set) and return absolute path
+  \tl_if_blank:VTF \l_pnp_blueprint_load_found_file_tl
+  {
+    % try searching in PNP_LIBRARY (environment variable) directly
+    \sys_get_shell:nnN
+    {
+      find~$PNP_LIBRARY~-type~f~\(~-name~#2.#1~-o~-path~*/#1/#2.tex~\)~-exec~realpath~{}~\;~-quit
+    }
+    { }
+    \l_pnp_blueprint_load_found_file_tl
+
+    \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
+  }
+  {
+    % found locally, nothing to do
+  }
+
   \tl_if_blank:VTF
     \l_pnp_blueprint_load_found_file_tl
   {
