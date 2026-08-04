@@ -4,37 +4,47 @@
 
 % Expected output:
 %
-% Enemy: Goblin Enemy armor: Leather
+% Enemy: Goblin
+% Enemy armor: Leather
+%
+% Expected warning:
+% Package pnp-blueprint Warning: Child environment 'ruestung' overwrites an
+% (pnp-blueprint)                existing environment.
 %
 % Requirements:
-% - A globally defined blueprint environment may have the same name
-%   as a child alias in another blueprint.
-% - Child aliases are resolved locally inside their parent blueprint.
-% - The child alias "ruestung" must resolve to "gegnerruestung"
-%   inside the "gegner" blueprint.
+% - Compilation succeeds.
+% - A child alias may shadow an existing environment.
+% - The child alias must be used inside the parent blueprint.
+% - The original global environment must not be used inside the parent blueprint.
+% - A warning must be emitted exactly once.
 %
 % End expected output
 
 
 \begin{blueprint}{ruestung}
+
     \field{name}
 
     \begin{render}
-        Armor: \namevalue
+        Global armor: \namevalue
     \end{render}
+
 \end{blueprint}
 
 
 \begin{blueprint}{gegnerruestung}
+
     \field{name}
 
     \begin{render}
         Enemy armor: \namevalue
     \end{render}
+
 \end{blueprint}
 
 
 \begin{blueprint}{gegner}
+
     \field{name}
 
     \registerChildEnvironment{ruestung}{gegnerruestung}
@@ -44,16 +54,18 @@
         \par
         \renderChildren
     \end{render}
+
 \end{blueprint}
 
 
 \begin{gegner}
+
     \name{Goblin}
 
     \begin{ruestung}
         \name{Leather}
     \end{ruestung}
-\end{gegner}
 
+\end{gegner}
 
 \end{document}

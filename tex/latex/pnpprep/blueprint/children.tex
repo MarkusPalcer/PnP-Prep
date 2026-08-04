@@ -29,12 +29,23 @@
 % -----------------------------------------------------------------------------
 \cs_new_protected:Npn \__pnp_blueprint_register_child_environment:nn #1#2
   {
-    \tl_put_right:Nn
-      \l__pnp_blueprint_child_environment_definitions_tl
+    \seq_if_in:NnTF
+      \l__pnp_blueprint_field_names_seq
+      {#1}
       {
-        \__pnp_blueprint_define_child_environment:nn
+        \msg_error:nnn
+          { pnp-blueprint }
+          { child-environment-conflicts-with-field }
           {#1}
-          {#2}
+      }
+      {
+        \tl_put_right:Nn
+          \l__pnp_blueprint_child_environment_definitions_tl
+          {
+            \__pnp_blueprint_define_child_environment:nn
+              {#1}
+              {#2}
+          }
       }
   }
 
@@ -57,16 +68,46 @@
 % -----------------------------------------------------------------------------
 \cs_new_protected:Npn \__pnp_blueprint_define_child_environment:nn #1#2
   {
-    \NewDocumentEnvironment {#1} { +b }
+    \cs_if_exist:cTF { end#1 }
       {
-        \__pnp_blueprint_add_child:n
+        \msg_warning:nnn
+          { pnp-blueprint }
+          { child-environment-overwrites-environment }
+          {#1}
+
+        \RenewDocumentEnvironment {#1} { +b }
           {
-            \begin{#2}
-              ##1
-            \end{#2}
+            \__pnp_blueprint_add_child:n
+              {
+                \begin{#2}
+                  ##1
+                \end{#2}
+              }
+          }
+          {
           }
       }
       {
+        \cs_if_exist:cTF {#1}
+          {
+            \msg_error:nnn
+              { pnp-blueprint }
+              { child-environment-conflicts-with-command }
+              {#1}
+          }
+          {
+            \NewDocumentEnvironment {#1} { +b }
+              {
+                \__pnp_blueprint_add_child:n
+                  {
+                    \begin{#2}
+                      ##1
+                    \end{#2}
+                  }
+              }
+              {
+              }
+          }
       }
   }
 
