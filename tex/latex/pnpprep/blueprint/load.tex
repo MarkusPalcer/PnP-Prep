@@ -46,13 +46,13 @@
   % If nothing found locally, search PNP_LIBRARY (if set) and return absolute path
   \tl_if_blank:VTF \l_pnp_blueprint_load_found_file_tl
   {
-    % try searching in PNP_LIBRARY (environment variable) directly
+    % Use an external helper script (no Python dependency) that reads $PNP_LIBRARY
+    % and performs a safe find (supports spaces in PNP_LIBRARY). The script
+    % inherits the environment (PNP_LIBRARY) from the LaTeX process.
     \sys_get_shell:nnN
-    {
-      find~$PNP_LIBRARY~-type~f~\(~-name~#2.#1~-o~-path~*/#1/#2.tex~\)~-exec~realpath~{}~\;~-quit
-    }
-    { }
-    \l_pnp_blueprint_load_found_file_tl
+      { ./tex/latex/pnpprep/blueprint/findlib.sh~#1~#2 }
+      { }
+      \l_pnp_blueprint_load_found_file_tl
 
     \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
   }
