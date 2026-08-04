@@ -138,6 +138,11 @@
       {\l__pnp_blueprint_generated_begin_code_tl}
       {\l__pnp_blueprint_field_required_checks_tl}
       {\l__pnp_blueprint_generated_end_code_tl}
+
+    % Generate a per-blueprint loader command \load<name>{<entry>} that
+    % delegates to the package loader. Use a robust csname-based
+    % definition to avoid expansion-time parameter issues.
+    \protected\expandafter\gdef\csname load#1\endcsname##1{\pnp_blueprint_load:nn {#1} {##1}}
   }
 
 
