@@ -19,73 +19,33 @@
 
 \cs_new_protected:Npn \pnp_blueprint_load_linux:nn #1 #2
 {
-  % Get absolute current directory
-  \sys_get_shell:nnN
-    { pwd }
-    { }
-    \l_pnp_blueprint_load_current_dir_tl
+  % Locate the helper script via kpsewhich (must not pass repository paths).
+  \tl_set:Nx \l_pnp_blueprint_load_kpse_cmd_tl { kpsewhich \c_space_tl findlib.sh }
+  \exp_args:NV \sys_get_shell:nnN \l_pnp_blueprint_load_kpse_cmd_tl { } \l_pnp_blueprint_load_script_path_tl
+  \tl_trim_spaces:V \l_pnp_blueprint_load_script_path_tl
 
-  \tl_trim_spaces:V \l_pnp_blueprint_load_current_dir_tl
-
-  \iow_term:x
+  % If helper not found, fail with clear message
+  \tl_if_blank:VTF \l_pnp_blueprint_load_script_path_tl
   {
-    Current~directory:~
-    \l_pnp_blueprint_load_current_dir_tl
+    \msg_fatal:nn { pnp-blueprint } { findlib-not-found }
   }
-
-  % Search blueprint file (use realpath via -exec to get an absolute path)
-  \sys_get_shell:nnN
   {
-    find~.~-type~f~\(~-name~#2.#1~-o~-path~*/#1/#2.tex~\)~-exec~realpath~{}~\;~-quit
-  }
-  { }
-  \l_pnp_blueprint_load_found_file_tl
-
-  \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
-
-  % If nothing found locally, search PNP_LIBRARY (if set) and return absolute path
-  \tl_if_blank:VTF \l_pnp_blueprint_load_found_file_tl
-  {
-    % First, try to find the packaged helper script via kpsewhich so the file
-    % is resolved from the TeX tree (TEXMFHOME/TEXMFLOCAL) rather than a
-    % hard-coded relative path. This avoids brittle relative paths and works
-    % even when the package is installed.
-    % build kpsewhich command with explicit space token to avoid concatenation
-    \tl_set:Nx \l_pnp_blueprint_load_kpse_cmd_tl { kpsewhich \c_space_tl findlib.sh }
-    \exp_args:NV \sys_get_shell:nnN \l_pnp_blueprint_load_kpse_cmd_tl { } \l_pnp_blueprint_load_script_path_tl
-    \tl_trim_spaces:V \l_pnp_blueprint_load_script_path_tl
-
-    \tl_if_blank:VTF \l_pnp_blueprint_load_script_path_tl
-    {
-      % kpsewhich failed; fall back to local helper path in the workspace
-      % TODO: Fail the build, the script cannot be found
-    }
-    {
-      % kpsewhich returned an absolute path to the script. Construct a
-      % command token-list and pass it to the shell using NV expansion so
-      % spaces in the script path are preserved correctly.
-      \iow_term:x { Find-helper:~kpsewhich~found~\l_pnp_blueprint_load_script_path_tl }
-      \tl_set:Nx \l_pnp_blueprint_load_cmd_tl { \l_pnp_blueprint_load_script_path_tl \c_space_tl #1 \c_space_tl #2 }
-      \exp_args:NV \sys_get_shell:nnN \l_pnp_blueprint_load_cmd_tl { } \l_pnp_blueprint_load_found_file_tl
-    }
-
+    % Invoke the helper found by kpsewhich. Pass only category and name
+    % (do not include any repo paths) and capture the single-line result.
+    \tl_set:Nx \l_pnp_blueprint_load_cmd_tl { \l_pnp_blueprint_load_script_path_tl \c_space_tl #1 \c_space_tl #2 }
+    \exp_args:NV \sys_get_shell:nnN \l_pnp_blueprint_load_cmd_tl { } \l_pnp_blueprint_load_found_file_tl
     \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
-  }
-  {
-    % found locally, nothing to do
-  }
 
-  \tl_if_blank:VTF
-    \l_pnp_blueprint_load_found_file_tl
-  {
-    \msg_warning:nnnn
-      { pnp-blueprint }
-      { blueprint-not-found }
-      {#1}
-      {#2}
-  }
-  {
-    \input{\l_pnp_blueprint_load_found_file_tl}
+    % If helper returned nothing, report entry missing and fail build
+    \tl_if_blank:VTF \l_pnp_blueprint_load_found_file_tl
+    {
+      \msg_fatal:nnnn { pnp-blueprint } { entry-not-found } {#1} {#2}
+    }
+    {
+      % Log info in the .log and then input only the file contents.
+      \iow_log:x { Package~pnp-blueprint~Info:~Read~'#2'~from~category~'#1'~found~in~'\exp_not:V\l_pnp_blueprint_load_found_file_tl' }
+      \input{\l_pnp_blueprint_load_found_file_tl}
+    }
   }
 }
 
