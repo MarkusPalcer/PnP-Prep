@@ -36,7 +36,11 @@ if [ -n "$PNP_LIBRARY" ]; then
     # use find to locate first match under this entry
     found=$(find "$entry" -type f \( -name "${name}.${category}" -o -path "*/${category}/${name}.tex" \) -exec realpath {} \; -quit 2>/dev/null)
     if [ -n "$found" ]; then
-      print_and_exit "$found"
+      # copy to no-space temp and print that path
+      ext="${found##*.}"
+      tmp="$(mktemp /tmp/pnpprep.XXXXXX).$ext"
+      cp -- "$found" "$tmp"
+      print_and_exit "$tmp"
     fi
     IFS=:
   done
@@ -49,12 +53,18 @@ kpsewhich_path=""
 # try name.category
 kpsewhich_path=$(kpsewhich "${name}.${category}" 2>/dev/null || true)
 if [ -n "$kpsewhich_path" ]; then
-  print_and_exit "$kpsewhich_path"
+  ext="${kpsewhich_path##*.}"
+  tmp="$(mktemp /tmp/pnpprep.XXXXXX).$ext"
+  cp -- "$kpsewhich_path" "$tmp" 2>/dev/null || true
+  print_and_exit "$tmp"
 fi
 # try category/name.tex
 kpsewhich_path=$(kpsewhich "${category}/${name}.tex" 2>/dev/null || true)
 if [ -n "$kpsewhich_path" ]; then
-  print_and_exit "$kpsewhich_path"
+  ext="${kpsewhich_path##*.}"
+  tmp="$(mktemp /tmp/pnpprep.XXXXXX).$ext"
+  cp -- "$kpsewhich_path" "$tmp" 2>/dev/null || true
+  print_and_exit "$tmp"
 fi
 
 # nothing found -> exit silently
