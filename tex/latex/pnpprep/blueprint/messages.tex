@@ -40,3 +40,27 @@
     Child~environment~'#1'~conflicts~with~an~existing~command.
   }
   
+% --------------------------------------------------------------------------
+% pnp-blueprint load messages
+% --------------------------------------------------------------------------
+
+\msg_new:nnn
+  { pnp-blueprint }
+  { windows-not-supported }
+  {
+    Blueprint~loading~is~not~supported~on~Windows~yet.
+  }
+
+\msg_new:nnn
+  { pnp-blueprint }
+  { blueprint-not-found }
+  {
+    Cannot~load~blueprint~'#2'~of~category~'#1'.
+  }
+
+\msg_new:nnn
+  { pnp-blueprint }
+  { blueprint-loaded }
+  {
+    Loaded~blueprint~'#2'~of~category~'#1'~from~'#3'.
+  }

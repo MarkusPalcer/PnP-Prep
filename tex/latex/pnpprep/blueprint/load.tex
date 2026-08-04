@@ -1,0 +1,66 @@
+\cs_new_protected:Npn \pnp_blueprint_load:nn #1 #2
+{
+  \sys_if_platform_windows:TF
+  {
+    \pnp_blueprint_load_windows:nn {#1}{#2}
+  }
+  {
+    \pnp_blueprint_load_linux:nn {#1}{#2}
+  }
+}
+
+
+\cs_new_protected:Npn \pnp_blueprint_load_windows:nn #1 #2
+{
+  \msg_fatal:nn
+    { pnp-blueprint }
+    { windows-not-supported }
+}
+
+\cs_new_protected:Npn \pnp_blueprint_load_linux:nn #1 #2
+{
+  % Get absolute current directory
+  \sys_get_shell:nnN
+    { pwd }
+    { }
+    \l_pnp_blueprint_load_current_dir_tl
+
+  \tl_trim_spaces:V \l_pnp_blueprint_load_current_dir_tl
+
+  \iow_term:x
+  {
+    Current~directory:~
+    \l_pnp_blueprint_load_current_dir_tl
+  }
+
+  % Search blueprint file (use realpath via -exec to get an absolute path)
+  \sys_get_shell:nnN
+  {
+    find~.~-type~f~\(~-name~#2.#1~-o~-path~*/#1/#2.tex~\)~-exec~realpath~{}~\;~-quit
+  }
+  { }
+  \l_pnp_blueprint_load_found_file_tl
+
+  \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
+
+  \tl_if_blank:VTF
+    \l_pnp_blueprint_load_found_file_tl
+  {
+    \msg_warning:nnnn
+      { pnp-blueprint }
+      { blueprint-not-found }
+      {#1}
+      {#2}
+  }
+  {
+    \msg_info:nnnnn
+      { pnp-blueprint }
+      { blueprint-loaded }
+      {#1}
+      {#2}
+      {\l_pnp_blueprint_load_found_file_tl}
+
+    \input{\l_pnp_blueprint_load_found_file_tl}
+  }
+}
+
