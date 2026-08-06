@@ -22,7 +22,7 @@
   % Locate the helper script via kpsewhich (must not pass repository paths).
   \tl_set:Nx \l_pnp_blueprint_load_kpse_cmd_tl { kpsewhich \c_space_tl findlib.sh }
   \exp_args:NV \sys_get_shell:nnN \l_pnp_blueprint_load_kpse_cmd_tl { } \l_pnp_blueprint_load_script_path_tl
-  \tl_trim_spaces:V \l_pnp_blueprint_load_script_path_tl
+  \tl_trim_spaces:N \l_pnp_blueprint_load_script_path_tl
 
   % If helper not found, fail with clear message
   \tl_if_blank:VTF \l_pnp_blueprint_load_script_path_tl
@@ -34,7 +34,7 @@
     % (do not include any repo paths) and capture the single-line result.
     \tl_set:Nx \l_pnp_blueprint_load_cmd_tl { \l_pnp_blueprint_load_script_path_tl \c_space_tl #1 \c_space_tl #2 }
     \exp_args:NV \sys_get_shell:nnN \l_pnp_blueprint_load_cmd_tl { } \l_pnp_blueprint_load_found_file_tl
-    \tl_trim_spaces:V \l_pnp_blueprint_load_found_file_tl
+    \tl_trim_spaces:N \l_pnp_blueprint_load_found_file_tl
 
     % If helper returned nothing, report entry missing and fail build
     \tl_if_blank:VTF \l_pnp_blueprint_load_found_file_tl
@@ -44,7 +44,12 @@
     {
       % Log info in the .log and then input only the file contents.
       \iow_log:x { Package~pnp-blueprint~Info:~Read~'#2'~from~category~'#1'~found~in~'\exp_not:V\l_pnp_blueprint_load_found_file_tl' }
+      % Ensure any stray horizontal material is ended before including the file
+      \par
+      \noindent
+      \begingroup
       \input{\l_pnp_blueprint_load_found_file_tl}
+      \endgroup
     }
   }
 }
