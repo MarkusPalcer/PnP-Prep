@@ -3,6 +3,14 @@
   "dockerFile": "Dockerfile",
   "context": "..",
   "remoteUser": "root",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils": {
+        "installZsh": true,
+        "installOhMyZsh": true,
+        "installOhMyZshConfig": true,
+        "configureZshAsDefaultShell": true
+    }
+},
   "customizations": {
     "vscode": {
       "extensions": [
