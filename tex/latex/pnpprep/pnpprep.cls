@@ -42,7 +42,6 @@
 \RequirePackage{pnp-music}
 \RequirePackage{pnp-todo}
 \RequirePackage{pnp-decision}
-\RequirePackage{pnp-sammelprobe}
 \RequirePackage{pnp-blueprint}
 
 % Seitenränder
