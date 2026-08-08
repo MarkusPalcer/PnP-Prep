@@ -45,13 +45,14 @@
             \__pnp_blueprint_add_child:n {####1}
           }
 
-          \NewDocumentEnvironment{childGroup}{}
-          {
-            \__pnp_blueprint_add_child:n {\medskip}
-          }
-          {
-            \__pnp_blueprint_add_child:n {\medskip}
-          }
+          \cs_set_protected:Npn \childGroup
+            {
+              \__pnp_blueprint_add_child:n {\medskip}
+            }
+          \cs_set_protected:Npn \endchildGroup
+            {
+              \__pnp_blueprint_add_child:n {\medskip}
+            }
 
           \prop_clear:N \l__pnp_blueprint_field_values_prop
 

@@ -1,0 +1,85 @@
+\documentclass[12pt]{pnpprep}
+
+\begin{document}
+
+\begin{blueprint}{parent}
+    \field{name}
+
+    \registerChildEnvironment{child}{childenvironment}
+
+    \begin{render}
+        Parent: \namevalue
+
+        \renderChildren
+    \end{render}
+\end{blueprint}
+
+
+\begin{blueprint}{childenvironment}
+    \field{name}
+
+    \begin{render}
+        Child: \namevalue \par
+    \end{render}
+\end{blueprint}
+
+
+\begin{parent}
+    \name{Parent 1}
+
+    \begin{childGroup}
+        \begin{child}
+            \name{Child 1}
+        \end{child}
+        \begin{child}
+            \name{Child 2}
+        \end{child}
+    \end{childGroup}
+
+    \begin{childGroup}
+        \begin{child}
+            \name{Child 3}
+        \end{child}
+        \begin{child}
+            \name{Child 4}
+        \end{child}
+    \end{childGroup}
+\end{parent}
+
+\begin{parent}
+    \name{Parent 2}
+
+    \begin{childGroup}
+        \begin{child}
+            \name{Child 1}
+        \end{child}
+        \begin{child}
+            \name{Child 2}
+        \end{child}
+    \end{childGroup}
+
+    \begin{childGroup}
+        \begin{child}
+            \name{Child 3}
+        \end{child}
+        \begin{child}
+            \name{Child 4}
+        \end{child}
+    \end{childGroup}
+\end{parent}
+
+\end{document}
+
+% Expected Output:
+% Parent: Parent 1
+% Child: Child 1
+% Child: Child 2
+%
+% Child: Child 3
+% Child: Child 4
+% Parent: Parent 2
+% Child: Child 1
+% Child: Child 2
+%
+% Child: Child 3
+% Child: Child 4
