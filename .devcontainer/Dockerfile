@@ -5,4 +5,6 @@ RUN chmod +x /usr/local/bin/apt-install
 
 RUN curl -fsSL https://junie.jetbrains.com/install.sh | bash
 
+USER texlive
+
 WORKDIR /workspace

@@ -2,7 +2,7 @@
   "name": "LaTeX Development",
   "dockerFile": "Dockerfile",
   "context": "..",
-  "remoteUser": "root",
+  "updateRemoteUserUID": true,
   "features": {
     "ghcr.io/devcontainers/features/common-utils": {
         "installZsh": true,
@@ -56,8 +56,6 @@
       }
     }
   },
-  "postCreateCommand": "mktexlsr || true && latexmk --version && pdflatex --version",
-  
   "forwardPorts": [],
   
   "mounts": [
