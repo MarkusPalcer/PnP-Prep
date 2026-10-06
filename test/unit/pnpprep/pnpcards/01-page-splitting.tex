@@ -1,0 +1,38 @@
+\documentclass{pnpcards}
+
+\begin{document}
+
+\RunCard{Short content}{%
+    SHORT CONTENT FITS ON FRONT
+}
+
+\RunCard{Natural overflow}{%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vel ornare nibh, a lacinia lacus. Phasellus hendrerit posuere dui, elementum ultricies augue pellentesque a. Nullam fermentum sollicitudin ipsum non dignissim. Fusce rhoncus turpis id condimentum mollis. Nullam ac libero et lacus eleifend fringilla. Maecenas ut condimentum leo. Praesent hendrerit augue commodo odio auctor, et congue nunc porta. Sed id bibendum lectus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Praesent aliquam diam id justo sollicitudin iaculis.
+
+Donec suscipit tempor pellentesque. Proin ipsum turpis, volutpat non eros sit amet, sollicitudin suscipit lectus. Praesent a lacus mollis justo dictum pellentesque. Etiam sodales lectus sit amet luctus dictum. Duis nec massa nibh. Quisque pharetra sem quis porttitor lobortis. Curabitur dictum, purus vel commodo imperdiet, sem magna iaculis est, id eleifend nisi risus pretium velit. Suspendisse id quam tempor, gravida diam at, placerat nibh. Suspendisse ante odio, malesuada vitae ultricies non, facilisis in elit. In hac habitasse platea dictumst. Pellentesque egestas orci eros. Suspendisse aliquet diam non sapien venenatis, non sollicitudin dui placerat. Integer molestie odio eu pellentesque sodales. Suspendisse eleifend tortor eget nibh sodales, nec iaculis massa posuere. Phasellus a purus nec diam aliquam placerat vel vitae mauris.
+
+Integer pharetra, odio at vestibulum pulvinar, lorem orci pharetra justo, a pretium neque lorem vitae neque. Proin aliquet velit lacinia, pharetra massa non, rhoncus dolor. Quisque lacinia volutpat tincidunt. Fusce in libero placerat, aliquam dui vel, tempor mi. Fusce tempus odio sed tincidunt lacinia. Pellentesque et tempor leo. Nullam scelerisque nibh non orci luctus scelerisque. Sed porttitor, ante quis eleifend elementum, dolor magna congue ligula, vitae posuere libero nisl sit amet enim. Mauris venenatis mauris quam, vitae aliquam leo ullamcorper fringilla. Nullam gravida non libero eleifend aliquet. Donec in urna at mauris ornare ornare id et turpis.
+
+Phasellus posuere turpis non ipsum egestas faucibus. Vivamus sit amet egestas erat, et pulvinar ipsum. Fusce aliquet pretium tempus. Praesent id nunc at odio interdum placerat dignissim quis tellus. Nunc posuere, nunc sed aliquet lacinia, tellus est maximus dolor, eget dignissim purus est a nulla. Nullam sodales eleifend sollicitudin. Aenean sollicitudin vel tellus eu luctus. Pellentesque auctor molestie nisi a scelerisque. Curabitur tellus lorem, euismod sed felis ut, ullamcorper pretium est.
+}
+
+\RunCard{Explicit page break}{%
+    CONTENT BEFORE NEWPAGE
+    \newpage
+    CONTENT AFTER NEWPAGE
+}
+
+\end{document}
+
+% Expected Output
+% Pages use A6 landscape format and contain no debug frames.
+% Page 1: The front title area and SHORT CONTENT FITS ON FRONT appear in the
+%         front content area.
+% Page 2: Blank back page.
+% Page 3: Front title "Natural overflow" and the beginning of the Lorem Ipsum
+%         text in the front content area.
+% Page 4: The Lorem Ipsum text continues from the top of the page in the
+%         untitled continuation area.
+% Page 5: Front title "Explicit page break", CONTENT BEFORE NEWPAGE, and the
+%         status "Explicit break marker detected".
+% Page 6: CONTENT AFTER NEWPAGE, without a title area.

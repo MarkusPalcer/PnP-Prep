@@ -1,0 +1,41 @@
+\documentclass{pnpcards}
+
+\EnableCardDebugFrames
+
+\typeout{pnpcards geometry: paper=\the\paperwidth\space x \the\paperheight}
+
+\newcommand{\GeometryLine}[1]{%
+    \rule{0pt}{8mm}\texttt{#1}\par
+}
+
+\begin{document}
+
+\RunCard{A6 geometry}{%
+    \GeometryLine{FRONT CONTENT LINE 01}
+    \GeometryLine{FRONT CONTENT LINE 02}
+    \GeometryLine{FRONT CONTENT LINE 03}
+    \GeometryLine{FRONT CONTENT LINE 04}
+    \GeometryLine{FRONT CONTENT LINE 05}
+    \GeometryLine{FRONT CONTENT LINE 06}
+    \GeometryLine{FRONT CONTENT LINE 07}
+    \GeometryLine{FRONT CONTENT LINE 08}
+    \GeometryLine{FRONT CONTENT LINE 09}
+    \GeometryLine{CONTINUATION LINE 10}
+    \GeometryLine{CONTINUATION LINE 11}
+    \GeometryLine{CONTINUATION LINE 12}
+}
+
+\end{document}
+
+% Expected Output
+% The PDF has two A6 landscape pages (148 mm x 105 mm), with all four outer
+% frame edges 5 mm from the page edges.
+% Page 1: The class-generated title frame measures 138 mm x 15 mm. The front
+%         content frame measures 138 mm x 78 mm, with a 2 mm gap below the
+%         title frame. Together the frames and gap use the full 95 mm between
+%         the 5 mm top and bottom margins.
+%         FRONT CONTENT LINE 01 onward appears in the front content frame.
+% Page 2: The class-generated continuation frame measures 138 mm x 95 mm,
+%         fills the full printable height, has no title frame, and starts
+%         with CONTINUATION LINE 10. It is visibly taller than the front
+%         content frame. No frame crosses the 5 mm margins.
