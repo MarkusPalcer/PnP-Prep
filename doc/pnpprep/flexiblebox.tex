@@ -1,17 +1,17 @@
 \section{Allgemeine Boxen}
 
-\subsection{Die Umgebung \texttt{FlexibleBox}}
+\subsection{Die Umgebung \texttt{panel}}
 
-Die Umgebung \verb|FlexibleBox| ist die grundlegende Box-Umgebung der Klasse.
+Die Umgebung \verb|panel| ist die grundlegende Box-Umgebung der Klasse.
 
 Sie ermöglicht es, beliebige Inhalte mit einem Titel und frei wählbaren Farben darzustellen.
 
-Viele andere Befehle der Klasse, beispielsweise \verb|\sammelprobe| und \verb|Wertekasten|, verwenden intern diese Umgebung.
+Viele andere Befehle der Klasse, beispielsweise \verb|\sammelprobe|, verwenden intern diese Umgebung.
 
 \subsubsection*{Syntax}
 
 \begin{Verbatim}
-\begin{FlexibleBox}
+\begin{panel}
     {Titel}
     [Hintergrundfarbe]
     [Titelfarbe]
@@ -19,7 +19,7 @@ Viele andere Befehle der Klasse, beispielsweise \verb|\sammelprobe| und \verb|We
 
 Inhalt
 
-\end{FlexibleBox}
+\end{panel}
 \end{Verbatim}
 
 \subsubsection*{Parameter}
@@ -48,29 +48,29 @@ Die Farben können alle von \LaTeX\ bekannten Farben sein, beispielsweise
 \paragraph{Quellcode}
 
 \begin{Verbatim}
-\begin{FlexibleBox}{Hinweis}
+\begin{panel}{Hinweis}
 
 Der alte Turm steht seit Jahrhunderten
 verlassen im Wald.
 
-\end{FlexibleBox}
+\end{panel}
 \end{Verbatim}
 
 \paragraph{Ergebnis}
 
-\begin{FlexibleBox}{Hinweis}
+\begin{panel}{Hinweis}
 
 Der alte Turm steht seit Jahrhunderten
 verlassen im Wald.
 
-\end{FlexibleBox}
+\end{panel}
 
 \subsubsection*{Beispiel 2: Eigene Farben}
 
 \paragraph{Quellcode}
 
 \begin{Verbatim}
-\begin{FlexibleBox}
+\begin{panel}
     {Warnung}
     [yellow]
     [red]
@@ -78,12 +78,12 @@ verlassen im Wald.
 
 Die Tür ist magisch versiegelt.
 
-\end{FlexibleBox}
+\end{panel}
 \end{Verbatim}
 
 \paragraph{Ergebnis}
 
-\begin{FlexibleBox}
+\begin{panel}
     {Warnung}
     [yellow]
     [red]
@@ -91,4 +91,4 @@ Die Tür ist magisch versiegelt.
 
 Die Tür ist magisch versiegelt.
 
-\end{FlexibleBox}
+\end{panel}

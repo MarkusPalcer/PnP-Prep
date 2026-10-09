@@ -4,22 +4,37 @@ Um einen Gegnerkasten zu bauen kann die Umgebung \texttt{gegner} verwendet werde
 
 \section{Syntax}
 
+Pflichtfelder sind mit ``Pflicht'' gekennzeichnet; alle übrigen Felder sind
+optional. Waffen und Rüstungen werden als eigene Umgebungen angegeben.
+\texttt{childGroup} gruppiert Kindelemente und fügt Abstand zwischen den
+Gruppen ein.
+
 \begin{verbatim}
 \begin{gegner}
-    \name{Name des Gegners oder Gegnertyps}
+    \name{Name} % Pflicht
+    \LeP{Lebenspunkte} % Pflicht
+    \INI{Initiative} % Pflicht
+    % Optional: \MU{}, \KL{}, \IN{}, \CH{}, \FF{}, \GE{}, \KO{}, \KK{}
+    % Optional: \AsP{}, \KaP{}, \AW{}, \SK{}, \ZK{}, \GS{}
 
-    \MU{Mut-Wert}
-    \KL{Klugheits-Wert}
-    % Dies wiederholt sich für alle Attribute. Jedes Attribut ist optional
+    \begin{childGroup} % optional
+        \begin{waffe}
+            \name{Name der Waffe} % Pflicht
+            \AT{Attackewert} % Pflicht
+            \TP{Trefferpunkte} % Pflicht
+            \PA{Parade-Wert} % optional
+            \LZ{Ladezeit} % optional
+            \RW{Reichweite} % optional
+        \end{waffe}
+    \end{childGroup}
 
-    \waffe{Waffenname}
-    \AT{AT-Wert der Waffe}
-    \PA{Optional: PA-Wert der Waffe}
-    \TP{Schaden der Waffe}
-    \INI{Initiative}
-
-    \ruestung{Name der Rüstung}
-    \RS{Optional: RS der Rüstung}
+    \begin{childGroup} % optional
+        \begin{ruestung}
+            \name{Name der Rüstung} % Pflicht
+            \RS{Rüstungsschutz} % Pflicht
+            \BE{Behinderung} % optional
+        \end{ruestung}
+    \end{childGroup}
 \end{gegner}
 \end{verbatim}
 
@@ -29,32 +44,149 @@ Um einen Gegnerkasten zu bauen kann die Umgebung \texttt{gegner} verwendet werde
 
 \begin{verbatim}
 \begin{gegner}
-    \name{Soldat}
-    \KK{12}
+    \name{Goblin (erfahren)}
 
-    \waffe{Schwert}
-    \AT{12}
-    \PA{4}
-    \TP{1W+1}
-    \INI{12}
+    \MU{10}
+    \KL{12}
+    \IN{12}
+    \CH{12}
+    \FF{15}
+    \GE{15}
+    \KO{13}
+    \KK{11}
+    
+    \LeP{27}
+    \INI{13}
 
-    \ruestung{Lederharnisch}
-    \RS{2}
+    \AW{5}
+    \SK{1}
+    \ZK{1}
+    % \MR{3}
+    \GS{9}
+
+    \begin{childGroup}
+        \begin{waffe}
+            \name{Waffenlos}
+            \AT{11}
+            \PA{8}
+            \TP{1W}
+            \RW{Kurz}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Speer}
+            \AT{12}
+            \PA{8}
+            \TP{1W+5}
+            \RW{Weit}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Keule}
+            \AT{12}
+            \PA{8}
+            \TP{1W+2}
+            \RW{Mittel}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Beil}
+            \AT{11}
+            \PA{8}
+            \TP{1W+3}
+            \RW{Mittel}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Kurzbogen}
+            \AT{15}
+            \LZ{2}
+            \TP{1W+4}
+            \RW{5/15/25/40/60}
+        \end{waffe}
+    \end{childGroup}
+
+    \begin{childGroup}
+        \begin{ruestung}
+            \name{Fellkleidung}
+            \RS{2}
+            \BE{1}
+        \end{ruestung}
+    \end{childGroup}
 \end{gegner}
+
 \end{verbatim}
 
 \subsection{Ausgabe}
 
 \begin{gegner}
-    \name{Soldat}
-    \KK{12}
+    \name{Goblin (erfahren)}
 
-    \waffe{Schwert}
-    \AT{12}
-    \PA{4}
-    \TP{1W+1}
-    \INI{12}
+    \MU{10}
+    \KL{12}
+    \IN{12}
+    \CH{12}
+    \FF{15}
+    \GE{15}
+    \KO{13}
+    \KK{11}
+    
+    \LeP{27}
+    \INI{13}
 
-    \ruestung{Lederharnisch}
-    \RS{2}
+    \AW{5}
+    \SK{1}
+    \ZK{1}
+    % \MR{3}
+    \GS{9}
+
+    \begin{childGroup}
+        \begin{waffe}
+            \name{Waffenlos}
+            \AT{11}
+            \PA{8}
+            \TP{1W}
+            \RW{Kurz}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Speer}
+            \AT{12}
+            \PA{8}
+            \TP{1W+5}
+            \RW{Weit}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Keule}
+            \AT{12}
+            \PA{8}
+            \TP{1W+2}
+            \RW{Mittel}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Beil}
+            \AT{11}
+            \PA{8}
+            \TP{1W+3}
+            \RW{Mittel}
+        \end{waffe}
+    
+        \begin{waffe}
+            \name{Kurzbogen}
+            \AT{15}
+            \LZ{2}
+            \TP{1W+4}
+            \RW{5/15/25/40/60}
+        \end{waffe}
+    \end{childGroup}
+
+    \begin{childGroup}
+        \begin{ruestung}
+            \name{Fellkleidung}
+            \RS{2}
+            \BE{1}
+        \end{ruestung}
+    \end{childGroup}
 \end{gegner}

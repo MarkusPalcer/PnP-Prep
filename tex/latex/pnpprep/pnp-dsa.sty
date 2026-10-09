@@ -1,5 +1,110 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{pnp-dsa}[2026/07/30 Specific Helpers for DSA]
 
-\input{dsa/sammelprobe}
+\RequirePackage{xparse}
+\RequirePackage{pnp-panel}
 
+% Sammelprobe-Makro
+\NewDocumentCommand{\sammelprobe}{m m o}{%
+    \begin{panel}{Sammelprobe}
+
+    \begin{center}
+    \footnotesize\itshape
+    3 TaW* = 1 QS; 10 QS Nötig; Teilerfolg bei 6 QS
+    \end{center}
+
+    \noindent\textbf{Talent(e):} #1
+
+    \medskip
+
+    \noindent\textbf{Dauer pro Versuch:} #2
+
+    \IfValueT{#3}{%
+        \medskip
+        \noindent\textbf{Ziel:} #3
+    }
+
+    \end{panel}
+}
+
+\RequirePackage{pnp-blueprint}
+
+\begin{blueprint}{gegner}
+    \registerChildEnvironment{waffe}{gegnerwaffe}
+    \registerChildEnvironment{ruestung}{gegnerruestung}
+
+    \field{name}
+    \field[optional]{MU}
+    \field[optional]{KL}
+    \field[optional]{IN}
+    \field[optional]{CH}
+    \field[optional]{FF}
+    \field[optional]{GE}
+    \field[optional]{KO}
+    \field[optional]{KK}
+    \field{LeP}
+    \field[optional]{AsP}
+    \field[optional]{KaP}
+    \field{INI}
+    \field[optional]{AW}
+    \field[optional]{SK}
+    \field[optional]{ZK}
+    \field[optional]{GS}
+
+    \begin{render}
+        \begin{panel}{\namevalue}
+            \ifpresent{MU}{\textbf{MU: }\MUvalue\quad}
+            \ifpresent{KL}{\textbf{KL: }\KLvalue\quad}
+            \ifpresent{IN}{\textbf{IN: }\INvalue\quad}
+            \ifpresent{CH}{\textbf{CH: }\CHvalue\quad}
+            \ifpresent{FF}{\textbf{FF: }\FFvalue\quad}
+            \ifpresent{GE}{\textbf{GE: }\GEvalue\quad}
+            \ifpresent{KO}{\textbf{KO: }\KOvalue\quad}
+            \ifpresent{KK}{\textbf{KK: }\KKvalue\quad}
+            \par
+            \textbf{LeP: }\LePvalue\quad
+            \textbf{INI: }\INIvalue\quad
+            \textbf{AsP: }\ifpresent{AsP}{\AsPValue}\ifmissing{AsP}{-}\quad
+            \textbf{KaP: }\ifpresent{KaP}{\KaPValue}\ifmissing{KaP}{-}
+            \par
+            \ifpresent{AW}{\textbf{AW: }\AWvalue}\quad
+            \ifpresent{SK}{\textbf{SK: }\SKvalue}\quad
+            \ifpresent{ZK}{\textbf{ZK: }\ZKvalue}\quad
+            \ifpresent{GS}{\textbf{GS: }\ZKvalue}\quad
+            \par
+            \renderChildren
+        \end{panel}
+    \end{render}
+\end{blueprint}
+
+\begin{blueprint}{gegnerwaffe}
+    \field{name}
+    \field{AT}
+    \field[optional]{PA}
+    \field[optional]{LZ}
+    \field{TP}
+    \field[optional]{RW}
+
+    \begin{render}
+        \textbf{\namevalue :} \quad
+        \textbf{AT} \ATvalue \quad
+        \ifpresent{PA}{\textbf{PA} \PAvalue \quad}
+        \ifpresent{LZ}{\textbf{LZ} \LZvalue \quad}
+        \textbf{TP} \TPvalue \quad
+        \ifpresent{RW}{\textbf{RW} \RWvalue}
+        \par
+    \end{render}
+\end{blueprint}
+
+\begin{blueprint}{gegnerruestung}
+    \field{name}
+    \field{RS}
+    \field[optional]{BE}
+
+    \begin{render}
+        \textbf{Rüstung:} \namevalue \quad
+        \textbf{RS} \RSvalue \quad
+        \ifpresent{BE}{\textbf{BE} \BEvalue \quad}
+        \\
+    \end{render}
+\end{blueprint}
