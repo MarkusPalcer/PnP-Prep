@@ -56,11 +56,11 @@
       }
     }
   },
-  "forwardPorts": [],
-  
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/latex/.gitconfig,type=bind,consistency=cached"
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/texlive/.gitconfig,type=bind,consistency=cached"
   ],
+  "runArgs": ["--security-opt", "seccomp=unconfined", "--cap-add", "SYS_ADMIN"],
+  "forwardPorts": [5476],
   "containerEnv": {
     "TEXMFHOME": "${containerWorkspaceFolder}"
   }
