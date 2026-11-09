@@ -16,7 +16,9 @@
       "extensions": [
         "James-Yu.latex-workshop",
         "DavidAnson.vscode-markdownlint",
-        "ms-vscode.makefile-tools"
+        "ms-vscode.makefile-tools",
+        "shopify.ruby-lsp",
+        "KoichiSasada.vscode-rdbg"
       ],
       "settings": {
         "latex-workshop.latex.tools": [
@@ -57,10 +59,11 @@
     }
   },
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/texlive/.gitconfig,type=bind,consistency=cached"
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/texlive/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kiro,target=/home/texlive/.kiro,type=bind,consistency=cached"
   ],
   "runArgs": ["--security-opt", "seccomp=unconfined", "--cap-add", "SYS_ADMIN"],
-  "forwardPorts": [5476],
+  "forwardPorts": [5476, 48101],
   "containerEnv": {
     "TEXMFHOME": "${containerWorkspaceFolder}"
   }

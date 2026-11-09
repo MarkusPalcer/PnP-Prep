@@ -13,8 +13,12 @@ module LatexTesting
 
   # Binding for a *tests.rb / *test.rb file.
   class TestFile
+    # Absolute path of the Ruby test-definition file.
     attr_reader :filename
 
+    # Creates a definition context for a Ruby test file.
+    #
+    # @param filename [String] path to a `tests.rb` or `test.rb` file
     def initialize(filename)
       @filename = File.expand_path(filename)
       @suites = {}
@@ -23,17 +27,34 @@ module LatexTesting
       @file_suite = TestSuite.new(File.basename(@filename, ".rb"), output_dir: output_base, input_dir: File.dirname(@filename))
     end
 
+    # Defines or reopens a named suite in this file.
+    # The block is evaluated with the suite as `self`.
+    #
+    # @param name [String] suite label
+    # @yield defines tests in the suite
+    # @return [TestSuite] the named suite
     def testsuite(name, &block)
+      raise "test suite defined without data" unless block_given?
+
       suite = @suites[name.to_s] ||= TestSuite.new(name, output_dir: File.join(output_base, name.to_s), input_dir: File.dirname(@filename))
 
       suite.instance_eval(&block) if block
       suite
     end
 
+    # Defines a test in this file's implicit, file-level suite.
+    # The block is evaluated with the test as `self`.
+    #
+    # @param name [String] test label
+    # @yield configures the test
+    # @return [Test] the new test
     def test(name, &block)
       @file_suite.test(name, &block)
     end
 
+    # Runs the file-level suite followed by each named suite.
+    #
+    # @param options [Hash] options forwarded to suites
     def execute(options = {})
       puts @filename
       @file_suite.execute(options)
@@ -55,8 +76,14 @@ module LatexTesting
 
   # Binding for a testsuite block.
   class TestSuite
+    # Human-readable suite label.
     attr_reader :name
 
+    # Creates a suite bound to its output and fixture directories.
+    #
+    # @param name [String] suite label
+    # @param output_dir [String] directory for generated test artifacts
+    # @param input_dir [String] directory containing LaTeX fixtures
     def initialize(name, output_dir:, input_dir:)
       @name = name.to_s
       @output_dir = output_dir
@@ -64,7 +91,14 @@ module LatexTesting
       @tests = []
     end
 
+    # Defines a test and evaluates its configuration block in the test context.
+    #
+    # @param name [String] test label
+    # @yield configures the test
+    # @return [Test] the new test
     def test(name, &block)
+      raise "test defined without data" unless block_given?
+
       test = Test.new(
         name,
         output_dir: File.join(@output_dir),
@@ -76,6 +110,9 @@ module LatexTesting
       test
     end
 
+    # Executes every test in this suite.
+    #
+    # @param options [Hash] options forwarded to tests
     def execute(options = {})
       return if @tests.empty?
 
@@ -86,29 +123,75 @@ module LatexTesting
 
   # Binding for a test block.
   class Test
+    # Human-readable test label.
     attr_reader :name
 
+    # Creates a test definition.
+    #
+    # @param name [String] test label
+    # @param output_dir [String] directory for generated test artifacts
+    # @param input_dir [String] directory containing LaTeX fixtures
     def initialize(name, output_dir:, input_dir:)
       @name = name.to_s
       @output_dir = output_dir
       @input_dir = input_dir
       @file = nil
       @expect_failure = false
-      @log_assertions = []
+      @assertions = []
     end
 
+    # Adds a named custom assertion to run after the fixture is built.
+    # The block runs with an assertion execution context as `self`, which
+    # provides `log` (the build log) and `fail(message)` for reporting failure.
+    # Captured local variables remain available to the block.
+    #
+    # @param name [String, nil] label included in an assertion failure
+    # @yield checks the build result
+    # @return [Array<Assertion>] the assertions configured for this test
+    #
+    # @example Check for a message in the build log
+    #   assert "Expected warning" do
+    #     fail "Warning was not produced" unless log.include?("Expected warning")
+    #   end
+    def assert(name = nil, &block)
+      raise "assertion called without code block" unless block_given?
+
+      @assertions << Assertion.new(@file, name, block)
+    end
+
+    # Selects the LaTeX fixture for this test.
+    #
+    # @param value [String] fixture filename relative to the test definition
+    #   file's directory
+    # @return [String] the selected filename
     def file(value)
       @file = value
     end
     
+    # Marks compilation failure as the expected outcome.
+    # Use {#requires_log} or {#assert} to check why compilation failed.
+    #
+    # @return [Boolean] true
     def expect_failure
       @expect_failure = true
     end
 
+    # Adds an assertion that the LaTeX log contains the given substring.
+    #
+    # @param snippet [String] text that must appear in the build log
+    # @return [Array<Assertion>] the assertions configured for this test
     def requires_log(snippet)
-      @log_assertions << snippet
+      assert "Log contains '#{snippet}'" do 
+        fail "Not found" unless log.include? snippet
+      end
     end
 
+    # Builds the selected fixture, checks the expected build outcome, then
+    # executes its assertions. Reports failures and returns whether the test
+    # passed.
+    #
+    # @param options [Hash] reserved options forwarded by the runner
+    # @return [Boolean] whether the test passed
     def execute(options = {})
       print "    #{@name} - "
       begin
@@ -127,13 +210,15 @@ module LatexTesting
           raise "Build did not pass" if !result && !@expect_failure
           raise "Build passed unexpectedly" if result && @expect_failure
 
-          test_log temp_dir
+          @assertions.each do |assertion|
+            assertion.execute temp_dir
+          end
         end
 
         puts "#{GREEN}PASS#{RESET}"
         true
       rescue StandardError => e
-        puts "#{RED}FAIL#{RESET} - #{e.message}"
+        puts "#{RED}FAIL#{RESET}: #{e.message}"
         false
       end
     end
@@ -143,18 +228,6 @@ module LatexTesting
     def temp_file(temp_dir, extension)
       file = Pathname.new(@file)
       File.join(temp_dir, "#{file.basename.sub_ext(extension)}")
-    end
-
-    def test_log(temp_dir)
-      temp_log = temp_file(temp_dir, ".log")
-
-      raise "No log file produced by LaTeX build" unless File.file? temp_log
-
-      log = File.read(temp_log)
-
-      @log_assertions.each do |assertion|
-        raise "Log is missing #{RED}#{assertion}#{RESET}" unless log.include? assertion
-      end
     end
 
     def run(temp_dir)
@@ -189,9 +262,83 @@ module LatexTesting
     end
   end
 
+  class Assertion 
+    # Creates an assertion associated with a fixture and a block.
+    #
+    # @param file [String] fixture filename used to locate the build log
+    # @param name [String, nil] failure label
+    # @param block [Proc] assertion body
+    def initialize(file, name, block)
+      @file = file
+      @name = name.to_s unless name.nil?
+      @block = block 
+    end
+
+    # Evaluates the assertion body with an {Execution} object as `self`.
+    #
+    # @param temp_dir [String] directory containing the LaTeX build artifacts
+    def execute(temp_dir)
+      execution = Execution.new(temp_dir, @file)
+      
+      begin
+        execution.instance_exec(&@block)
+      rescue StandardError => e
+        raise "#{@name}: #{e.message}"
+      end
+    end
+
+    class Execution
+
+      # Creates the context in which a custom assertion is evaluated.
+      #
+      # @param temp_dir [String] directory containing the LaTeX build artifacts
+      # @param file [String] fixture filename used to locate its log
+      def initialize(temp_dir, file)
+        @temp_dir = temp_dir
+        @file = file
+        @log = nil
+      end
+
+      # Reads and caches the LaTeX log for the current fixture.
+      #
+      # @return [String] contents of the build log
+      # @raise [RuntimeError] if the build did not produce a log file
+      def log
+        return @log unless @log.nil?
+
+        temp_log = temp_file(".log")
+
+        raise "No log file produced by LaTeX build" unless File.file? temp_log
+
+        @log = File.read(temp_log)
+
+        return @log 
+      end
+
+      # Fails the current assertion with the given message.
+      #
+      # @param message [String] explanation included in the test failure
+      # @raise [RuntimeError] always
+      def fail(message)
+        raise message
+      end
+
+      private
+        def temp_file(extension)
+          file = Pathname.new(@file)
+          File.join(@temp_dir, "#{file.basename.sub_ext(extension)}")
+        end
+    end
+  end
+
   @files = {}
 
   class << self
+    # Loads and evaluates one test-definition file.
+    # Repeated calls for the same expanded path return the cached definition.
+    #
+    # @param filename [String] path to a Ruby test-definition file
+    # @return [TestFile] the parsed file definition
     def parse_file(filename)
       filename = File.expand_path(filename)
 
@@ -213,6 +360,10 @@ module LatexTesting
       raise
     end
 
+    # Recursively loads test-definition files under a directory.
+    # Matching files are evaluated in sorted, de-duplicated order.
+    #
+    # @param base_dir [String, #to_s] directory to scan
     def scan(base_dir)
         base_dir = base_dir.to_s
 
@@ -232,6 +383,9 @@ module LatexTesting
         end
     end
 
+    # Executes all test files previously loaded with {scan} or {parse_file}.
+    #
+    # @param options [Hash] options forwarded to test files
     def run(options = {})
       @files.each_value do |test_file|
         test_file.execute(options)
