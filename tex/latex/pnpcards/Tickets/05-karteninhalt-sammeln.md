@@ -1,42 +1,41 @@
-# Ticket 05: Karteninhalt und Metadaten erfassen
+# Ticket 05: card-Environment – Inhalt sammeln und Vorderseite rendern
 
 ## Ziel
 
-Die öffentliche Umgebung `card` soll Titel, optionalen Referenztext und den vollständigen Karteninhalt aufnehmen können, ohne den Inhalt direkt in den Dokumentfluss auszugeben. In diesem Schritt wird der Inhalt zunächst nur auf der Vorderseite gerendert.
+Das öffentliche `card`-Environment nimmt Titel, optionale Referenz und beliebigen Inhalt entgegen. Der Inhalt wird vollständig gesammelt, bevor er gesetzt wird. In diesem Schritt wird der Inhalt ausschließlich auf der Vorderseite gerendert.
 
-## Umsetzung
+## Beobachtbares Verhalten
 
-1. Implementiere die gewünschte Grundsyntax:
+- `\begin{card}{Titel}[Ref] … \end{card}` kompiliert.
+- `\begin{card}{Titel} … \end{card}` (ohne Referenz) kompiliert.
+- Titel erscheint im Titelbereich der Vorderseite.
+- Karteninhalt erscheint unterhalb des Titelbereichs auf der Vorderseite.
+- Der optionale Referenztext wird erfasst, aber in diesem Schritt noch nicht gedruckt.
+- Kein Inhalt gelangt in den Dokumentfluss außerhalb der Karte.
+- Das Fixture kompiliert mit `latexmk -pdf -interaction=nonstopmode -halt-on-error`.
 
-   ```latex
-   \begin{card}{Überschrift}[WdZ 102]
-   Karteninhalt
-   \end{card}
-   ```
+## Fixture
 
-2. Unterstütze das Weglassen des optionalen Referenzarguments:
-
-   ```latex
-   \begin{card}{Überschrift}
-   Karteninhalt
-   \end{card}
-   ```
-
-3. Sammle den Environment-Inhalt vollständig, bevor die Kartenseite ausgegeben wird.
-4. Rendere den gesammelten Inhalt in der in Ticket 04 definierten Vorderseitenfläche.
-5. Verwende ein minimales Fixture mit normalen Absätzen und mathematischem Inhalt, sofern die in Ticket 03 überführte Klassenimplementierung dies unterstützt.
-6. Dokumentiere klar, falls bestimmte LaTeX-Konstrukte im gesammelten Karteninhalt nicht unterstützt werden.
-7. Lege ein eigenes visuelles Fixture an, das beide Syntaxformen verwendet: einmal mit optionaler Referenz und einmal ohne. Ergänze `% Expected Output`-Kommentare, die die beiden Vorderseiten und ihre Inhalte in der richtigen Reihenfolge beschreiben. In diesem Ticket muss die Referenz noch nicht sichtbar gedruckt werden; prüfe aber, dass sie nicht als Karteninhalt erscheint. Ihre sichtbare Position wird in Ticket 06 abgenommen.
-
-## Abnahmekriterien
-
-- Beide Syntaxvarianten kompilieren.
-- Der Titel und der Karteninhalt erscheinen auf der Vorderseite; der optionale Referenztext wird erfasst, aber in diesem Schritt noch nicht gedruckt.
-- Der Karteninhalt wird erst nach dem Ende des `card`-Environments ausgegeben.
-- Der Test zeigt, dass der Karteninhalt nicht ungewollt in den normalen Dokumentfluss außerhalb der Karte gelangt.
-- Das Fixture kompiliert mit `pdflatex -interaction=nonstopmode -halt-on-error` und wird vom Benutzer manuell anhand seines `% Expected Output`-Abschnitts abgenommen.
+Ein `.tex`-Fixture unter `test/unit/pnpprep/pnpcards/` mit beiden Syntaxvarianten und einem `% Expected Output`-Abschnitt. Manuelle Abnahme durch Vergleich mit dem PDF.
 
 ## Nicht Bestandteil
 
-- Automatischer Überlauf auf die Rückseite.
-- Endgültiges Titel-/Referenzlayout und Einfügen einer leeren Rückseite.
+- Leere Rückseite oder Rückseiteninhalt.
+- Automatischer Überlauf.
+- Sichtbare Ausgabe der Referenz (kommt in Ticket 06).
+
+## Dokumentation: Einschränkungen im Sammelmodus
+
+Der `environ`-Body wird als Token-Liste gesammelt und dann in eine `\vbox` gesetzt.
+Daraus ergeben sich folgende Einschränkungen:
+
+| Konstrukt | Status | Hinweis |
+|---|---|---|
+| Text, Absätze, `\textbf`, Listen | ✓ ok | — |
+| `tabular`, `\includegraphics` | ✓ ok | Als Box direkt gesetzt |
+| `\verb\|...\|` (inline) | ✓ ok | — |
+| `\begin{figure}` / `\begin{table}` | ✗ nicht | Floats benötigen Output-Routine, werden ignoriert |
+| `\begin{verbatim}` | ✗ nicht | Kategorie-Codes werden beim Tokenisieren nicht gesetzt |
+| `\footnote`, `\marginpar` | ✗ nicht | Globale Seiteneffekte, erscheinen an falscher Stelle |
+
+Mehrzeiliger Verbatim-Inhalt: `fancyvrb`'s `\SaveVerbatim`/`\UseVerbatim` als Workaround.

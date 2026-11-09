@@ -1,0 +1,27 @@
+\documentclass{pnpcards}
+
+\begin{document}
+
+% Syntax variant 1: with optional reference
+\begin{card}[WdZ 102]{Mit Referenz}
+Dies ist der Karteninhalt der ersten Karte.
+Die Referenz WdZ 102 soll nicht als Karteninhalt erscheinen.
+\end{card}
+
+% Syntax variant 2: without optional reference
+\begin{card}{Ohne Referenz}
+Dies ist der Karteninhalt der zweiten Karte.
+Kein optionales Argument wurde angegeben.
+\end{card}
+
+\end{document}
+
+% Expected Output (manual review)
+% Page 1: Front of card 1. Title area shows "Mit Referenz". Content area shows
+%         the two lines of card text. The reference "WdZ 102" does NOT appear
+%         anywhere on this page.
+% Page 2: Blank back page for card 1.
+% Page 3: Front of card 2. Title area shows "Ohne Referenz". Content area shows
+%         the two lines of card text.
+% Page 4: Blank back page for card 2.
+% No content appears outside the designated card areas.

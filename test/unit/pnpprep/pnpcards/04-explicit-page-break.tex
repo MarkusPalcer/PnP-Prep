@@ -1,0 +1,34 @@
+\documentclass{pnpcards}
+
+\begin{document}
+
+% Card 1: Explicit \newpage when front still has space.
+\begin{card}{Expliziter Umbruch}
+VORNE VOR UMBRUCH
+\newpage
+HINTEN NACH UMBRUCH
+\end{card}
+
+% Card 2: Natural overflow (no \newpage) — must still work as before.
+\begin{card}{Natuerlicher Ueberlauf}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vel ornare nibh, a lacinia lacus. Phasellus hendrerit posuere dui, elementum ultricies augue pellentesque a. Nullam fermentum sollicitudin ipsum non dignissim. Fusce rhoncus turpis id condimentum mollis. Nullam ac libero et lacus eleifend fringilla. Maecenas ut condimentum leo. Praesent hendrerit augue commodo odio auctor, et congue nunc porta. Sed id bibendum lectus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Praesent aliquam diam id justo sollicitudin iaculis.
+
+Donec suscipit tempor pellentesque. Proin ipsum turpis, volutpat non eros sit amet, sollicitudin suscipit lectus. Praesent a lacus mollis justo dictum pellentesque. Etiam sodales lectus sit amet luctus dictum. Duis nec massa nibh. Quisque pharetra sem quis porttitor lobortis. Curabitur dictum, purus vel commodo imperdiet, sem magna iaculis est, id eleifend nisi risus pretium velit. Suspendisse id quam tempor, gravida diam at, placerat nibh.
+\end{card}
+
+\end{document}
+
+% Expected Output (manual review)
+%
+% Card 1 – Expliziter Umbruch (Pages 1–2):
+%   Page 1: Title area shows "Expliziter Umbruch". Content area shows only
+%           "VORNE VOR UMBRUCH". The front side is NOT full — there is blank
+%           space below the text. No debug text appears anywhere.
+%   Page 2: Shows "HINTEN NACH UMBRUCH" at the top. No title area.
+%
+% Card 2 – Natuerlicher Ueberlauf (Pages 3–4):
+%   Page 3: Title area shows "Natuerlicher Ueberlauf". Content area shows the
+%           beginning of the Lorem Ipsum text, filling the front body area.
+%   Page 4: The Lorem Ipsum text continues from the top. No title area.
+%
+% No debug text ("Explicit break marker detected" or similar) appears anywhere.

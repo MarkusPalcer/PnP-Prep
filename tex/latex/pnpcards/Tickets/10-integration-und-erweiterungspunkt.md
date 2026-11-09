@@ -1,29 +1,32 @@
-# Ticket 10: Kartenverhalten integrieren und Vier-Seiten-Erweiterung vorbereiten
+# Ticket 10: Integration und Erweiterbarkeit auf 4-Seiten-Karten vorbereiten
 
 ## Ziel
 
-Die Zwei-Seiten-Karte als zusammenhängende Funktion absichern und die interne Seitenerzeugung so strukturieren, dass eine spätere Vier-Seiten-Karte nicht eine zweite, unabhängige Aufteilungslogik benötigt. Die Vier-Seiten-Funktion selbst wird noch nicht implementiert.
+Alle bisherigen Verhaltensweisen (Tickets 05–09) funktionieren zusammen korrekt. Das interne Design erlaubt es, später 4-Seiten-Karten hinzuzufügen, ohne die bestehende Logik neu zu schreiben.
 
-## Umsetzung
+## Beobachtbares Verhalten
 
-1. Kompiliere das Integration-Fixture dieses Tickets; die visuellen Einzelfälle und deren manuelle Abnahme verbleiben in den jeweils zuständigen Funktionstickets.
-2. Ergänze einen Integrationstest mit mehreren Karten hintereinander, darunter eine Karte mit leerer Rückseite und eine mit automatischem Überlauf.
-3. Prüfe, dass jede Karte genau zwei physische PDF-Seiten belegt und keine Seite Inhalt oder Metadaten einer Nachbarkarte enthält.
-4. Fasse die interne Ausgabe über logische Kartenseiten zusammen: erste Seite mit Titelbereich, nachfolgende Seiten ohne Titelbereich.
-5. Halte die Zahl erlaubter logischer Seiten an einer klar abgegrenzten Stelle fest, statt das Limit in mehreren Teilroutinen fest zu verdrahten. Für diese Ticketserie bleibt der öffentliche und getestete Wert zwei.
-6. Dokumentiere die Trennung zwischen logischer Inhaltsreihenfolge und späterer physischer Druckreihenfolge. Die Umordnung 1, 3, 2, 4 ist ausdrücklich nicht Teil dieses Tickets.
-7. Lege ein separates Integration-Fixture mit mehreren aufeinanderfolgenden Karten an: mindestens eine kurze Karte mit leerer Rückseite, eine Karte mit natürlichem Überlauf und eine Karte mit explizitem Seitenwechsel. Beschreibe jede resultierende Seite in einem `% Expected Output`-Abschnitt.
+- Mehrere aufeinanderfolgende Karten erzeugen je genau 2 PDF-Seiten.
+- Kein Inhalt oder Zustand einer Karte gelangt auf die Seiten einer anderen Karte.
+- Eine Mischung aus kurzen Karten (leere Rückseite), Karten mit natürlichem Überlauf und Karten mit explizitem `\newpage` funktioniert korrekt in einem Dokument.
+- Das Integrations-Fixture kompiliert mit `latexmk -pdf -interaction=nonstopmode -halt-on-error`.
 
-## Abnahmekriterien
+## Internes Designziel (nicht testbar, aber dokumentiert)
 
-- Das Integration-Fixture kompiliert mit `pdflatex -interaction=nonstopmode -halt-on-error` und wird vom Benutzer manuell anhand von `% Expected Output` geprüft.
-- Die Einzelfixtures der vorangehenden Funktionstickets behalten ihre jeweilige Abnahme in diesen Tickets; dieses Ticket ersetzt sie nicht.
-- Mehrere aufeinanderfolgende Karten erzeugen je zwei korrekt zugeordnete Seiten.
-- Die erste logische Seite ist von allen Folgeseiten über dieselbe zentrale Layoutentscheidung unterscheidbar.
-- Eine spätere Erhöhung des Seitenlimits ist konzeptionell an einer Stelle möglich, ohne die Vorder-/Folgeseiten-Aufteilung neu zu implementieren.
-- Es existiert weiterhin keine öffentliche Vier-Seiten-Syntax und keine physische Seitenumordnung.
+Das Seitenlimit (aktuell: 2) ist an einer einzigen Stelle im Code konfigurierbar — nicht über mehrere Routinen verteilt. Eine spätere Erhöhung auf 4 für `doublecard` erfordert keine strukturelle Umgestaltung.
+
+Die logische Reihenfolge der Seiten im Dokument entspricht der Ausgabereihenfolge des Inhalts. Die physische Umordnung für den Druck geschieht extern durch `print_cards.rb` und ist kein Teil der Klasse.
+
+## Fixture
+
+Ein Integrations-Fixture mit mindestens:
+- einer kurzen Karte (leere Rückseite),
+- einer Karte mit natürlichem Überlauf,
+- einer Karte mit explizitem `\newpage`.
+
+`% Expected Output` für alle Seiten. Manuelle Abnahme.
 
 ## Nicht Bestandteil
 
-- `doublecard` oder eine andere Vier-Seiten-Syntax.
-- Umordnung der Druckseiten 1, 3, 2, 4.
+- `doublecard` oder eine 4-Seiten-Syntax.
+- Implementierung der Seitenumordnung innerhalb der Klasse.

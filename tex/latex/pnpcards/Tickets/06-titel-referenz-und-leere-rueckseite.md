@@ -1,28 +1,24 @@
-# Ticket 06: Titelbereich, Referenz und leere Rückseite ausgeben
+# Ticket 06: Titelbereich, Referenz und leere Rückseite
 
 ## Ziel
 
-Eine kurze Karte ohne Überlauf soll als vollständige doppelseitige Karte mit korrekter Vorderseite und leerer Rückseite ausgegeben werden.
+Eine Karte ohne Überlauf gibt genau zwei PDF-Seiten aus: Vorderseite mit Titelbereich und leere Rückseite.
 
-## Umsetzung
+## Beobachtbares Verhalten
 
-1. Setze den Titel ausschließlich in den Titelbereich der ersten Kartenseite.
-2. Setze den optionalen Referenztext in die obere rechte Ecke des Titelbereichs.
-3. Sorge dafür, dass der Karteninhalt auf der Vorderseite unterhalb des Titelbereichs beginnt.
-4. Gib für eine Karte ohne Rückseiteninhalt eine echte leere A6-PDF-Seite aus.
-5. Stelle sicher, dass die Leerseite weder Titel noch Referenz noch Inhalt der nächsten Karte übernimmt.
-6. Erstelle ein Fixture mit zwei aufeinanderfolgenden Karten, damit ein versehentliches Vermischen von Seitenzustand sichtbar wird.
-7. Ergänze im Fixture einen `% Expected Output`-Abschnitt, der die erwarteten vier Seiten einzeln beschreibt: erste Vorderseite mit Referenz, leere Rückseite, zweite Vorderseite ohne Referenz und deren leere Rückseite.
+- Jede Karte erzeugt genau 2 PDF-Seiten.
+- Seite 1: Titelbereich oben (15 mm), darunter Karteninhalt.
+- Seite 1 mit Referenz: Referenztext erscheint oben rechts im Titelbereich.
+- Seite 1 ohne Referenz: nur Titel im Titelbereich.
+- Seite 2: leer, korrekte A6-Größe, kein Inhalt der nächsten Karte.
+- Mehrere Karten hintereinander: Titelbereich und Referenz jeweils nur auf der eigenen Vorderseite.
+- Das Fixture kompiliert mit `latexmk -pdf -interaction=nonstopmode -halt-on-error`.
 
-## Abnahmekriterien
+## Fixture
 
-- Eine Karte ohne Rückseiteninhalt erzeugt genau zwei PDF-Seiten.
-- Die erste Seite zeigt Titel, optionalen Referenztext und Karteninhalt.
-- Die zweite Seite ist leer und besitzt dennoch die korrekte A6-Seitengröße.
-- Bei zwei aufeinanderfolgenden Karten erscheinen Titel und Referenz jeweils nur auf der zugehörigen Vorderseite.
-- Das Fixture kompiliert mit `pdflatex -interaction=nonstopmode -halt-on-error`; der Benutzer vergleicht die vier PDF-Seiten manuell mit `% Expected Output`.
+Ein `.tex`-Fixture mit zwei aufeinanderfolgenden Karten (eine mit, eine ohne Referenz). `% Expected Output` beschreibt alle vier Seiten. Manuelle Abnahme.
 
 ## Nicht Bestandteil
 
-- Rückseiteninhalt oder automatischer Überlauf.
-- Umordnung von Kartenseiten für den Druck.
+- Automatischer Überlauf oder expliziter Seitenwechsel.
+- Schriftgrößenanpassung des Titels (Ticket 11).
