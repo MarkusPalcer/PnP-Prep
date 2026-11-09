@@ -60,7 +60,8 @@
   },
   "mounts": [
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/texlive/.gitconfig,type=bind,consistency=cached",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kiro,target=/home/texlive/.kiro,type=bind,consistency=cached"
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kiro,target=/home/texlive/.kiro,type=bind,consistency=cached",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.copilot,target=/home/texlive/.copilot,type=bind,consistency=cached"
   ],
   "runArgs": ["--security-opt", "seccomp=unconfined", "--cap-add", "SYS_ADMIN"],
   "forwardPorts": [5476, 48101],
