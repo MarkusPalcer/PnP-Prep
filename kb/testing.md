@@ -22,6 +22,10 @@ Run the registered tests from the repository root with:
 rake test
 ```
 
+Rake also defines `rake test:<suite>` for one suite and
+`rake test:<suite>:<test>` for one test. Names are normalized for Rake and
+disambiguated when normalization produces collisions.
+
 The VS Code **Debug Tests** configuration runs the same task through Bundler
 with `bundle exec rake test`.
 

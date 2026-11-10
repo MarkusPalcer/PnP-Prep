@@ -9,7 +9,7 @@ Aktuell in Entwicklung: `pnpcards.cls` – eine Klasse für Karteikarten im A6-Q
 
 ## Repo-Struktur
 
-```
+```plaintext
 PnP-Prep/
 ├── tex/latex/
 │   ├── pnpprep/          # bestehende Klasse + Pakete (fertig)
@@ -29,9 +29,11 @@ PnP-Prep/
 
 ## Build-System
 
-- **Rake**: `rake test` führt alle Tests aus, `rake doc` baut die Doku
+- **Rake**: `rake test` führt alle Tests aus; `rake test:<suite>` und
+  `rake test:<suite>:<test>` führen einzelne Suite bzw. Test aus; `rake doc`
+  baut die Doku
 - `gems/latextesting`: Framework für die Testdefinitionen und LaTeX-Fixtures
-- `rakelib/test.rake`: bindet das Test-Framework für Rake ein
+- `Rakefile`: lädt LatexTesting und erzeugt Tasks für Suite und einzelne Tests
 - Testausgaben landen in `out/test/`
 - Compiler: `pdflatex -interaction=nonstopmode -halt-on-error`
 

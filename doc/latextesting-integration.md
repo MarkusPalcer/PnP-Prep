@@ -12,9 +12,10 @@ PnP-Prep checkout. The root `Gemfile` evaluates every `gems/*/Gemfile`, which
 includes the gem and its development dependencies. After checking out the gem,
 run `bundle install` from the PnP-Prep root.
 
-`rakelib/test.rake` loads the gem entry point. The root `Rakefile` keeps the
-test task and calls `LatexTesting.scan` and `LatexTesting.run`; the framework
-implementation itself lives in the gem.
+The root `Rakefile` requires the gem directly. It uses `LatexTesting.scan` to
+create `rake test:<suite>` and `rake test:<suite>:<test>` tasks, while
+`rake test` runs the full test set. Task-name characters are normalized, and
+colliding normalized names receive numeric suffixes.
 
 ## Running Repository Tests
 
