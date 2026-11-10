@@ -6,4 +6,6 @@ group :development do
   gem "ruby-lsp", require: false
 end
 
-gem "latextesting", path: "gems/latextesting"
+Dir.glob("gems/*/Gemfile").sort.each do |gemfile|
+  eval_gemfile gemfile
+end

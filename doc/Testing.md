@@ -2,7 +2,9 @@
 
 This guide describes how to design, organize, and review tests for this
 repository. For the Ruby test runner's API and test-definition syntax, see the
-[test framework guide](testing-framework.md).
+[LatexTesting framework guide](../gems/latextesting/doc/testing-framework.md).
+For its integration with the main repository, see
+[LatexTesting in PnP-Prep](latextesting-integration.md).
 
 ## Running the Tests
 

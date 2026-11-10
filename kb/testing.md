@@ -1,16 +1,17 @@
 # Testing
 
-This page is a short project overview. The detailed guides separate the
-framework from repository-specific practices:
+This page is a short project overview. Detailed instructions are maintained
+alongside the code they describe:
 
-- [LaTeX Test Framework](../doc/testing-framework.md) explains the Ruby runner,
-  test-definition DSL, assertions, and generated artifacts.
+- [LatexTesting framework guide](../gems/latextesting/doc/testing-framework.md)
+  documents the DSL, assertions, runner API, and gem specs.
+- [LatexTesting integration](../doc/latextesting-integration.md) describes how
+  the main repository loads and runs the local gem.
 - [Repository Testing Practices](../doc/Testing.md) covers fixture design,
   expected output, negative tests, and visual review.
 
-The runner is provided by the local `gems/latextesting` gem and loaded for
-Rake through `rakelib/test.rake`; the root `Rakefile` task interface remains
-`LatexTesting.scan` and `LatexTesting.run`.
+The LatexTesting repository must be checked out at `gems/latextesting/`.
+The root `Gemfile` evaluates nested `gems/*/Gemfile` files.
 
 Run the registered tests from the repository root with:
 
@@ -23,12 +24,6 @@ with `bundle exec rake test`.
 
 Test definitions and LaTeX fixtures are kept together under `test/`, separated
 into unit and integration test directories.
-
-Custom assertions can use `pdf_path` to inspect the generated PDF while the
-assertion runs, or call `generated_pdf { ... }` to open it with HexaPDF and use
-the document API directly in the block (for example, `pages.count`). PDF
-geometry checks may rasterize pages with Ghostscript and measure colored debug
-frames.
 
 For temporary Ruby test experiments, add a `playground` task in
 `rakelib/playground.rake`, run it through Rake, and delete the task when the
