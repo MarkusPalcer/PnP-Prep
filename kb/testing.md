@@ -12,51 +12,51 @@ alongside the code they describe:
 
 The LatexTesting repository must be checked out at `gems/latextesting/`.
 The root `Gemfile` evaluates nested `gems/*/Gemfile` files.
-LatexTesting declares HexaPDF as a runtime dependency for PDF assertions.
-Negative fixture tests declare their expected outcome with
-`expect_compilation_failure`.
+LatexTesting declares HexaPDF as a runtime dependency for PDF tests.
 
-Run the registered tests from the repository root with:
+Definition files declare fixtures; they are loader inputs, not test grouping
+units. Fixture names are unique across all definition files, and each fixture
+selects one `.tex` file to compile once. Each fixture contains uniquely named
+tests that check individual facts. `test` defines an automated test,
+`manual_test` defines a manual visual test, and `requires_log` adds a named
+log-check test.
+
+Negative fixture tests declare their expected outcome with
+`expect_compilation_failure`. A fixture-level build failure or unexpected
+build result fails its selected tests; one failed test does not prevent later
+tests from running.
+
+Run registered tests from the repository root with:
 
 ```sh
 rake test
 ```
 
-Rake also defines `rake test:<suite>` for one suite and
-`rake test:<suite>:<test>` for one test. Names are normalized for Rake and
+Rake also defines `rake test:<fixture>` and
+`rake test:<fixture>:<test>` tasks. Names are normalized for Rake and
 disambiguated when normalization produces collisions.
 
 The VS Code **Debug Tests** configuration runs the same task through Bundler
 with `bundle exec rake test`.
 
-Test definitions and LaTeX fixtures are kept together under `test/`, separated
-into unit and integration test directories.
+Test definitions and LaTeX fixtures are kept together under `test/`,
+separated into unit and integration test directories.
 
 Visual expectations that require human inspection belong in the matching Ruby
-test definition as `user_assert` calls, one fact per call, rather than as
-`% Expected Output` comments in `.tex` fixtures. Prefer automated assertions
-for objective PDF facts that the available PDF, vector-content, or raster
-checks can verify.
-Manual assertions are skipped by default and print the skipped
-assertion count in yellow before `MANUAL TESTS SKIPPED`; use
-`LatexTesting.run(user_interaction: true)` for a prompt with the persistent
-output PDF path. Accept `yes`/`y` or `no`/`n`, case-insensitively. A yes
-response prints `PASSED`; a no response fails. Even when skipped, a manual
-assertion fails if the generated PDF is missing. PDF assertion helpers read the
-persistent copied PDF, while log assertions continue to read the temporary
-build log.
+fixture definition as `manual_test` calls, one fact per call, rather than as
+`% Expected Output` comments in `.tex` fixtures. Prefer automated tests for
+objective PDF facts that the available PDF, vector-content, or raster checks
+can verify. Manual tests are skipped by default; use
+`LatexTesting.run(user_interaction: true)` or `MANUAL_TESTS=1 rake test` for a
+prompt with the persistent output PDF path. Accept `yes`/`y` or `no`/`n`,
+case-insensitively. A yes response prints `PASSED`; a no response fails. Even
+when skipped, a manual test fails if the generated PDF is missing.
 
-The root Rakefile enables those prompts for full, suite, and individual test
-tasks whenever `MANUAL_TESTS` is present in the environment. For example,
-`MANUAL_TESTS=1 rake test` runs the full suite interactively.
-
-Every root test task also overwrites `out/testresults.xml` with JUnit XML for
-the tests run by that invocation. Skipped manual assertions are counted as
-passed in the report; suite and single-test tasks include only their selected
-tests.
-
-The root `rake test`, suite, and individual-test tasks exit with status 1 if
-any selected test fails.
+PDF test helpers read the persistent copied PDF, while log tests continue to
+read the temporary build log. Each root test task overwrites
+`out/testresults.xml` with JUnit XML; fixture and individual-test tasks include
+only selected tests. Skipped manual tests count as passed in the report.
+Root test tasks exit with status 1 if any selected test fails.
 
 For temporary Ruby test experiments, add a `playground` task in
 `rakelib/playground.rake`, run it through Rake, and delete the task when the

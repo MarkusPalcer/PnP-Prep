@@ -61,7 +61,7 @@ task_name_for = lambda do |name, used_names|
   candidate
 end
 
-test_suites = LatexTesting.scan(PROJECT_ROOT.join('test'))
+fixtures = LatexTesting.scan(PROJECT_ROOT.join('test'))
 
 run_tests = lambda do |selected_tests, **selection|
   LatexTesting.run(TEST_OPTIONS, **selection)
@@ -73,27 +73,27 @@ end
 
 desc 'Runs all tests'
 task :test do
-  run_tests.call(test_suites.flat_map(&:tests))
+  run_tests.call(fixtures.flat_map(&:tests))
 end
 
 namespace :test do
-  used_suite_names = {}
-  test_suites.each do |suite|
-    suite_task_name = task_name_for.call(suite.name, used_suite_names)
+  used_fixture_names = {}
+  fixtures.each do |fixture|
+    fixture_task_name = task_name_for.call(fixture.name, used_fixture_names)
 
-    desc "Runs the #{suite.name} test suite"
-    task suite_task_name do
-      run_tests.call(suite.tests, suite: suite)
+    desc "Runs the #{fixture.name} fixture"
+    task fixture_task_name do
+      run_tests.call(fixture.tests, fixture: fixture)
     end
 
-    namespace suite_task_name do
+    namespace fixture_task_name do
       used_test_names = {}
-      suite.tests.each do |test_case|
+      fixture.tests.each do |test_case|
         test_task_name = task_name_for.call(test_case.name, used_test_names)
 
         desc "Runs the #{test_case.name} test"
         task test_task_name do
-          run_tests.call([test_case], test: test_case)
+          run_tests.call([test_case], fixture: fixture, test: test_case)
         end
       end
     end

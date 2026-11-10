@@ -1,9 +1,9 @@
 # LatexTesting in PnP-Prep
 
 This page describes how the main PnP-Prep repository integrates the
-[`latextesting` gem](../gems/latextesting). For the gem's DSL and assertions,
-see its [documentation contents](../gems/latextesting/doc/README.md).
-For fixture design and visual review, see [Testing](Testing.md).
+[`latextesting` gem](../gems/latextesting). For its fixture/test DSL, see the
+[LatexTesting documentation](../gems/latextesting/doc/README.md). For fixture
+design and visual review, see [Testing](Testing.md).
 
 ## Local Gem Prerequisite
 
@@ -13,9 +13,9 @@ includes the gem and its development dependencies. After checking out the gem,
 run `bundle install` from the PnP-Prep root.
 
 The root `Rakefile` requires the gem directly. It uses `LatexTesting.scan` to
-create `rake test:<suite>` and `rake test:<suite>:<test>` tasks, while
-`rake test` runs the full test set. Task-name characters are normalized, and
-colliding normalized names receive numeric suffixes.
+create `rake test:<fixture>` and `rake test:<fixture>:<test>` tasks, while
+`rake test` runs all registered tests. Task-name characters are normalized,
+and colliding normalized names receive numeric suffixes.
 
 ## Running Repository Tests
 
@@ -26,9 +26,9 @@ rake test
 ```
 
 The runner scans `test/` for Ruby files named `*tests.rb`, `*test.rb`,
-`test.rb`, or `tests.rb`, then evaluates them as test definitions. The main
+`test.rb`, or `tests.rb`, then evaluates them as fixture definitions. The main
 repository provides `build_raw` from `rakelib/basic.rake`; LatexTesting uses it
-to compile each selected LaTeX fixture with `latexmk`.
+to compile each fixture's selected LaTeX source with `latexmk` once.
 
 Set `RAKE_VERBOSE=1` to show compiler output:
 
@@ -36,22 +36,23 @@ Set `RAKE_VERBOSE=1` to show compiler output:
 RAKE_VERBOSE=1 rake test
 ```
 
-Set `MANUAL_TESTS` to enable interactive `user_assert` prompts for `rake test`
-and its suite/test tasks:
+Set `MANUAL_TESTS` to enable interactive `manual_test` prompts for `rake test`
+and its fixture/test tasks:
 
 ```sh
 MANUAL_TESTS=1 rake test
 ```
 
-All root test tasks write JUnit XML results to `out/testresults.xml`, replacing
-the file on each invocation. A full run includes the full test set, while suite
-and individual-test tasks report only tests selected by that task. Tests with
-skipped manual assertions count as passed in the report.
+All root test tasks write JUnit XML results to `out/testresults.xml`,
+replacing the file on each invocation. A full run includes the full test set,
+while fixture and individual-test tasks report only tests selected by that
+task. Skipped manual tests count as passed in the report.
 
-Each fixture is compiled in a temporary directory. Successful PDFs and failed
-build logs are copied under `out/test/`, preserving the test-definition
-directory structure. Temporary build files are removed afterward.
+Each fixture is compiled in a temporary directory. Its successful PDF and
+failed build log are copied under `out/test/`, preserving the definition-file
+structure. Temporary build files are removed afterward. A fixture-level build
+failure or unexpected result fails its selected tests; an individual test
+failure does not stop later tests in that fixture.
 
-The runner prints `PASS`, `PASSED`, `FAIL`, or the yellow
-`<count> MANUAL TESTS SKIPPED` per test. All root `rake test` tasks exit with
-status 1 if any selected test fails.
+The runner prints `PASS`, `PASSED`, `FAIL`, or `MANUAL TEST SKIPPED` per test.
+All root `rake test` tasks exit with status 1 if any selected test fails.

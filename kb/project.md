@@ -29,11 +29,15 @@ PnP-Prep/
 
 ## Build-System
 
-- **Rake**: `rake test` führt alle Tests aus; `rake test:<suite>` und
-  `rake test:<suite>:<test>` führen einzelne Suite bzw. Test aus; `rake doc`
-  baut die Doku
-- `gems/latextesting`: Framework für die Testdefinitionen und LaTeX-Fixtures
-- `Rakefile`: lädt LatexTesting und erzeugt Tasks für Suite und einzelne Tests
+- **Rake**: `rake test` führt alle Tests aus; `rake test:<fixture>` und
+  `rake test:<fixture>:<test>` führen einzelne Fixture- bzw. Faktentests aus;
+  `rake doc` baut die Doku.
+- `gems/latextesting`: Framework für Fixture- und Testdefinitionen sowie
+  LaTeX-Fixtures.
+- Definition-Dateien sind Loader; Fixtures benennen je eine `.tex`-Datei und
+  werden einmal kompiliert. Benannte Tests prüfen einzelne Fakten unabhängig.
+- `Rakefile`: lädt LatexTesting und erzeugt Tasks für Fixtures und einzelne
+  Tests.
 - Testausgaben landen in `out/test/`
 - Compiler: `pdflatex -interaction=nonstopmode -halt-on-error`
 
