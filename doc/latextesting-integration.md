@@ -43,6 +43,11 @@ and its suite/test tasks:
 MANUAL_TESTS=1 rake test
 ```
 
+All root test tasks write JUnit XML results to `out/testresults.xml`, replacing
+the file on each invocation. A full run includes the full test set, while suite
+and individual-test tasks report only tests selected by that task. Tests with
+skipped manual assertions count as passed in the report.
+
 Each fixture is compiled in a temporary directory. Successful PDFs and failed
 build logs are copied under `out/test/`, preserving the test-definition
 directory structure. Temporary build files are removed afterward.

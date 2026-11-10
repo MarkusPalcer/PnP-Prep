@@ -18,7 +18,10 @@ CLEAN.include('**/*.aux',
 
 PROJECT_ROOT = Pathname(__dir__).realpath.freeze
 OUT_DIR = PROJECT_ROOT.join('out').freeze
-TEST_OPTIONS = { out_folder: OUT_DIR }.tap do |options|
+TEST_OPTIONS = {
+  out_folder: OUT_DIR,
+  junit_report: OUT_DIR.join('testresults.xml')
+}.tap do |options|
   options[:user_interaction] = true if ENV.key?('MANUAL_TESTS')
 end.freeze
 

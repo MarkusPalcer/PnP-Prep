@@ -29,6 +29,10 @@ to the full suite and the individual suite/test Rake tasks:
 MANUAL_TESTS=1 rake test
 ```
 
+Every root test task writes a JUnit XML report to `out/testresults.xml`,
+overwriting the previous report. Suite and individual-test tasks include only
+the tests they execute; skipped manual assertions count as passed in the XML.
+
 The runner prints a result for each test. Review that output; the current Rake
 task does not aggregate individual failures into its process exit status.
 Successful PDFs are useful for visual review and are not compared automatically

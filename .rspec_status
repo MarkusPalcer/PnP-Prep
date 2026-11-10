@@ -1,0 +1,19 @@
+example_id                                          | status | run_time        |
+--------------------------------------------------- | ------ | --------------- |
+./gems/latextesting/spec/latextesting_spec.rb[1:1]  | passed | 0.00024 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[1:2]  | passed | 0.00017 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[1:3]  | passed | 0.00516 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[1:4]  | passed | 0.00255 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[1:5]  | passed | 0.00268 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[1:6]  | passed | 0.0035 seconds  |
+./gems/latextesting/spec/latextesting_spec.rb[1:7]  | passed | 0.00098 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:1]  | passed | 0.00135 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:2]  | passed | 0.00067 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:3]  | passed | 0.00044 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:4]  | passed | 0.00051 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:5]  | passed | 0.00059 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:6]  | passed | 0.00055 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:7]  | passed | 0.00051 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:8]  | passed | 0.00061 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:9]  | passed | 0.00062 seconds |
+./gems/latextesting/spec/latextesting_spec.rb[2:10] | passed | 0.00506 seconds |

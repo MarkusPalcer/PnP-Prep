@@ -47,6 +47,11 @@ The root Rakefile enables those prompts for full, suite, and individual test
 tasks whenever `MANUAL_TESTS` is present in the environment. For example,
 `MANUAL_TESTS=1 rake test` runs the full suite interactively.
 
+Every root test task also overwrites `out/testresults.xml` with JUnit XML for
+the tests run by that invocation. Skipped manual assertions are counted as
+passed in the report; suite and single-test tasks include only their selected
+tests.
+
 For temporary Ruby test experiments, add a `playground` task in
 `rakelib/playground.rake`, run it through Rake, and delete the task when the
 experiment is complete.
