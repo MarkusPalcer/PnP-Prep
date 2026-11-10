@@ -90,6 +90,7 @@ end
 The execution object provides:
 
 - `log` — reads and caches the current fixture's LaTeX log as a string.
+- `pdf_path` — returns the generated PDF's path while the assertion is running.
 - `fail(message)` — raises an error to mark the assertion as failed.
 
 Assertions run whether compilation succeeded or failed as expected. Thus a
@@ -111,6 +112,7 @@ The framework's public DSL and runner methods are:
 | `Test` | `assert(name = nil) { ... }` | Defines a custom post-build assertion. |
 | `Assertion` | `execute(temp_dir)` | Runs the custom assertion in its execution context. |
 | `Assertion::Execution` | `log` | Reads the fixture log. |
+| `Assertion::Execution` | `pdf_path` | Returns the generated fixture PDF path. |
 | `Assertion::Execution` | `fail(message)` | Fails the assertion. |
 
 `TestFile#filename`, `TestSuite#name`, and `Test#name` return the corresponding

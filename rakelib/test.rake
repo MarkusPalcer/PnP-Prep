@@ -315,6 +315,17 @@ module LatexTesting
         return @log 
       end
 
+      # Returns the path to the PDF generated for the current fixture.
+      #
+      # @return [String] path to the generated PDF
+      # @raise [RuntimeError] if the build did not produce a PDF file
+      def pdf_path
+        temp_pdf = temp_file(".pdf")
+        raise "No PDF file produced by LaTeX build" unless File.file? temp_pdf
+
+        temp_pdf
+      end
+
       # Fails the current assertion with the given message.
       #
       # @param message [String] explanation included in the test failure

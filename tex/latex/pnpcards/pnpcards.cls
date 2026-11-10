@@ -8,6 +8,7 @@
 \LoadClass{article}
 \RequirePackage[a6paper,landscape,margin=5mm,noheadfoot]{geometry}
 \RequirePackage{environ}
+\RequirePackage{xcolor}
 
 \pagestyle{empty}
 % Card areas are fixed-size boxes placed flush against the text area's top edge.
@@ -41,18 +42,18 @@
     \penalty-10000%
 }
 
-\newcommand{\pnpcards@Area}[4]{%
+\newcommand{\pnpcards@Area}[5]{%
     \ifpnpcards@debugframes
-        \fbox{%
+        \fcolorbox{#4}{white}{%
             \begin{minipage}[#3][\dimexpr#2-2\fboxsep-2\fboxrule\relax][#3]{%
                 \dimexpr\textwidth-2\fboxsep-2\fboxrule\relax
             }
-                #4
+                #5
             \end{minipage}%
         }%
     \else
         \begin{minipage}[#3][#2][#3]{#1}%
-            #4
+            #5
         \end{minipage}%
     \fi
 }
@@ -61,14 +62,14 @@
     \thispagestyle{empty}%
     \nointerlineskip
     \hbox to \textwidth{%
-        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@titleheight}{c}{%
+        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@titleheight}{c}{red!75!black}{%
             \textbf{#1}%
         }%
     }%
     \vskip\pnpcards@frontgap
     \nointerlineskip
     \hbox to \textwidth{%
-        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@frontbodyheight}{t}{%
+        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@frontbodyheight}{t}{blue!75!black}{%
             \unvbox#2
         }%
     }%
@@ -79,7 +80,7 @@
     \thispagestyle{empty}%
     \nointerlineskip
     \hbox to \textwidth{%
-        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@backbodyheight}{t}{%
+        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@backbodyheight}{t}{green!50!black}{%
             \unvbox#1
         }%
     }%

@@ -10,13 +10,13 @@
 |---|---|
 | `\begin{card}{Titel}[Referenz] ... \end{card}` | Noch nicht implementiert (Tickets 05+) |
 | `\RunCard{Titel}{Inhalt}` | Intern – setzt eine Karte mit Titel und Inhalt |
-| `\EnableCardDebugFrames` | Zeigt Rahmen um alle Bereiche |
+| `\EnableCardDebugFrames` | Zeigt farbige Rahmen um alle Bereiche: Titel rot, Vorderseiteninhalt blau, Rückseiteninhalt grün |
 
 ### Interne Helfer
 
 | Befehl | Beschreibung |
 |---|---|
-| `\pnpcards@Area{w}{h}{align}{inhalt}` | Setzt einen fixen Box-Bereich (mit/ohne Debug-Rahmen) |
+| `\pnpcards@Area{w}{h}{align}{rahmenfarbe}{inhalt}` | Setzt einen fixen Box-Bereich (mit/ohne farbigen Debug-Rahmen) |
 | `\pnpcards@PrintFront{titel}{frontbox}{breakstatus}` | Gibt Vorderseite aus |
 | `\pnpcards@PrintBack{backbox}` | Gibt Rückseite aus |
 | `\pnpcards@CardExplicitBreak` | Marker für `\newpage` innerhalb einer Karte |

@@ -16,3 +16,11 @@ rake test
 
 Test definitions and LaTeX fixtures are kept together under `test/`, separated
 into unit and integration test directories.
+
+Custom assertions can use `pdf_path` to inspect the generated PDF while the
+assertion runs. PDF geometry checks may rasterize pages with Ghostscript and
+measure colored debug frames.
+
+For temporary Ruby test experiments, add a `playground` task in
+`rakelib/playground.rake`, run it through Rake, and delete the task when the
+experiment is complete.
