@@ -35,7 +35,8 @@ into unit and integration test directories.
 Visual expectations that require human inspection belong in the matching Ruby
 test definition as `user_assert` calls, one fact per call, rather than as
 `% Expected Output` comments in `.tex` fixtures. Prefer automated assertions
-for objective PDF facts that the available PDF or raster checks can verify.
+for objective PDF facts that the available PDF, vector-content, or raster
+checks can verify.
 Manual assertions are skipped by default and print the skipped
 assertion count in yellow before `MANUAL TESTS SKIPPED`; use
 `LatexTesting.run(user_interaction: true)` for a prompt with the persistent
@@ -53,6 +54,9 @@ Every root test task also overwrites `out/testresults.xml` with JUnit XML for
 the tests run by that invocation. Skipped manual assertions are counted as
 passed in the report; suite and single-test tasks include only their selected
 tests.
+
+The root `rake test`, suite, and individual-test tasks exit with status 1 if
+any selected test fails.
 
 For temporary Ruby test experiments, add a `playground` task in
 `rakelib/playground.rake`, run it through Rake, and delete the task when the

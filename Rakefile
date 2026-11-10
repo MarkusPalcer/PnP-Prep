@@ -47,11 +47,6 @@ end
 desc 'Generates the documentation'
 task doc: CLASSES + PACKAGES
 
-desc 'Runs all tests'
-task :test do
-  LatexTesting.run(TEST_OPTIONS)
-end
-
 task_name_for = lambda do |name, used_names|
   base = name.to_s.downcase.gsub(/[^a-z0-9_-]+/, '_').gsub(/\A[-_]+|[-_]+\z/, '')
   base = 'unnamed' if base.empty?
@@ -68,6 +63,19 @@ end
 
 test_suites = LatexTesting.scan(PROJECT_ROOT.join('test'))
 
+run_tests = lambda do |selected_tests, **selection|
+  LatexTesting.run(TEST_OPTIONS, **selection)
+  failed_tests = selected_tests.select { |test_case| test_case.result == :failed }
+  unless failed_tests.empty?
+    abort("Test failures: #{failed_tests.map(&:name).join(', ')}")
+  end
+end
+
+desc 'Runs all tests'
+task :test do
+  run_tests.call(test_suites.flat_map(&:tests))
+end
+
 namespace :test do
   used_suite_names = {}
   test_suites.each do |suite|
@@ -75,7 +83,7 @@ namespace :test do
 
     desc "Runs the #{suite.name} test suite"
     task suite_task_name do
-      LatexTesting.run(TEST_OPTIONS, suite: suite)
+      run_tests.call(suite.tests, suite: suite)
     end
 
     namespace suite_task_name do
@@ -85,7 +93,7 @@ namespace :test do
 
         desc "Runs the #{test_case.name} test"
         task test_task_name do
-          LatexTesting.run(TEST_OPTIONS, test: test_case)
+          run_tests.call([test_case], test: test_case)
         end
       end
     end

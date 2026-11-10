@@ -53,5 +53,5 @@ build logs are copied under `out/test/`, preserving the test-definition
 directory structure. Temporary build files are removed afterward.
 
 The runner prints `PASS`, `PASSED`, `FAIL`, or the yellow
-`<count> MANUAL TESTS SKIPPED` per test. The root Rake task does not collect
-individual failures into an aggregate process exit status.
+`<count> MANUAL TESTS SKIPPED` per test. All root `rake test` tasks exit with
+status 1 if any selected test fails.
