@@ -32,9 +32,11 @@ with `bundle exec rake test`.
 Test definitions and LaTeX fixtures are kept together under `test/`, separated
 into unit and integration test directories.
 
-Visual expectations belong in the matching Ruby test definition as
-`user_assert` calls, one fact per call, rather than as `% Expected Output`
-comments in `.tex` fixtures. They are skipped by default and print the skipped
+Visual expectations that require human inspection belong in the matching Ruby
+test definition as `user_assert` calls, one fact per call, rather than as
+`% Expected Output` comments in `.tex` fixtures. Prefer automated assertions
+for objective PDF facts that the available PDF or raster checks can verify.
+Manual assertions are skipped by default and print the skipped
 assertion count in yellow before `MANUAL TESTS SKIPPED`; use
 `LatexTesting.run(user_interaction: true)` for a prompt with the persistent
 output PDF path. Accept `yes`/`y` or `no`/`n`, case-insensitively. A yes

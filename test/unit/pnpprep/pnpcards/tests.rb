@@ -27,20 +27,27 @@ testsuite 'PnpCards' do
 
   test 'A6 Geometry' do
     file '02-a6-geometry.tex'
-    user_assert 'The PDF has two pages.'
-    user_assert 'Both pages are A6 landscape format (148 mm x 105 mm).'
-    user_assert 'All four outer frame edges are 5 mm from the page edges.'
-    user_assert 'On page 1, the class-generated title frame measures 138 mm x 15 mm.'
-    user_assert 'On page 1, the front content frame measures 138 mm x 78 mm.'
-    user_assert 'On page 1, there is a 2 mm gap below the title frame.'
-    user_assert 'The page 1 frames and gap use the full 95 mm between the 5 mm top and bottom margins.'
+    assert 'The PDF has two pages.' do
+      generated_pdf do
+        raise "Expected 2 pages, found #{pages.count}" unless pages.count == 2
+      end
+    end
+    assert 'All pages are A6 landscape format (148 mm x 105 mm).' do
+      generated_pdf do
+        expected_size = [148.0, 105.0]
+        pages.each_with_index do |page, index|
+          actual_size = page.box(:media).then do |box|
+            [box.width, box.height].map { |points| points * 25.4 / 72 }
+          end
+          next if actual_size.zip(expected_size).all? { |actual, expected| (actual - expected).abs <= 0.01 }
+
+          raise "Page #{index + 1} is #{actual_size.join(' x ')} mm, expected 148 x 105 mm"
+        end
+      end
+    end
     user_assert 'FRONT CONTENT LINE 01 onward appears in the page 1 front content frame.'
-    user_assert 'The page 2 class-generated continuation frame measures 138 mm x 95 mm.'
-    user_assert 'The page 2 continuation frame fills the full printable height.'
     user_assert 'Page 2 has no title frame.'
     user_assert 'Page 2 starts with CONTINUATION LINE 10.'
-    user_assert 'The page 2 continuation frame is visibly taller than the front content frame.'
-    user_assert 'No frame crosses the 5 mm margins.'
 
     assert 'A6 page and area geometry from border colors' do
       resolution = 144.0
