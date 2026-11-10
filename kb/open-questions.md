@@ -2,14 +2,19 @@
 
 ← [Index](index.md)
 
-## TODO: Automatische PDF-Abnahme im Testframework
+## ~~Ghostscript aus dem Geometrie-Test entfernen~~ → HexaPDF-Vektorprüfung
 
-Aktuell werden alle pnpcards-Fixtures nur manuell abgenommen (PDF ansehen + `% Expected Output` vergleichen). Der Rake-Runner prüft nur ob die Kompilierung erfolgreich war.
+Der `A6 Geometry`-Test prüft die farbigen Debug-Rahmen jetzt ohne Rasterizer:
+`HexaPDF::Content::Parser` liest die PDF-Content-Streams, ein eigener
+`HexaPDF::Content::Processor` erfasst Pfade, Farbe, Transformation und
+Strichbreite. Die Testassertions vergleichen einzelne Ränder, Abstände und
+Abmessungen in Millimetern.
 
-Noch kein Ticket dafür. Optionen wären z. B.:
-- PDF-Rendering zu PNG + Pixel-Diff gegen Referenz-Screenshots
-- pdftoppm + ImageMagick-Compare
-- Externes Tool wie `latexpand` + struktureller Vergleich
+Der Prüfer unterstützt absichtlich die vom Fixture erzeugten achsenparallelen
+Linienstrokes mit Butt-Caps und nicht skalierten bzw. rotierten Transformationen.
+Nicht unterstützte Pfadformen oder fehlende Farbstrokes schlagen mit einer
+klaren Fehlermeldung fehl. PDF-Content-Streams enthalten weiterhin keine
+semantischen Objekte namens „Rahmen“.
 
 ## Offene technische Fragen
 
