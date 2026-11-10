@@ -32,6 +32,21 @@ with `bundle exec rake test`.
 Test definitions and LaTeX fixtures are kept together under `test/`, separated
 into unit and integration test directories.
 
+Visual expectations belong in the matching Ruby test definition as
+`user_assert` calls, one fact per call, rather than as `% Expected Output`
+comments in `.tex` fixtures. They are skipped by default and print the skipped
+assertion count in yellow before `MANUAL TESTS SKIPPED`; use
+`LatexTesting.run(user_interaction: true)` for a prompt with the persistent
+output PDF path. Accept `yes`/`y` or `no`/`n`, case-insensitively. A yes
+response prints `PASSED`; a no response fails. Even when skipped, a manual
+assertion fails if the generated PDF is missing. PDF assertion helpers read the
+persistent copied PDF, while log assertions continue to read the temporary
+build log.
+
+The root Rakefile enables those prompts for full, suite, and individual test
+tasks whenever `MANUAL_TESTS` is present in the environment. For example,
+`MANUAL_TESTS=1 rake test` runs the full suite interactively.
+
 For temporary Ruby test experiments, add a `playground` task in
 `rakelib/playground.rake`, run it through Rake, and delete the task when the
 experiment is complete.

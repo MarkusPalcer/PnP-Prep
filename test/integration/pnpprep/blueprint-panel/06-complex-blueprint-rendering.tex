@@ -2,32 +2,6 @@
 
 \begin{document}
 
-% Expected output:
-%
-% +--------------------------------+
-% | Goblin                         |
-% +--------------------------------+
-% | Name: Goblin                   |
-% | Courage: 8                     |
-% | Weapon: Club                   |
-% | Damage: 1W+2                   |
-% | Modifier: 0                    |
-% | Armor: Hide                    |
-% | Protection: 1                  |
-% +--------------------------------+
-%
-% Requirements:
-% - The panel title must be the parent name.
-% - Parent fields must be rendered correctly.
-% - Child fields must not overwrite parent fields.
-% - Optional fields must be handled correctly.
-% - \ifpresent must only show existing optional values.
-% - \ifmissing must show fallback values.
-% - Children must remain inside the parent panel.
-%
-% End expected output
-
-
 \begin{blueprint}{creature}
     \field{name}
     \field[optional]{courage}

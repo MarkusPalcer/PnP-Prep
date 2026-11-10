@@ -18,6 +18,9 @@ CLEAN.include('**/*.aux',
 
 PROJECT_ROOT = Pathname(__dir__).realpath.freeze
 OUT_DIR = PROJECT_ROOT.join('out').freeze
+TEST_OPTIONS = { out_folder: OUT_DIR }.tap do |options|
+  options[:user_interaction] = true if ENV.key?('MANUAL_TESTS')
+end.freeze
 
 directory OUT_DIR.join('doc')
 
@@ -43,7 +46,7 @@ task doc: CLASSES + PACKAGES
 
 desc 'Runs all tests'
 task :test do
-  LatexTesting.run(out_folder: OUT_DIR)
+  LatexTesting.run(TEST_OPTIONS)
 end
 
 task_name_for = lambda do |name, used_names|
@@ -69,7 +72,7 @@ namespace :test do
 
     desc "Runs the #{suite.name} test suite"
     task suite_task_name do
-      LatexTesting.run(suite: suite, out_folder: OUT_DIR)
+      LatexTesting.run(TEST_OPTIONS, suite: suite)
     end
 
     namespace suite_task_name do
@@ -79,7 +82,7 @@ namespace :test do
 
         desc "Runs the #{test_case.name} test"
         task test_task_name do
-          LatexTesting.run(test: test_case, out_folder: OUT_DIR)
+          LatexTesting.run(TEST_OPTIONS, test: test_case)
         end
       end
     end

@@ -22,6 +22,13 @@ LaTeX fixtures with `latexmk`, and writes generated PDFs and failure logs under
 RAKE_VERBOSE=1 rake test
 ```
 
+Set `MANUAL_TESTS` to enable interactive `user_assert` prompts. This applies
+to the full suite and the individual suite/test Rake tasks:
+
+```sh
+MANUAL_TESTS=1 rake test
+```
+
 The runner prints a result for each test. Review that output; the current Rake
 task does not aggregate individual failures into its process exit status.
 Successful PDFs are useful for visual review and are not compared automatically
@@ -55,15 +62,19 @@ a descriptive, unique filename and define its test in the directory's
 
 ## Fixture Expectations
 
-For fixtures whose output needs visual review, add an `% Expected Output`
-comment at the end of the `.tex` file. Describe the meaningful pages, text,
-layout, and blank areas so a reviewer can compare the generated PDF with the
-intended result.
+For fixtures whose output needs visual review, add `user_assert` calls to the
+matching test in `tests.rb`, with one expected fact per call. Describe
+meaningful pages, text, layout, and blank areas so a reviewer can compare the
+generated PDF with the intended result. Keep these expectations out of the
+`.tex` fixture.
 
 Compilation success alone does not establish that the rendered layout is
-correct. Review the generated PDF for visual behavior that the runner does not
-assert. Keep the fixture self-contained and use only the setup needed for the
-scenario.
+correct. By default, manual assertions are skipped and their count is printed
+in yellow before `MANUAL TESTS SKIPPED`. To review them while running, call
+`LatexTesting.run(user_interaction: true)`; the runner displays each fact and
+the persistent PDF path, then accepts `yes`/`y` or `no`/`n` (`PASSED` on yes).
+Even when skipped, a manual assertion fails if the generated PDF is missing.
+Keep the fixture self-contained and use only the setup needed for the scenario.
 
 ## Expected Compilation Failures
 

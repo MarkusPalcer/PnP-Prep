@@ -36,9 +36,17 @@ Set `RAKE_VERBOSE=1` to show compiler output:
 RAKE_VERBOSE=1 rake test
 ```
 
+Set `MANUAL_TESTS` to enable interactive `user_assert` prompts for `rake test`
+and its suite/test tasks:
+
+```sh
+MANUAL_TESTS=1 rake test
+```
+
 Each fixture is compiled in a temporary directory. Successful PDFs and failed
 build logs are copied under `out/test/`, preserving the test-definition
 directory structure. Temporary build files are removed afterward.
 
-The runner prints `PASS` or `FAIL` per test. The root Rake task does not collect
+The runner prints `PASS`, `PASSED`, `FAIL`, or the yellow
+`<count> MANUAL TESTS SKIPPED` per test. The root Rake task does not collect
 individual failures into an aggregate process exit status.

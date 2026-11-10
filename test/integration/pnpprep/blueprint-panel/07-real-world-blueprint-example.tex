@@ -1,33 +1,3 @@
-% Expected output:
-%
-% Two panels are rendered:
-%
-% +-----------------------------------------------+
-% | Soldat 1                                      |
-% +-----------------------------------------------+
-% | Schwert1 : AT: 12 PA: 8 TP: 1W+2 INI: 8       |
-% | Rüstung1 : RS: 4                              |
-% +-----------------------------------------------+
-%
-% +-----------------------------------------------+
-% | Soldat                                        |
-% +-----------------------------------------------+
-% | KK: 12                                        |
-% | Schwert : AT: 12 PA: 4 TP: 1W+1 INI: 15       |
-% +-----------------------------------------------+
-%
-%
-% Requirements:
-% - Each blueprint instance must create its own panel.
-% - The panel title must contain the blueprint instance name.
-% - Child instances must be rendered inside their parent panel.
-% - Child order must be preserved.
-% - Child values must not leak between parent instances.
-% - Fields with the same name in different blueprints must remain independent.
-% - Optional fields must only be rendered when present.
-% - Missing optional values must not cause a compilation error.
-%
-% End expected output
 
 \documentclass[12pt]{pnpprep}
 
