@@ -326,6 +326,19 @@ module LatexTesting
         temp_pdf
       end
 
+      # Opens the generated PDF and evaluates the block with its reader API.
+      # Assertion execution helpers remain available in the block.
+      #
+      # @yield checks the PDF using HexaPDF's document API
+      # @raise [RuntimeError] if the block is missing or the PDF cannot be read
+      def generated_pdf(&block)
+        raise "generated_pdf called without code block" unless block_given?
+
+        require "hexapdf"
+        document = HexaPDF::Document.open(pdf_path)
+        PDFExecution.new(self, document).instance_exec(&block)
+      end
+
       # Fails the current assertion with the given message.
       #
       # @param message [String] explanation included in the test failure
@@ -339,6 +352,24 @@ module LatexTesting
           file = Pathname.new(@file)
           File.join(@temp_dir, "#{file.basename.sub_ext(extension)}")
         end
+
+      class PDFExecution
+        def initialize(execution, document)
+          @execution = execution
+          @document = document
+        end
+
+        def method_missing(name, *arguments, **keywords, &block)
+          target = @execution.respond_to?(name) ? @execution : @document
+          target.public_send(name, *arguments, **keywords, &block)
+        end
+
+        def respond_to_missing?(name, include_private = false)
+          @execution.respond_to?(name, include_private) ||
+            @document.respond_to?(name, include_private) ||
+            super
+        end
+      end
     end
   end
 

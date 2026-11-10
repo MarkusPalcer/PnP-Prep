@@ -3,6 +3,12 @@ require "open3"
 testsuite "PnpCards" do
     test "Page Splitting" do
         file "01-page-splitting.tex"
+        assert "The PDF has 6 pages" do
+            generated_pdf do
+                number_of_pages = pages.count
+                fail "#{number_of_pages} found" unless number_of_pages == 6
+            end
+        end
     end
 
     test "A6 Geometry" do
