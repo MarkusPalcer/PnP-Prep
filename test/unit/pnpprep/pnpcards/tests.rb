@@ -8,7 +8,19 @@ testsuite 'PnpCards' do
         raise "#{number_of_pages} found" unless number_of_pages == 6
       end
     end
-    user_assert 'No debug frames appear on any page.'
+
+    assert 'No debug frames appear on any page.' do
+      generated_pdf do
+        pages.each_with_index do |page, index|
+          frame_count = page.frames.count
+
+          if frame_count.positive?
+            raise "Page #{index + 1} has #{frame_count} frames, expected #{expected_frame_counts[index]}"
+          end
+        end
+      end
+    end
+
     user_assert 'Page 1 has a front title area.'
     user_assert 'Page 1 shows SHORT CONTENT FITS ON FRONT in the front content area.'
     user_assert 'Page 2 is a blank back page.'
@@ -30,6 +42,7 @@ testsuite 'PnpCards' do
         raise "Expected 2 pages, found #{pages.count}" unless pages.count == 2
       end
     end
+
     assert 'All pages are A6 landscape format (148 mm x 105 mm).' do
       generated_pdf do
         expected_size = [148.0, 105.0]
@@ -43,142 +56,71 @@ testsuite 'PnpCards' do
         end
       end
     end
+
     user_assert 'FRONT CONTENT LINE 01 onward appears in the page 1 front content frame.'
     user_assert 'Page 2 has no title frame.'
     user_assert 'Page 2 starts with CONTINUATION LINE 10.'
 
-    frame_geometry = nil
-    collect_frame_geometry = lambda do |execution|
-      frame_geometry ||= execution.generated_pdf do
-        stroke_collector = Class.new(HexaPDF::Content::Processor) do
-          attr_reader :strokes
-
-          def initialize(resources)
-            super
-            @path = []
-            @strokes = []
-          end
-
-          def move_to(x, y)
-            @path = [graphics_state.ctm.evaluate(x, y)]
-          end
-
-          def line_to(x, y)
-            @path << graphics_state.ctm.evaluate(x, y)
-          end
-
-          def stroke_path
-            color = graphics_state.stroke_color
-            @strokes << {
-              color: color.components,
-              width: graphics_state.line_width,
-              cap: graphics_state.line_cap_style.value,
-              matrix: graphics_state.ctm.to_a,
-              points: @path.dup
-            }
-            @path.clear
-          end
-        end
-
-        collect_strokes = lambda do |page|
-          processor = stroke_collector.new(page.resources)
-          HexaPDF::Content::Parser.parse(page.contents, processor)
-          processor.strokes
-        end
-        measure_frame = lambda do |page, page_strokes, expected_color|
-          strokes = page_strokes.select do |stroke|
-            stroke[:color].length == expected_color.length &&
-              stroke[:color].zip(expected_color).all? { |actual, expected| (actual - expected).abs <= 0.001 }
-          end
-          raise "Expected four frame strokes in RGB #{expected_color.inspect}" unless strokes.length == 4
-          raise 'Frame strokes must use butt caps' unless strokes.all? { |stroke| stroke[:cap] == 0 }
-
-          widths = strokes.map { |stroke| stroke[:width] }
-          raise 'Frame strokes must have a consistent width' unless widths.max - widths.min <= 0.001
-
-          strokes.each do |stroke|
-            unless stroke[:matrix][0..3].zip([1, 0, 0, 1])
-              .all? { |actual, expected| (actual - expected).abs <= 0.001 }
-              raise 'Frame strokes must not be scaled or rotated'
-            end
-            raise 'Frame borders must be straight line segments' unless stroke[:points].length == 2
-          end
-
-          horizontal, vertical = strokes.partition do |stroke|
-            (stroke[:points][0][1] - stroke[:points][1][1]).abs <= 0.001
-          end
-          unless horizontal.length == 2 && vertical.length == 2 &&
-                 vertical.all? { |stroke| (stroke[:points][0][0] - stroke[:points][1][0]).abs <= 0.001 }
-            raise 'Expected two horizontal and two vertical frame strokes'
-          end
-
-          half_width = widths.first / 2
-          left = vertical.flat_map { |stroke| stroke[:points].map(&:first) }.min - half_width
-          right = vertical.flat_map { |stroke| stroke[:points].map(&:first) }.max + half_width
-          bottom = horizontal.flat_map { |stroke| stroke[:points].map(&:last) }.min - half_width
-          top = horizontal.flat_map { |stroke| stroke[:points].map(&:last) }.max + half_width
-          horizontal_x = horizontal.flat_map { |stroke| stroke[:points].map(&:first) }
-          vertical_y = vertical.flat_map { |stroke| stroke[:points].map(&:last) }
-          unless (horizontal_x.min - left).abs <= 0.001 &&
-                 (horizontal_x.max - right).abs <= 0.001 &&
-                 (vertical_y.min - bottom - half_width).abs <= 0.001 &&
-                 (vertical_y.max - top + half_width).abs <= 0.001
-            raise 'Frame stroke endpoints do not form a rectangle'
-          end
-
-          box_left, box_bottom, box_right, box_top = page.box(:media).value
-          mm_per_point = 25.4 / 72
-          {
-            left: (left - box_left) * mm_per_point,
-            right: (box_right - right) * mm_per_point,
-            top: (box_top - top) * mm_per_point,
-            bottom: (bottom - box_bottom) * mm_per_point,
-            bottom_from_top: (box_top - bottom) * mm_per_point,
-            width: (right - left) * mm_per_point,
-            height: (top - bottom) * mm_per_point
-          }
-        end
-
-        page_strokes = pages.map { |page| collect_strokes.call(page) }
-        {
-          header: measure_frame.call(pages[0], page_strokes[0], [0.75, 0, 0]),
-          front: measure_frame.call(pages[0], page_strokes[0], [0, 0, 0.75]),
-          continuation: measure_frame.call(pages[1], page_strokes[1], [0, 0.5, 0])
-        }
-      end
-    end
-    assert_mm = lambda do |description, expected_mm, &measurement|
+    assert_mm = lambda do |description, page_index, expected_mm, &measurement|
       assert description do
-        actual_mm = measurement.call(collect_frame_geometry.call(self))
-        unless (actual_mm - expected_mm).abs <= 0.01
-          fail "Expected #{expected_mm} mm, found #{actual_mm.round(3)} mm"
+        generated_pdf do
+          page = pages[page_index]
+          actual_mm = page.convert_unit(measurement.call(page), LatexTesting::TargetUnit::MILLIMETERS)
+          unless (actual_mm - expected_mm).abs <= 0.01
+            raise "Expected #{expected_mm} mm, found #{actual_mm.round(3)} mm"
+          end
         end
       end
     end
+    frame = lambda do |page, color|
+      page.frames.single { |candidate| candidate.color == color }
+    end
 
-    assert_mm.call('Header is 5 mm from the top of page 1.', 5.0) { |frames| frames[:header][:top] }
-    assert_mm.call('Header is 5 mm from the left of page 1.', 5.0) { |frames| frames[:header][:left] }
-    assert_mm.call('Header is 5 mm from the right of page 1.', 5.0) { |frames| frames[:header][:right] }
-    assert_mm.call('Header bottom is 20 mm from the top of page 1.', 20.0) do |frames|
-      frames[:header][:bottom_from_top]
+    assert_mm.call('Header is 5 mm from the top of page 1.', 0, 5.0) do |page|
+      page.boundary.top - frame.call(page, [0.75, 0, 0]).top
     end
-    assert_mm.call('Header is 138 mm wide.', 138.0) { |frames| frames[:header][:width] }
-    assert_mm.call('Header is 15 mm tall.', 15.0) { |frames| frames[:header][:height] }
-    assert_mm.call('Front content is 22 mm from the top of page 1.', 22.0) { |frames| frames[:front][:top] }
-    assert_mm.call('Front content is 5 mm from the left of page 1.', 5.0) { |frames| frames[:front][:left] }
-    assert_mm.call('Front content is 5 mm from the right of page 1.', 5.0) { |frames| frames[:front][:right] }
-    assert_mm.call('Front content is 5 mm from the bottom of page 1.', 5.0) { |frames| frames[:front][:bottom] }
-    assert_mm.call('Front content is 138 mm wide.', 138.0) { |frames| frames[:front][:width] }
-    assert_mm.call('Front content is 78 mm tall.', 78.0) { |frames| frames[:front][:height] }
-    assert_mm.call('There is a 2 mm gap between the header and front content.', 2.0) do |frames|
-      frames[:front][:top] - frames[:header][:top] - frames[:header][:height]
+    assert_mm.call('Header is 5 mm from the left of page 1.', 0, 5.0) do |page|
+      frame.call(page, [0.75, 0, 0]).left - page.boundary.left
     end
-    assert_mm.call('Continuation is 5 mm from the top of page 2.', 5.0) { |frames| frames[:continuation][:top] }
-    assert_mm.call('Continuation is 5 mm from the left of page 2.', 5.0) { |frames| frames[:continuation][:left] }
-    assert_mm.call('Continuation is 5 mm from the right of page 2.', 5.0) { |frames| frames[:continuation][:right] }
-    assert_mm.call('Continuation is 5 mm from the bottom of page 2.', 5.0) { |frames| frames[:continuation][:bottom] }
-    assert_mm.call('Continuation is 138 mm wide.', 138.0) { |frames| frames[:continuation][:width] }
-    assert_mm.call('Continuation is 95 mm tall.', 95.0) { |frames| frames[:continuation][:height] }
+    assert_mm.call('Header is 5 mm from the right of page 1.', 0, 5.0) do |page|
+      page.boundary.right - frame.call(page, [0.75, 0, 0]).right
+    end
+
+    assert_mm.call('Header is 15 mm tall.', 0, 15.0) { |page| frame.call(page, [0.75, 0, 0]).height }
+
+    assert_mm.call('There is a 2 mm gap between the header and front content.', 0, 2.0) do |page|
+      header = frame.call(page, [0.75, 0, 0])
+      front = frame.call(page, [0, 0, 0.75])
+      header.bottom - front.top
+    end
+
+    assert_mm.call('Front content is 5 mm from the left of page 1.', 0, 5.0) do |page|
+      frame.call(page, [0, 0, 0.75]).left - page.boundary.left
+    end
+
+    assert_mm.call('Front content is 5 mm from the right of page 1.', 0, 5.0) do |page|
+      page.boundary.right - frame.call(page, [0, 0, 0.75]).right
+    end
+
+    assert_mm.call('Front content is 5 mm from the bottom of page 1.', 0, 5.0) do |page|
+      frame.call(page, [0, 0, 0.75]).bottom - page.boundary.bottom
+    end
+
+    assert_mm.call('Continuation is 5 mm from the top of page 2.', 1, 5.0) do |page|
+      page.boundary.top - frame.call(page, [0, 0.5, 0]).top
+    end
+
+    assert_mm.call('Continuation is 5 mm from the left of page 2.', 1, 5.0) do |page|
+      frame.call(page, [0, 0.5, 0]).left - page.boundary.left
+    end
+
+    assert_mm.call('Continuation is 5 mm from the right of page 2.', 1, 5.0) do |page|
+      page.boundary.right - frame.call(page, [0, 0.5, 0]).right
+    end
+
+    assert_mm.call('Continuation is 5 mm from the bottom of page 2.', 1, 5.0) do |page|
+      frame.call(page, [0, 0.5, 0]).bottom - page.boundary.bottom
+    end
   end
 
   test 'Card Environment' do
