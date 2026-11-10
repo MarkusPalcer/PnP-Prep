@@ -2,7 +2,7 @@
 
 This guide describes how to design, organize, and review tests for this
 repository. For the Ruby test runner's API and test-definition syntax, see the
-[LatexTesting framework guide](../gems/latextesting/doc/testing-framework.md).
+[LatexTesting documentation](../gems/latextesting/doc/README.md).
 For its integration with the main repository, see
 [LatexTesting in PnP-Prep](latextesting-integration.md).
 
@@ -67,7 +67,7 @@ scenario.
 
 ## Expected Compilation Failures
 
-Use `expect_failure` when a fixture is supposed to fail compilation. Also
+Use `expect_compilation_failure` when a fixture is supposed to fail compilation. Also
 assert the expected diagnostic with `requires_log` or a custom `assert` block;
 otherwise, an unrelated compilation failure could satisfy the expectation.
 

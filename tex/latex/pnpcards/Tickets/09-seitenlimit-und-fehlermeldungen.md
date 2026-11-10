@@ -19,7 +19,7 @@ Benötigt eine Karte mehr als 2 Seiten — durch natürlichen Überlauf oder dur
 2. **Negativ A**: Natürlicher Überlauf über 2 Seiten hinaus. Erwarteter Fehler im Compile-Log.
 3. **Negativ B**: Zwei `\newpage` in einer Karte. Erwarteter Fehler im Compile-Log.
 
-Negative Fixtures werden per `expect_failure` + `requires_log` in `tests.rb` deklariert.
+Negative Fixtures werden per `expect_compilation_failure` + `requires_log` in `tests.rb` deklariert.
 
 ## Nicht Bestandteil
 

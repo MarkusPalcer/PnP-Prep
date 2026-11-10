@@ -2,6 +2,7 @@ PATH
   remote: gems/latextesting
   specs:
     latextesting (0.1.0)
+      hexapdf
 
 GEM
   remote: https://rubygems.org/

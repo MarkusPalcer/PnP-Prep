@@ -17,6 +17,7 @@ PnP-Prep/
 │       ├── pnpcards.cls
 │       ├── Planung.md
 │       └── Tickets/      # Tickets 05–11
+├── gems/latextesting/    # lokales Ruby-Testframework
 ├── test/
 │   ├── unit/pnpprep/pnpcards/   # Unit-Tests für pnpcards
 │   └── integration/pnpprep/     # Integrationstests für pnpprep
@@ -36,13 +37,16 @@ PnP-Prep/
 
 ## Devcontainer
 
-- `.devcontainer/Dockerfile` installs the Ruby dependencies from the repository
-  `Gemfile` with `bundle install`.
+- `.devcontainer/Dockerfile` builds on TeX Live and installs Ruby, Bundler,
+  and native build tools.
+- Check out the LatexTesting repository under `gems/latextesting/` before
+  starting the container; the root `Gemfile` discovers Gemfiles in `gems/*/`.
+- In VS Code, use **Dev Containers: Reopen in Container**. The configured
+  `postCreateCommand` runs `sudo bundle install` from the root Gemfile.
 - The `Gemfile` includes `ruby-lsp` as a development dependency so the VS Code
   Ruby LSP extension can start its server from the project bundle.
-- The Docker image transfers ownership of RubyGems' global home to `texlive`
-  after installing the bundle, allowing that user to install gems and write to
-  the global gem cache.
+- The Dockerfile gives the `texlive` user write access to RubyGems' global
+  home, allowing it to install gems and write to the global gem cache.
 - Konfiguration in `.devcontainer/`
 - KiroCrew wird beim Start automatisch via `start-kirocrew` gestartet
 - Die Host-Konfiguration von GitHub Copilot CLI (`~/.copilot`) wird nach `/home/texlive/.copilot` eingebunden, damit Copilot im Devcontainer die Host-Einstellungen laden und Änderungen persistent speichern kann.

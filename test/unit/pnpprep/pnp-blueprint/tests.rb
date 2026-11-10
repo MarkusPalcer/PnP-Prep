@@ -33,14 +33,14 @@ testsuite "Class pnpprep Unit-Tests" do
 
     test "Child Environment Name Conflicts With A Field" do 
         file "09-field-child-field-conflict-failure.tex"
-        expect_failure
+        expect_compilation_failure
         requires_log "Package pnp-blueprint Error: Child environment 'ruestung' conflicts with an"
         requires_log "existing field name."
     end
 
     test "Child Environment Name Conflicts With A Command" do 
         file "10-child-command-conflict-failure.tex"
-        expect_failure
+        expect_compilation_failure
         requires_log "Package pnp-blueprint Error: Child environment 'textbf' conflicts with an"
         requires_log "existing command."
     end

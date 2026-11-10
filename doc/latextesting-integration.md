@@ -2,7 +2,7 @@
 
 This page describes how the main PnP-Prep repository integrates the
 [`latextesting` gem](../gems/latextesting). For the gem's DSL and assertions,
-see its [framework guide](../gems/latextesting/doc/testing-framework.md).
+see its [documentation contents](../gems/latextesting/doc/README.md).
 For fixture design and visual review, see [Testing](Testing.md).
 
 ## Local Gem Prerequisite
