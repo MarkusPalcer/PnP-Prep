@@ -1,7 +1,7 @@
 # LaTeX Test Framework
 
-This guide documents the Ruby test framework implemented in
-[`rakelib/test.rake`](../rakelib/test.rake). It covers how to define test suites,
+This guide documents the Ruby test framework implemented in the local
+[`latextesting` gem](../gems/latextesting). It covers how to define test suites,
 compile LaTeX fixtures, and assert on build logs. For repository test design
 and visual-review practices, see [Testing](Testing.md).
 

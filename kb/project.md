@@ -29,7 +29,8 @@ PnP-Prep/
 ## Build-System
 
 - **Rake**: `rake test` führt alle Tests aus, `rake doc` baut die Doku
-- `rakelib/test.rake`: scannt `test/` nach `*tests.rb`-Dateien, kompiliert `.tex`-Fixtures
+- `gems/latextesting`: Framework für die Testdefinitionen und LaTeX-Fixtures
+- `rakelib/test.rake`: bindet das Test-Framework für Rake ein
 - Testausgaben landen in `out/test/`
 - Compiler: `pdflatex -interaction=nonstopmode -halt-on-error`
 

@@ -8,11 +8,18 @@ framework from repository-specific practices:
 - [Repository Testing Practices](../doc/Testing.md) covers fixture design,
   expected output, negative tests, and visual review.
 
+The runner is provided by the local `gems/latextesting` gem and loaded for
+Rake through `rakelib/test.rake`; the root `Rakefile` task interface remains
+`LatexTesting.scan` and `LatexTesting.run`.
+
 Run the registered tests from the repository root with:
 
 ```sh
 rake test
 ```
+
+The VS Code **Debug Tests** configuration runs the same task through Bundler
+with `bundle exec rake test`.
 
 Test definitions and LaTeX fixtures are kept together under `test/`, separated
 into unit and integration test directories.

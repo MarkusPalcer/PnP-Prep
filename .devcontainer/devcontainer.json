@@ -67,5 +67,6 @@
   "forwardPorts": [5476, 48101],
   "containerEnv": {
     "TEXMFHOME": "${containerWorkspaceFolder}"
-  }
+  },
+  "postCreateCommand": "sudo bundle install"
 }

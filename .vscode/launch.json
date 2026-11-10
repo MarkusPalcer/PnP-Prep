@@ -8,9 +8,9 @@
             "type": "rdbg",
             "request": "launch",
             "name": "Debug Tests",
-            "command": "rake",
-            "script": "test",
-            "args": [],
+            "command": "bundle",
+            "script": "exec",
+            "args": ["rake", "test"],
             "cwd": "${workspaceFolder}",
             "askParameters": false
         }

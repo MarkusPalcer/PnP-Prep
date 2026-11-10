@@ -8,6 +8,5 @@ RUN apt-install ruby-dev rake bundler build-essential libssl-dev
 WORKDIR /workspace
 RUN chown -R texlive:texlive "$(ruby -e 'print Gem.dir')"
 COPY Gemfile Gemfile.lock ./
-RUN bundle install
 
 USER texlive
