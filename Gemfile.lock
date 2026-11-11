@@ -4,6 +4,7 @@ PATH
     latextesting (0.1.0)
       hexapdf
       rexml
+      rspec (~> 3.0)
 
 GEM
   remote: https://rubygems.org/
