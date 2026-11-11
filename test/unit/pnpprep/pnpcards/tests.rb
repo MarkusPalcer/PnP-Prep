@@ -2,20 +2,16 @@
     file '01-page-splitting.tex'
     manual_test 'Pages use A6 landscape format.'
     test 'The PDF has 6 pages' do
-      generated_pdf do
-        number_of_pages = pages.count
-        raise "#{number_of_pages} found" unless number_of_pages == 6
-      end
+      number_of_pages = generated_pdf.pages.count
+      raise "#{number_of_pages} found" unless number_of_pages == 6
     end
 
     test 'No debug frames appear on any page.' do
-      generated_pdf do
-        pages.each_with_index do |page, index|
-          frame_count = page.frames.count
+      generated_pdf.pages.each_with_index do |page, index|
+        frame_count = page.frames.count
 
-          if frame_count.positive?
-            raise "Page #{index + 1} has #{frame_count} frames, expected #{expected_frame_counts[index]}"
-          end
+        if frame_count.positive?
+          raise "Page #{index + 1} has #{frame_count} frames, expected #{expected_frame_counts[index]}"
         end
       end
     end
@@ -37,22 +33,18 @@
   fixture 'A6 Geometry' do
     file '02-a6-geometry.tex'
     test 'The PDF has two pages.' do
-      generated_pdf do
-        raise "Expected 2 pages, found #{pages.count}" unless pages.count == 2
-      end
+      raise "Expected 2 pages, found #{generated_pdf.pages.count}" unless generated_pdf.pages.count == 2
     end
 
     test 'All pages are A6 landscape format (148 mm x 105 mm).' do
-      generated_pdf do
-        expected_size = [148.0, 105.0]
-        pages.each_with_index do |page, index|
-          actual_size = page.box(:media).then do |box|
-            [box.width, box.height].map { |points| points * 25.4 / 72 }
-          end
-          next if actual_size.zip(expected_size).all? { |actual, expected| (actual - expected).abs <= 0.01 }
-
-          raise "Page #{index + 1} is #{actual_size.join(' x ')} mm, expected 148 x 105 mm"
+      expected_size = [148.0, 105.0]
+      generated_pdf.pages.each_with_index do |page, index|
+        actual_size = page.box(:media).then do |box|
+          [box.width, box.height].map { |points| points * 25.4 / 72 }
         end
+        next if actual_size.zip(expected_size).all? { |actual, expected| (actual - expected).abs <= 0.01 }
+
+        raise "Page #{index + 1} is #{actual_size.join(' x ')} mm, expected 148 x 105 mm"
       end
     end
 
@@ -62,12 +54,10 @@
 
     assert_mm = lambda do |description, page_index, expected_mm, &measurement|
       test description do
-        generated_pdf do
-          page = pages[page_index]
-          actual_mm = page.convert_unit(measurement.call(page), LatexTesting::TargetUnit::MILLIMETERS)
-          unless (actual_mm - expected_mm).abs <= 0.01
-            raise "Expected #{expected_mm} mm, found #{actual_mm.round(3)} mm"
-          end
+        page = generated_pdf.pages[page_index]
+        actual_mm = page.convert_unit(measurement.call(page), LatexTesting::TargetUnit::MILLIMETERS)
+        unless (actual_mm - expected_mm).abs <= 0.01
+          raise "Expected #{expected_mm} mm, found #{actual_mm.round(3)} mm"
         end
       end
     end
