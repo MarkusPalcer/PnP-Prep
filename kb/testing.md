@@ -58,6 +58,11 @@ read the temporary build log. Each root test task overwrites
 only selected tests. Skipped manual tests count as passed in the report.
 Root test tasks exit with status 1 if any selected test fails.
 
+Successful PDFs are stored beside the fixture-specific output directory and
+named after the fixture, for example
+`out/test/unit/pnpprep/pnpcards/tests/A6 Geometry.pdf`. Failure logs are stored
+beside the PDF with the same fixture name and a `.log` extension.
+
 For temporary Ruby test experiments, add a `playground` task in
 `rakelib/playground.rake`, run it through Rake, and delete the task when the
 experiment is complete.

@@ -49,10 +49,11 @@ while fixture and individual-test tasks report only tests selected by that
 task. Skipped manual tests count as passed in the report.
 
 Each fixture is compiled in a temporary directory. Its successful PDF and
-failed build log are copied under `out/test/`, preserving the definition-file
-structure. Temporary build files are removed afterward. A fixture-level build
-failure or unexpected result fails its selected tests; an individual test
-failure does not stop later tests in that fixture.
+failed build log are copied under `out/test/`, named after the fixture with
+`.pdf` and `.log` extensions and preserving the definition-file structure.
+Temporary build files are removed afterward. A fixture-level build failure or
+unexpected result fails its selected tests; an individual test failure does
+not stop later tests in that fixture.
 
 The runner prints `PASS`, `PASSED`, `FAIL`, or `MANUAL TEST SKIPPED` per test.
 All root `rake test` tasks exit with status 1 if any selected test fails.

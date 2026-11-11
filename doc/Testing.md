@@ -104,10 +104,12 @@ associate them with the correct build.
 
 ## Output and Troubleshooting
 
-- Successful compilations produce one PDF per fixture under `out/test/`.
-- Failed compilations save a `.log` file in the corresponding fixture output
-  directory. Build failures mark the fixture's selected tests failed;
-  individual test failures are reported separately.
+- Successful compilations produce one PDF per fixture under `out/test/`, named
+  after the fixture (for example, `A6 Geometry.pdf` beside the `A6 Geometry/`
+  fixture output directory).
+- Failed compilations save a `.log` file beside the PDF, named after the
+  fixture (for example, `A6 Geometry.log`). Build failures mark the fixture's
+  selected tests failed; individual test failures are reported separately.
 - Use `RAKE_VERBOSE=1 rake test` to see `latexmk` output while diagnosing a
   build.
 - Check that the selected fixture path is relative to its `tests.rb` file.
