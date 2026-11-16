@@ -108,3 +108,17 @@
         \\
     \end{render}
 \end{blueprint}
+
+
+\usepackage{xcolor}
+\usepackage{xstring}
+
+\newcommand{\Mod}[1]{%
+  \IfBeginWith{#1}{+}
+    {\textcolor{green!60!black}{#1}}
+    {%
+      \IfBeginWith{#1}{-}
+        {\textcolor{red}{#1}}
+        {#1}%
+    }%
+}
