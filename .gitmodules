@@ -1,0 +1,3 @@
+[submodule "gems/latextesting"]
+	path = gems/latextesting
+	url = https://github.com/MarkusPalcer/latextesting.git

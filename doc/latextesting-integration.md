@@ -7,10 +7,11 @@ design and visual review, see [Testing](Testing.md).
 
 ## Local Gem Prerequisite
 
-The LatexTesting repository must be present at `gems/latextesting/` in the
-PnP-Prep checkout. The root `Gemfile` evaluates every `gems/*/Gemfile`, which
-includes the gem and its development dependencies. After checking out the gem,
-run `bundle install` from the PnP-Prep root.
+LatexTesting is a Git submodule at `gems/latextesting/`. Clone PnP-Prep with
+`--recurse-submodules`, or run `git submodule update --init --recursive` in an
+existing checkout before installing dependencies. The root `Gemfile` evaluates
+every `gems/*/Gemfile`, which includes the gem and its development dependencies.
+Run `bundle install` from the PnP-Prep root.
 
 The root `Rakefile` requires the gem directly. It uses `LatexTesting.scan` to
 create `rake test:<fixture>` and `rake test:<fixture>:<test>` tasks, while

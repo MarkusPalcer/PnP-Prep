@@ -17,7 +17,7 @@ PnP-Prep/
 │       ├── pnpcards.cls
 │       ├── Planung.md
 │       └── Tickets/      # Tickets 05–11
-├── gems/latextesting/    # lokales Ruby-Testframework
+├── gems/latextesting/    # Git-Submodul mit Ruby-Testframework
 ├── test/
 │   ├── unit/pnpprep/pnpcards/   # Unit-Tests für pnpcards
 │   └── integration/pnpprep/     # Integrationstests für pnpprep
@@ -44,9 +44,10 @@ PnP-Prep/
 ## Devcontainer
 
 - `.devcontainer/Dockerfile` builds on TeX Live and installs Ruby, Bundler,
-  and native build tools.
-- Check out the LatexTesting repository under `gems/latextesting/` before
-  starting the container; the root `Gemfile` discovers Gemfiles in `gems/*/`.
+  GitHub CLI (`gh`), and native build tools.
+- Initialize the LatexTesting submodule before starting the container with
+  `git submodule update --init --recursive`; the root `Gemfile` discovers
+  Gemfiles in `gems/*/`.
 - In VS Code, use **Dev Containers: Reopen in Container**. The configured
   `postCreateCommand` runs `sudo bundle install` from the root Gemfile.
 - The `Gemfile` includes `ruby-lsp` as a development dependency so the VS Code
