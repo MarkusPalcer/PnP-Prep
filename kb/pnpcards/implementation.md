@@ -8,8 +8,8 @@
 
 | Befehl / Umgebung | Beschreibung |
 |---|---|
-| `\begin{card}{Titel}[Referenz] ... \end{card}` | Noch nicht implementiert (Tickets 05+) |
-| `\RunCard{Titel}{Inhalt}` | Intern – setzt eine Karte mit Titel und Inhalt |
+| `\begin{card}{Titel} ... \end{card}` | Öffentlich – sammelt den Inhalt und rendert eine Karte |
+| `\Card{Titel}{Inhalt}` | Öffentliche Kurzform, die an die `card`-Umgebung delegiert |
 | `\EnableCardDebugFrames` | Zeigt farbige Rahmen um alle Bereiche: Titel rot, Vorderseiteninhalt blau, Rückseiteninhalt grün |
 
 ### Interne Helfer
@@ -29,7 +29,7 @@
 | `\pnpcards@frontcontent` | Per `\vsplit` abgespaltener Vorderseiten-Teil |
 | `\pnpcards@backcontent` | Per `\vsplit` abgespaltener Rückseiten-Teil |
 
-### Kernmechanismus (RunCard)
+### Kernmechanismus (`card`-Umgebung)
 
 1. Inhalt wird in `\pnpcards@cardcontent` als `\vbox` gesammelt
 2. `\vsplit` teilt bei `\pnpcards@frontbodyheight` → `\pnpcards@frontcontent`
@@ -40,7 +40,6 @@
 
 ### Bekannte Einschränkungen
 
-- Kein öffentliches `card`-Environment für Tickets 05–07 (noch nicht implementiert)
 - Referenz wird noch nicht gedruckt (Ticket 06)
 
 ### Ticket-Status

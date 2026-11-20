@@ -1,0 +1,52 @@
+\documentclass{pnpcards}
+
+\newcommand{\EquivalenceLine}[1]{%
+    \texttt{EQUIVALENCE LINE #1}\par\vspace{5mm}%
+}
+
+\newcommand{\NaturalOverflowContent}{%
+    \EquivalenceLine{01}
+    \EquivalenceLine{02}
+    \EquivalenceLine{03}
+    \EquivalenceLine{04}
+    \EquivalenceLine{05}
+    \EquivalenceLine{06}
+    \EquivalenceLine{07}
+    \EquivalenceLine{08}
+    \EquivalenceLine{09}
+    \EquivalenceLine{10}
+    \EquivalenceLine{11}
+    \EquivalenceLine{12}
+}
+
+\newcommand{\ExplicitBreakContent}{%
+    \EquivalenceLine{01}
+    \EquivalenceLine{02}
+    \newpage
+    \EquivalenceLine{03}
+    \EquivalenceLine{04}
+}
+
+\begin{document}
+
+\Card{Explicit break}{\ExplicitBreakContent}
+\Card{Natural overflow}{\NaturalOverflowContent}
+\begin{card}{Explicit break}
+    \ExplicitBreakContent
+\end{card}
+\begin{card}{Natural overflow}
+    \NaturalOverflowContent
+\end{card}
+
+\EnableCardDebugFrames
+
+\Card{Explicit break}{\ExplicitBreakContent}
+\Card{Natural overflow}{\NaturalOverflowContent}
+\begin{card}{Explicit break}
+    \ExplicitBreakContent
+\end{card}
+\begin{card}{Natural overflow}
+    \NaturalOverflowContent
+\end{card}
+
+\end{document}

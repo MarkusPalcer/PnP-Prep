@@ -34,10 +34,16 @@ Seite 4
 - Mehr als 2 Seiten in `card` → Kompilierungsfehler
 - Mehr als 4 Seiten in `doublecard` → Kompilierungsfehler
 
-## Aktuell implementiert (Übergangslösung)
+## Aktuell implementiert
 
 ```latex
-\RunCard{Titel}{Inhalt}
+% Kurzform für eine einzeilige Karte
+\Card{Titel}{Inhalt}
+
+% Umgebung für mehrzeilige Karten
+\begin{card}{Titel}
+Karteninhalt
+\end{card}
 ```
 
-`\RunCard` ist intern; das öffentliche `card`-Environment wird in Ticket 05 gebaut.
+`\Card{Titel}{Inhalt}` ist die Kurzform der `card`-Umgebung. Beide Schreibweisen unterstützen natürliche und explizite Seitenumbrüche.

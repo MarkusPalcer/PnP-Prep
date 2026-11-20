@@ -1,29 +1,46 @@
 \documentclass{pnpcards}
 
-\EnableCardDebugFrames
-
 \typeout{pnpcards geometry: paper=\the\paperwidth\space x \the\paperheight}
 
 \newcommand{\GeometryLine}[1]{%
-    \rule{0pt}{8mm}\texttt{#1}\par
+    \texttt{#1}\par\vspace{5mm}%
+}
+
+\newcommand{\NormalLayoutCard}{%
+    \begin{card}{Normal layout geometry}
+NORMALFRONTMARKER
+    \newpage
+NORMALBACKMARKER
+    \end{card}%
+}
+
+\newcommand{\GeometryCard}{%
+    \begin{card}{A6 geometry}
+        \GeometryLine{FRONT CONTENT LINE 01}
+        \GeometryLine{FRONT CONTENT LINE 02}
+        \GeometryLine{FRONT CONTENT LINE 03}
+        \GeometryLine{FRONT CONTENT LINE 04}
+        \GeometryLine{FRONT CONTENT LINE 05}
+        \GeometryLine{FRONT CONTENT LINE 06}
+        \GeometryLine{FRONT CONTENT LINE 07}
+        \GeometryLine{FRONT CONTENT LINE 08}
+        \GeometryLine{FRONT CONTENT LINE 09}
+        \GeometryLine{CONTINUATION LINE 10}
+        \GeometryLine{CONTINUATION LINE 11}
+        \GeometryLine{CONTINUATION LINE 12}
+    \end{card}%
 }
 
 \begin{document}
 
-\RunCard{A6 geometry}{%
-    \GeometryLine{FRONT CONTENT LINE 01}
-    \GeometryLine{FRONT CONTENT LINE 02}
-    \GeometryLine{FRONT CONTENT LINE 03}
-    \GeometryLine{FRONT CONTENT LINE 04}
-    \GeometryLine{FRONT CONTENT LINE 05}
-    \GeometryLine{FRONT CONTENT LINE 06}
-    \GeometryLine{FRONT CONTENT LINE 07}
-    \GeometryLine{FRONT CONTENT LINE 08}
-    \GeometryLine{FRONT CONTENT LINE 09}
-    \GeometryLine{CONTINUATION LINE 10}
-    \GeometryLine{CONTINUATION LINE 11}
-    \GeometryLine{CONTINUATION LINE 12}
-}
+\NormalLayoutCard
+\GeometryCard
+
+\EnableCardDebugFrames
+
+\GeometryCard
+
+\NormalLayoutCard
 
 \end{document}
 

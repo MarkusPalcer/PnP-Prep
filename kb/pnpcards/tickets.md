@@ -9,13 +9,14 @@ Alle Tickets liegen in `tex/latex/pnpcards/Tickets/`.
 | Nr | Datei | Ziel | Abhängigkeit |
 |---|---|---|---|
 | 05 | `05-karteninhalt-sammeln.md` | `card`-Environment, Inhalt sammeln, Vorderseite rendern | — |
-| 06 | `06-titel-referenz-und-leere-rueckseite.md` | Titelbereich, Referenz, leere Rückseite | 05 |
+| 06 | `06-titel-referenz-und-leere-rueckseite.md` | Titelbereich, leere Rückseite | 05 |
 | 07 | `07-natuerlicher-ueberlauf.md` | Automatischer Überlauf Vorderseite → Rückseite | 06 |
 | 08 | `08-expliziter-seitenwechsel.md` | `\newpage` innerhalb einer Karte | 07 |
 | 09 | `09-seitenlimit-und-fehlermeldungen.md` | Fehler bei >2 Seiten | 08 |
 | 10 | `10-integration-und-erweiterungspunkt.md` | Integrationstest, Erweiterbarkeit für A5-Option sicherstellen | 09 |
 | 11 | `11-titeltext-maximal-einpassen.md` | Titel-Schriftgröße automatisch anpassen | 06 |
 | 12 | `12-druckreihenfolge.md` | Shell/PS-Skript für 4×A6-Duplex-Druck | 10 |
+| 13 | `13-referenzbereich.md` | Referenz im eigenen Layoutbereich | 06, 11 |
 
 **Hinweis:** Die Tickets wurden am 2026-10-21 neu geschrieben. Sie enthalten nur beobachtbares Verhalten — keine Implementierungsvorschläge.
 
@@ -27,10 +28,11 @@ Alle Tickets liegen in `tex/latex/pnpcards/Tickets/`.
 - Fixture mit beiden Syntaxformen
 - Referenz wird erfasst aber noch nicht gedruckt
 
-### Ticket 06 – Titel, Referenz, leere Rückseite
-- Titel in Titelbereich, Referenz oben rechts
+### Ticket 06 – Titel, leere Rückseite
+- Titel in Titelbereich
 - Karte ohne Überlauf → 2 PDF-Seiten (Vorderseite + leere Rückseite)
 - Fixture mit 2 aufeinanderfolgenden Karten
+- Die frühere Referenzvorgabe wird durch Ticket 13 ersetzt.
 
 ### Ticket 07 – Natürlicher Überlauf
 - `\vsplit` bei `\pnpcards@frontbodyheight`
@@ -59,3 +61,9 @@ Alle Tickets liegen in `tex/latex/pnpcards/Tickets/`.
 - Mehrzeilige Titel: Gesamthöhe muss in 15 mm passen
 - Referenz und Titel dürfen sich nicht überschneiden
 - Passt gar nicht → `\PackageError`
+
+### Ticket 13 – Referenzbereich
+- Referenz auf der eigenen Vorderseite in einem eigenen Layoutbereich, nicht im Karteninhalt
+- Ohne Referenz keine Ausgabe; benachbarte Karten beeinflussen sich nicht
+- Layoutgeometrie und automatisierte Tests mit und ohne Referenz ergänzen
+- Zusammenspiel mit der Titelanpassung aus Ticket 11 berücksichtigen
