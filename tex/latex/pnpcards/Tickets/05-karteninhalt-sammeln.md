@@ -6,7 +6,7 @@ Das öffentliche `card`-Environment nimmt Titel, optionale Referenz und beliebig
 
 ## Beobachtbares Verhalten
 
-- `\begin{card}{Titel}[Ref] … \end{card}` kompiliert.
+- `\begin{card}[Ref]{Titel} … \end{card}` kompiliert.
 - `\begin{card}{Titel} … \end{card}` (ohne Referenz) kompiliert.
 - Titel erscheint im Titelbereich der Vorderseite.
 - Karteninhalt erscheint unterhalb des Titelbereichs auf der Vorderseite.
@@ -22,11 +22,11 @@ Ein `.tex`-Fixture unter `test/unit/pnpprep/pnpcards/` mit beiden Syntaxvariante
 
 - Leere Rückseite oder Rückseiteninhalt.
 - Automatischer Überlauf.
-- Sichtbare Ausgabe der Referenz (kommt in Ticket 06).
+- Sichtbare Ausgabe der Referenz (in diesem historischen Sammelschritt noch nicht enthalten).
 
 ## Dokumentation: Einschränkungen im Sammelmodus
 
-Der `environ`-Body wird als Token-Liste gesammelt und dann in eine `\vbox` gesetzt.
+Der Body wird als Token-Liste gesammelt und dann in eine `\vbox` gesetzt.
 Daraus ergeben sich folgende Einschränkungen:
 
 | Konstrukt | Status | Hinweis |

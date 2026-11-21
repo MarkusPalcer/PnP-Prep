@@ -2,52 +2,26 @@
 
 ## Ziel
 
-Der Kartentitel wird immer vollständig im 15 mm hohen Titelbereich angezeigt. Bei kurzen Titeln gilt eine feste Obergrenze der Schriftgröße; bei längeren Titeln wird die Schrift so weit verkleinert wie nötig.
+**Offen:** Die automatische Titelanpassung ist noch nicht implementiert. Der einzeilige Kartentitel wird vollständig im 15 mm hohen Titelbereich angezeigt. Bei längeren Titeln wird die Schrift proportional so weit verkleinert wie nötig, bis zur Mindestgröße 7 pt; für kurze Titel gilt 10 pt als Obergrenze.
+
+Ohne Referenz stehen 138 mm Titelbreite zur Verfügung. Mit Referenz werden feste 15 mm für deren Bereich und 2 mm Abstand abgezogen, sodass 121 mm bleiben; die Breite hängt nicht vom gemessenen Referenztext ab. Die derzeitige Fehlermeldung bei überbreiten oder überhohen Titeln wird durch das Einpassen ersetzt; erst wenn das Einpassen bis zur Mindestgröße nicht ausreicht, wird ein Fehler gemeldet.
 
 ## Beobachtbares Verhalten
 
-- Kurzer Titel → erscheint in der festgelegten Standardschriftgröße (Obergrenze).
+- Kurzer Titel → erscheint in der Standardschriftgröße 10 pt (Obergrenze).
 - Langer Titel → erscheint kleiner, aber vollständig innerhalb des Titelbereichs.
 - Titel und Referenztext überschneiden sich nicht.
 - Die Schriftproportionen bleiben unverändert (kein Strecken oder Stauchen).
 - Kein Titeltext ragt aus dem Titelbereich heraus oder wird abgeschnitten.
-- Ist ein Titel auch bei kleinster sinnvoller Schriftgröße zu lang → Kompilierungsfehler mit klarer Meldung.
+- Ist ein Titel auch bei 7 pt zu breit oder zu hoch → Kompilierungsfehler mit klarer Meldung.
 - Die Fixtures kompilieren mit `latexmk -pdf -interaction=nonstopmode -halt-on-error`.
 
 ## Fixtures
 
-Fixtures unter `test/unit/pnpprep/pnpcards/`, jeweils mit `% Expected Output`:
-- Kurzer Titel (ohne Referenz) → Standardgröße sichtbar.
-- Kurzer Titel mit Referenz → keine Überschneidung.
-- Langer Titel (ohne Referenz) → sichtbar kleiner.
-- Langer Titel mit Referenz → passt, keine Überschneidung.
-- Titel, der nicht passt → Negativ-Fixture, erwarteter Kompilierungsfehler.
+Fixtures unter `test/unit/pnpprep/pnpcards/`, jeweils mit automatisierten Tests testen unterschiedliche Titellängen mit und ohne Referenz:
 
-Manuelle Abnahme durch PDF-Vergleich.
-
-## Nicht Bestandteil
-
-- Änderung der Titelbereichshöhe.
-- Schriftgrößenanpassung für Referenztext oder Karteninhalt.
-- Mehrzeilige Titel (nicht unterstützt — Titel ist immer einzeilig).
-
-## Implementierungshinweise (geklärt 2026-10-21)
-
-**Mechanismus:** `\scalebox` aus `graphicx`.
-
-```latex
-\setbox0=\hbox{\textbf{#1}}%
-\ifdim\wd0>\pnpcards@maxtitlewidth
-    % Zu breit: skalieren
-    % Faktor = maxtitlewidth / \wd0 (via \dimratio oder \strip@pt)
-    \scalebox{f}{\textbf{#1}}%
-\else
-    \textbf{#1}%
-\fi
-```
-
-**Schriftgrößen:**
-- Obergrenze: `\normalsize` (10 pt)
-- Untergrenze: 7 pt (Faktor < 0.7 → `\PackageError`)
-
-**Titelbreite:** `\pnpcards@maxtitlewidth` = `\textwidth` (kein Ref) oder `\textwidth - Referenzbreite - Abstand` (mit Ref). Referenzbreite wird beim Setzen der Karte gemessen.
+- Titel kurz genug, dass er _mit_ Referenz die gleiche größe hat wie _ohne_
+- Titel wird kleiner, wenn die Referenz eingeblendet wird
+- Titel wird bereits ohne Referenz verkleinert
+- Titel verletzt mit Referenz die Mindestgröße und verursacht einen Compilefehler, aber ohne Referenz nicht
+- Titel verletzt mit und ohne Referenz die Mindestgröße und verursacht einen Compilefehler

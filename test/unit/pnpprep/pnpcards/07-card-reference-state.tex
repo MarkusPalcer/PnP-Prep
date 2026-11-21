@@ -1,0 +1,30 @@
+\documentclass{pnpcards}
+
+\newcommand{\VisibleReference}{Macro generated reference}
+
+\makeatletter
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \ifpnpcards@hasreference
+        \typeout{CARD-REFERENCE:PRESENT:\expandafter\detokenize\expandafter{\pnpcards@reference}}%
+    \else
+        \typeout{CARD-REFERENCE:ABSENT}%
+    \fi
+    \null\newpage
+}
+\makeatother
+
+\begin{document}
+
+\begin{card}{Missing reference}\end{card}
+\begin{card}[]{Empty reference}\end{card}
+\begin{card}[   ]{Whitespace reference}\end{card}
+\begin{card}[\relax]{Relax reference}\end{card}
+\begin{card}[Visible reference]{Visible reference title}\end{card}
+\begin{card}[\textbf{Formatted reference}]{Formatted reference title}\end{card}
+\begin{card}[\VisibleReference]{Macro reference title}\end{card}
+\Card[Command reference]{Command reference title}{}
+\begin{card}[First reference]{First reference title}\end{card}
+\begin{card}{No reference between cards}\end{card}
+\begin{card}[Second reference]{Second reference title}\end{card}
+
+\end{document}

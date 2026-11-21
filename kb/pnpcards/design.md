@@ -9,6 +9,9 @@
 | Seitenformat | A6, Querformat | `geometry`: `a6paper,landscape` |
 | Rand | max. 5 mm | `margin=5mm` |
 | Titelbereich | 15 mm | `\pnpcards@titleheight` |
+| Titelbreite | 138 mm ohne bzw. 121 mm mit Referenz | `\pnpcards@contentwidth`, `\pnpcards@titlewithreferencewidth` |
+| Referenzbereich | 15 × 15 mm oben rechts innerhalb des Randes | `\pnpcards@referencewidth` |
+| Abstand Titel→Referenz | 2 mm, nur bei vorhandener Referenz | `\pnpcards@frontgap` |
 | Abstand Titel→Inhalt | 2 mm | `\pnpcards@frontgap` |
 | Vorderseite Body-Höhe | `\textheight - 15mm - 2mm` | `\pnpcards@frontbodyheight` |
 | Rückseite Body-Höhe | `\textheight` | `\pnpcards@backbodyheight` |
@@ -34,6 +37,8 @@
 │                                     │
 └─────────────────────────────────────┘
 ```
+
+Der Referenzbereich erscheint nur für eine nicht leere Referenz auf der eigenen Vorderseite und hat im Debug-Modus einen eigenen Rahmen. Die Referenz wird mit 9 pt und 11 pt Zeilenabstand auf höchstens zwei Zeilen gesetzt; explizites `\linebreak` und automatischer Umbruch sind möglich. Nicht passende Referenzen werden abgewiesen. Titel werden vorläufig einzeilig und unverkleinert gesetzt und bei Überlauf abgewiesen; automatische Anpassung ist in Ticket 11 offen.
 
 ## Entscheidung: Implementierungsvariante
 

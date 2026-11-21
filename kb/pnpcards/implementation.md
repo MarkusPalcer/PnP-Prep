@@ -8,18 +8,20 @@
 
 | Befehl / Umgebung | Beschreibung |
 |---|---|
-| `\begin{card}{Titel} ... \end{card}` | Öffentlich – sammelt den Inhalt und rendert eine Karte |
-| `\Card{Titel}{Inhalt}` | Öffentliche Kurzform, die an die `card`-Umgebung delegiert |
-| `\EnableCardDebugFrames` | Zeigt farbige Rahmen um alle Bereiche: Titel rot, Vorderseiteninhalt blau, Rückseiteninhalt grün |
+| `\begin{card}[Referenz]{Titel} ... \end{card}` | Öffentlich – sammelt den Inhalt und rendert eine Karte; Referenz optional |
+| `\Card[Referenz]{Titel}{Inhalt}` | Öffentliche Kurzform, die an die `card`-Umgebung delegiert; Referenz optional |
+| `\EnableCardDebugFrames` | Zeigt farbige Rahmen: Titel rot, Referenz magenta, Vorderseiteninhalt blau, Rückseiteninhalt grün |
 
 ### Interne Helfer
 
 | Befehl | Beschreibung |
 |---|---|
 | `\pnpcards@Area{w}{h}{align}{rahmenfarbe}{inhalt}` | Setzt einen fixen Box-Bereich (mit/ohne farbigen Debug-Rahmen) |
-| `\pnpcards@PrintFront{titel}{frontbox}{breakstatus}` | Gibt Vorderseite aus |
+| `\pnpcards@PrintFront{titel}{frontbox}` | Gibt Vorderseite aus |
 | `\pnpcards@PrintBack{backbox}` | Gibt Rückseite aus |
 | `\pnpcards@CardExplicitBreak` | Marker für `\newpage` innerhalb einer Karte |
+| `\pnpcards@PrepareReference` | Setzt und validiert Referenztext und Zeilenzahl |
+| `\pnpcards@PrepareTitle{titel}` | Misst den einzeiligen Titel und meldet Überlauf |
 
 ### Interne Boxen
 
@@ -28,10 +30,12 @@
 | `\pnpcards@cardcontent` | Gesamter gesammelter Karteninhalt |
 | `\pnpcards@frontcontent` | Per `\vsplit` abgespaltener Vorderseiten-Teil |
 | `\pnpcards@backcontent` | Per `\vsplit` abgespaltener Rückseiten-Teil |
+| `\pnpcards@referencebox` | Referenzabsatz, maximal zwei Zeilen in 15 × 15 mm |
+| `\pnpcards@titlebox` | Unverkleinerter, fett gesetzter Titel |
 
 ### Kernmechanismus (`card`-Umgebung)
 
-1. Inhalt wird in `\pnpcards@cardcontent` als `\vbox` gesammelt
+1. Argumente und Inhalt werden gesammelt, Referenzzustand wird lokal bestimmt; Inhalt wird in `\pnpcards@cardcontent` als `\vbox` gesetzt
 2. `\vsplit` teilt bei `\pnpcards@frontbodyheight` → `\pnpcards@frontcontent`
 3. `\splitbotmark` prüft ob ein expliziter Break (`EXPLICIT-CARD-BREAK`) vorlag
 4. Vorderseite wird gedruckt
@@ -40,7 +44,8 @@
 
 ### Bekannte Einschränkungen
 
-- Referenz wird noch nicht gedruckt (Ticket 06)
+- Referenzen verwenden 9 pt mit 11 pt Zeilenabstand; mehr als zwei Zeilen oder Überlauf sind Fehler.
+- Titel werden derzeit nicht automatisch verkleinert: Überlauf verursacht einen Fehler. Die Anpassung auf 10 bis 7 pt bleibt in Ticket 11 offen.
 
 ### Ticket-Status
 

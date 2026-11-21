@@ -4,7 +4,7 @@
   "context": "..",
   "updateRemoteUserUID": true,
   "features": {
-    "ghcr.io/devcontainers/features/common-utils": {
+    "ghcr.io/devcontainers/features/common-utils:2.7.1": {
         "installZsh": true,
         "installOhMyZsh": true,
         "installOhMyZshConfig": true,

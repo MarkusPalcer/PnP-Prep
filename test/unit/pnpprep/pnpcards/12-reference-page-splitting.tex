@@ -1,0 +1,19 @@
+\documentclass{pnpcards}
+\newcommand{\TestLine}[1]{\texttt{CONTENT LINE #1}\par\vspace{5mm}}
+\newcommand{\NaturalContent}{%
+    \TestLine{01}\TestLine{02}\TestLine{03}\TestLine{04}%
+    \TestLine{05}\TestLine{06}\TestLine{07}\TestLine{08}%
+    \TestLine{09}\TestLine{10}\TestLine{11}\TestLine{12}%
+}
+\newcommand{\ExplicitContent}{\TestLine{01}\TestLine{02}\newpage\TestLine{03}\TestLine{04}}
+\begin{document}
+\Card[Ref 123]{Explicit}{\ExplicitContent}
+\Card[Ref 123]{Natural}{\NaturalContent}
+\begin{card}[Ref 123]{Explicit}\ExplicitContent\end{card}
+\begin{card}[Ref 123]{Natural}\NaturalContent\end{card}
+\EnableCardDebugFrames
+\Card[Ref 123]{Explicit}{\ExplicitContent}
+\Card[Ref 123]{Natural}{\NaturalContent}
+\begin{card}[Ref 123]{Explicit}\ExplicitContent\end{card}
+\begin{card}[Ref 123]{Natural}\NaturalContent\end{card}
+\end{document}

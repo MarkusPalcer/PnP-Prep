@@ -1,6 +1,7 @@
 \documentclass{pnpcards}
 
 \RenewEnviron{card}[2][]{%
+    \typeout{CARD-DELEGATION-REFERENCE:#1}%
     \typeout{CARD-DELEGATION-BEGIN:#2}%
     \BODY
     \typeout{CARD-DELEGATION-END:#2}%
@@ -8,6 +9,7 @@
 
 \begin{document}
 
-\Card{Delegation title}{DELEGATED CONTENT MARKER}
+\Card{Legacy title}{LEGACY CONTENT MARKER}
+\Card[Delegation reference]{Delegation title}{DELEGATED CONTENT MARKER}
 
 \end{document}

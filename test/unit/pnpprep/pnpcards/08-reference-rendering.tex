@@ -1,0 +1,27 @@
+\documentclass{pnpcards}
+
+\newcommand{\MacroReference}{MacroRef}
+\makeatletter
+\newcommand{\ReferenceFontDiagnostic}{%
+    \typeout{REFERENCE-FONT:\f@size pt:\the\baselineskip}%
+}
+\makeatother
+
+\begin{document}
+
+\begin{card}{}REFERENCE CONTENT POSITION MARKER\end{card}
+\begin{card}[WdZ. 567]{}REFERENCE CONTENT POSITION MARKER\end{card}
+\begin{card}[WdZ. 567 \linebreak Wdz. 567]{}REFERENCE CONTENT POSITION MARKER\end{card}
+\begin{card}[WdZ. 567 Wdz. 567]{}\end{card}
+\begin{card}[\textbf{Bold ref}]{}\end{card}
+\begin{card}[\ReferenceFontDiagnostic\MacroReference]{}\end{card}
+\Card[Command reference]{Title beside reference}{}
+
+\EnableCardDebugFrames
+
+\begin{card}{}REFERENCE CONTENT POSITION MARKER\end{card}
+\begin{card}[WdZ. 567]{}REFERENCE CONTENT POSITION MARKER\end{card}
+\begin{card}[WdZ. 567 \linebreak Wdz. 567]{}REFERENCE CONTENT POSITION MARKER\end{card}
+\Card[WdZ. 567 \linebreak Wdz. 567]{}{REFERENCE CONTENT POSITION MARKER}
+
+\end{document}

@@ -8,7 +8,7 @@
 - The front and back are generated as 2 pages in the PDF
 - If a card only needs its front, the back will be a blank page
 - Each card has a title which is only printed on the front
-- In the front (the title area) in the upper right corner can be a short reference (like "WdZ 123")
+- The front may have a short reference in a separate area in its upper right corner (like "WdZ. 567")
 - In the back there is no title area, the text is over the whole card
 - If the text on the front of the card is too long, it should be automatically span the back of the card
 - If the text is too long for the front _and_ back, compilation fails with an error
@@ -23,9 +23,11 @@
 ### Syntax
 
 ```latex
-\begin{card}{Überschrift}[WdZ 102]
+\begin{card}[WdZ. 567 \linebreak Wdz. 567]{Überschrift}
 Dies ist Text in der Karte. Wenn der Text lang genug ist, wird er auf die andre Seite umbrochen
 \end{card}
+
+\Card[WdZ. 567]{Überschrift}{Dies ist der Karteninhalt.}
 
 \begin{card}{Überschrift}
 Dies ist Text auf der Vorderseite der Karte
@@ -66,6 +68,10 @@ Verboten: Seite 5
 
 ## Lösungsmöglichkeiten
 
+### Aktueller Stand
+
+Die Referenz steht optional vor dem Titel und erscheint nur auf der eigenen Vorderseite in einem eigenen 15 × 15 mm großen Bereich innerhalb des 5-mm-Rands. Der Titelbereich misst ohne Referenz 138 mm, mit Referenz 121 mm; der Abstand beträgt 2 mm. Referenzen werden mit 9 pt und 11 pt Zeilenabstand ein- oder zweizeilig gesetzt, auch mit `\linebreak`; bei Überlauf folgt ein Fehler. Der Debug-Modus zeigt einen eigenen Referenzrahmen. Zu breite oder zu hohe Titel werden vorläufig abgewiesen; die automatische Verkleinerung auf 10 bis mindestens 7 pt bleibt in Ticket 11 offen.
+
 Für alle Varianten gelten dieselben festen Layoutregeln: A6-Seitenformat im Querformat, höchstens 0,5 cm Rand, ein Titelbereich nur auf der ersten Seite einer Karte und kein Titelbereich auf den Folgeseiten. Eine leere Rückseite muss als echte leere PDF-Seite ausgegeben werden. Der wesentliche Unterschied ist, **wann und wie der Karteninhalt in Seiten aufgeteilt wird**.
 
 ### 1. Inhalt sammeln und automatisch auf Seiten aufteilen
@@ -73,7 +79,7 @@ Für alle Varianten gelten dieselben festen Layoutregeln: A6-Seitenformat im Que
 Das `card`-Environment sammelt den gesamten Inhalt zunächst ein, setzt ihn in einen Satzspiegel und teilt das Ergebnis anschließend an den verfügbaren Seitenhöhen auf. Für die erste Seite wird Platz für Titel und Referenz reserviert; die Folgeseite nutzt die ganze Kartenfläche. Bleibt nach der erlaubten Seitenzahl noch Inhalt übrig, wird ein Fehler gemeldet. Eine Karte ohne Überlauf erhält eine leere Rückseite.
 
 ```latex
-\begin{card}{Überschrift}[WdZ 102]
+\begin{card}[WdZ. 567]{Überschrift}
 Dies ist der Karteninhalt. Passt er nicht auf die Vorderseite,
 wird der Rest automatisch auf der Rückseite ausgegeben.
 \end{card}
@@ -100,7 +106,7 @@ wird der Rest automatisch auf der Rückseite ausgegeben.
 Die Karte enthält getrennte Bereiche für Vorder- und Rückseite. Das Environment kann jeden Bereich unabhängig setzen und prüfen. Der Inhalt wird nicht automatisch von einem Bereich in den anderen verschoben: Die Person, die das Dokument schreibt, entscheidet explizit, was auf welche Seite kommt.
 
 ```latex
-\begin{card}{Überschrift}[WdZ 102]
+\begin{card}[WdZ. 567]{Überschrift}
 \begin{front}
 Dies steht auf der Vorderseite.
 \end{front}
@@ -131,7 +137,7 @@ Dies steht auf der Rückseite und nutzt die ganze Kartenfläche.
 Jede physische Kartenseite wird direkt als Seite im normalen Dokumentfluss gesetzt. Kartenbefehle konfigurieren das Seitenlayout; ein Seitenwechsel markiert den Wechsel zur Rückseite. Die Klasse zählt die tatsächlich ausgegebenen Seiten pro Karte und meldet einen Fehler, sobald die erlaubte Zahl überschritten wird.
 
 ```latex
-\begin{card}{Überschrift}[WdZ 102]
+\begin{card}[WdZ. 567]{Überschrift}
 Dies steht auf der Vorderseite.
 \newpage
 Dies steht auf der Rückseite.
@@ -158,7 +164,7 @@ Dies steht auf der Rückseite.
 
 | Variante | Nähe zur Wunschsyntax | Automatischer Überlauf Vorderseite → Rückseite | Aufwand | Eignung für spätere 4-Seiten-Karten |
 | --- | --- | --- | --- | --- |
-| 1. Inhalt sammeln und teilen | Hoch: `\begin{card}{Titel}[Referenz] ... \end{card}` kann nahezu unverändert bleiben. | Ja, ist Kern dieser Variante. | Hoch | Gut, wenn die Aufteilung von Anfang an eine konfigurierbare Seitenzahl unterstützt. Die Ausgabe-Reihenfolge muss zusätzlich entworfen werden. |
+| 1. Inhalt sammeln und teilen | Hoch: `\begin{card}[Referenz]{Titel} ... \end{card}` kann nahezu unverändert bleiben. | Ja, ist Kern dieser Variante. | Hoch | Gut, wenn die Aufteilung von Anfang an eine konfigurierbare Seitenzahl unterstützt. Die Ausgabe-Reihenfolge muss zusätzlich entworfen werden. |
 | 2. Vorder- und Rückseite auszeichnen | Niedrig bis mittel: `card` bleibt, aber `front` und `back` kommen hinzu. | Nein, die Aufteilung erfolgt manuell. | Niedrig bis mittel | Gut für explizite Seitenbereiche; vier Bereiche oder eine allgemeine Seitenstruktur wären nötig. |
 | 3. Seitenweise setzen | Mittel: `card` bleibt, `\newpage` wird zum sichtbaren Seitenwechsel wie im Wunschbeispiel. | Möglich, aber nicht automatisch durch die Syntax garantiert; muss durch die Seitenlogik implementiert werden. | Mittel bis hoch | Möglich, aber Seitenzählung und spätere Umordnung müssen ausdrücklich mitgeplant werden. |
 

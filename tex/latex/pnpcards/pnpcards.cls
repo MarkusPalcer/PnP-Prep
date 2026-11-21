@@ -20,15 +20,22 @@
 \newlength{\pnpcards@cardtextwidth}
 \newlength{\pnpcards@titleheight}
 \newlength{\pnpcards@frontgap}
+\newlength{\pnpcards@referencewidth}
+\newlength{\pnpcards@titlewithreferencewidth}
 \newlength{\pnpcards@frontcontenttopinset}
 \newlength{\pnpcards@backcontenttopinset}
 \newdimen\pnpcards@frontbodyheight
 \newdimen\pnpcards@backbodyheight
+\newcount\pnpcards@referencelines
 \newif\ifpnpcards@debugframes
 \pnpcards@debugframesfalse
 \setlength{\pnpcards@contentwidth}{\textwidth}
 \setlength{\pnpcards@titleheight}{15mm}
 \setlength{\pnpcards@frontgap}{2mm}
+\setlength{\pnpcards@referencewidth}{15mm}
+\setlength{\pnpcards@titlewithreferencewidth}{%
+    \dimexpr\pnpcards@contentwidth-\pnpcards@referencewidth-\pnpcards@frontgap\relax
+}
 % Keep the glyph bounds inside the front area despite the zero top skip.
 \setlength{\pnpcards@frontcontenttopinset}{0.3mm}
 % Align the visible first back line within 1 mm of the content area's top.
@@ -42,6 +49,32 @@
 \newbox\pnpcards@frontcontent
 \newbox\pnpcards@backcontent
 \newbox\pnpcards@area
+\newbox\pnpcards@referencebox
+\newbox\pnpcards@referenceline
+\newbox\pnpcards@referenceinspection
+\newbox\pnpcards@titlebox
+\newif\ifpnpcards@referencewide
+\newif\ifpnpcards@hasreference
+\def\pnpcards@reference{}
+
+\ExplSyntaxOn
+\cs_new_protected:Npn \pnpcards@IfBlank #1#2#3
+    {
+        \tl_set:Nn \l_tmpa_tl {#1}
+        \tl_remove_all:Nn \l_tmpa_tl {\relax}
+        \tl_if_blank:VTF \l_tmpa_tl {#2} {#3}
+    }
+\ExplSyntaxOff
+
+\newcommand{\pnpcards@SetReference}[1]{%
+    \pnpcards@hasreferencefalse
+    \def\pnpcards@reference{#1}%
+    \begingroup
+        \pnpcards@IfBlank{#1}%
+            {\aftergroup\pnpcards@hasreferencefalse}%
+            {\aftergroup\pnpcards@hasreferencetrue}%
+    \endgroup
+}
 
 \newcommand{\pnpcards@CardExplicitBreak}{%
     \par
@@ -93,10 +126,11 @@
 }
 
 \newcommand{\pnpcards@Area}[5]{%
-    \setbox\pnpcards@area=\hbox{%
+    \setbox\pnpcards@area=\hbox to #1{%
         \begin{minipage}[#3][#2][#3]{#1}%
             #5
         \end{minipage}%
+        \hss
     }%
     \ifpnpcards@debugframes
         \hbox to \wd\pnpcards@area{%
@@ -108,13 +142,98 @@
     \fi
 }
 
+\newcommand{\pnpcards@PrepareReference}{%
+    \global\pnpcards@referencelines=0
+    \setbox\pnpcards@referencebox=\vbox{%
+        \hsize=\pnpcards@referencewidth
+        \linewidth=\pnpcards@referencewidth
+        \parindent=0pt
+        \parskip=0pt
+        \fontsize{9}{11}\selectfont
+        \raggedright
+        \let\pnpcards@referencepar\par
+        \def\par{%
+            \pnpcards@referencepar
+            \global\advance\pnpcards@referencelines by \prevgraf
+        }%
+        \noindent\pnpcards@reference\par
+    }%
+    \ifnum\pnpcards@referencelines>2
+        \PackageError{pnpcards}%
+            {Reference exceeds two lines}%
+            {Shorten the reference so it fits on at most two lines.}%
+    \fi
+    \global\pnpcards@referencewidefalse
+    \setbox\pnpcards@referenceinspection=\vbox{%
+        \unvcopy\pnpcards@referencebox
+        \count@=\pnpcards@referencelines
+        \loop\ifnum\count@>0
+            \unskip\unpenalty\unkern\unskip\unpenalty
+            \setbox\pnpcards@referenceline=\lastbox
+            \setbox\pnpcards@referenceline=\hbox{\unhbox\pnpcards@referenceline}%
+            \ifdim\wd\pnpcards@referenceline>\pnpcards@referencewidth
+                \global\pnpcards@referencewidetrue
+            \fi
+            \advance\count@ by -1
+        \repeat
+    }%
+    \ifpnpcards@referencewide
+        \PackageError{pnpcards}%
+            {Reference does not fit horizontally}%
+            {Shorten the unbreakable reference text so it fits within 15 mm.}%
+    \fi
+    \dimen@=\dimexpr\ht\pnpcards@referencebox+\dp\pnpcards@referencebox\relax
+    \ifdim\dimen@>\pnpcards@titleheight
+        \PackageError{pnpcards}%
+            {Reference does not fit vertically}%
+            {Reduce the reference height so it fits within 15 mm.}%
+    \fi
+}
+
+\newcommand{\pnpcards@PrepareTitle}[1]{%
+    \setbox\pnpcards@titlebox=\hbox{\textbf{#1}}%
+    \ifpnpcards@hasreference
+        \dimen@=\pnpcards@titlewithreferencewidth
+    \else
+        \dimen@=\pnpcards@contentwidth
+    \fi
+    \ifdim\wd\pnpcards@titlebox>\dimen@
+        \PackageError{pnpcards}%
+            {Title does not fit horizontally}%
+            {Shorten the title to fit within the available title area.}%
+    \fi
+    \dimen@=\dimexpr\ht\pnpcards@titlebox+\dp\pnpcards@titlebox\relax
+    \ifdim\dimen@>\pnpcards@titleheight
+        \PackageError{pnpcards}%
+            {Title does not fit vertically}%
+            {Reduce the title height to fit within 15 mm.}%
+    \fi
+}
+
 \newcommand{\pnpcards@PrintFront}[2]{%
     \thispagestyle{empty}%
     \nointerlineskip
-    \hbox to \textwidth{%
-        \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@titleheight}{c}{red!75!black}{%
-            \textbf{#1}%
+    \pnpcards@PrepareTitle{#1}%
+    \ifpnpcards@hasreference
+        \pnpcards@PrepareReference
+    \fi
+    \vbox to \pnpcards@titleheight{%
+        \hbox to \textwidth{%
+            \ifpnpcards@hasreference
+                \pnpcards@Area{\pnpcards@titlewithreferencewidth}{\pnpcards@titleheight}{c}{red!75!black}{%
+                    \copy\pnpcards@titlebox
+                }%
+                \hskip\pnpcards@frontgap
+                \pnpcards@Area{\pnpcards@referencewidth}{\pnpcards@titleheight}{c}{magenta!75!black}{%
+                    \unvbox\pnpcards@referencebox
+                }%
+            \else
+                \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@titleheight}{c}{red!75!black}{%
+                    \copy\pnpcards@titlebox
+                }%
+            \fi
         }%
+        \vss
     }%
     \vskip\pnpcards@frontgap
     \nointerlineskip
@@ -138,20 +257,21 @@
 }
 
 % Public card environment.
-% Usage: \begin{card}{Titel}[Referenz] ... \end{card}
+% Usage: \begin{card}[Referenz]{Titel} ... \end{card}
 %   #1 (optional) = short reference shown top-right on the front (e.g. "WdZ 102")
 %   #2            = card title
-% The body is collected in full before rendering begins (via the environ package).
+% The body is collected in full before rendering begins.
 % \newpage inside the body is treated as an explicit page break to the back side.
-\NewEnviron{card}[2][]{%
+\NewDocumentEnvironment{card}{+O{} m +b}{%
     \begingroup
+        \pnpcards@SetReference{#1}%
         \setlength{\pnpcards@cardtextwidth}{\textwidth}%
         \setbox\pnpcards@cardcontent=\vbox{%
             \hsize=\pnpcards@cardtextwidth
             \parindent=0pt
             \parskip=0pt
             \let\newpage\pnpcards@CardExplicitBreak
-            \BODY\par
+            #3\par
         }%
         \setbox\pnpcards@frontcontent=\vsplit\pnpcards@cardcontent to \pnpcards@frontbodyheight
         \edef\pnpcards@actualbreak{\splitbotmark}%
@@ -195,10 +315,10 @@
             \fi
         \fi
     \endgroup
-}
+}{}
 
-\newcommand{\Card}[2]{%
-    \begin{card}{#1}%
-        #2%
+\newcommand{\Card}[3][]{%
+    \begin{card}[#1]{#2}%
+        #3%
     \end{card}%
 }

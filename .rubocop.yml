@@ -1,0 +1,8 @@
+Layout/LineLength:
+  Max: 180
+
+AllCops:
+  TargetRubyVersion: 3.3.8
+
+Metrics/BlockLength:
+  Enabled: false

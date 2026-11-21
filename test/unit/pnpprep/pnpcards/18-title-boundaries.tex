@@ -1,0 +1,19 @@
+\documentclass{pnpcards}
+\newsavebox{\TitleControl}
+\makeatletter
+\newcommand{\TitleFontDiagnostic}{\typeout{TITLE-FONT:\f@size pt}}
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \OriginalPrintFront{#1}{#2}%
+    \typeout{TITLE-MEASURED:\the\wd\pnpcards@titlebox}%
+}
+\makeatother
+\begin{document}
+\sbox{\TitleControl}{\textbf{Control Title}}
+\typeout{TITLE-CONTROL:\the\wd\TitleControl}
+\Card{\TitleFontDiagnostic Control Title}{Body}
+\Card[Ref]{\TitleFontDiagnostic Control Title}{Body}
+\Card{\makebox[137.9mm][l]{Full width title}}{Body}
+\Card[Ref]{\makebox[120.9mm][l]{Narrow title}}{Body}
+\Card{\makebox[121.1mm][l]{Only without reference}}{Body}
+\end{document}

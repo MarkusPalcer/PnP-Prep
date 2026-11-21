@@ -39,6 +39,20 @@ EXPECTED_BACK_CONTENT_BOUNDARY_WITH_TOLERANCE = LAYOUT_BOUNDARY_WITH_TOLERANCE.c
 HEADER_COLOR = [0.75, 0, 0].freeze
 CONTENT_COLOR = [0, 0, 0.75].freeze
 CONTINUATION_COLOR = [0, 0.5, 0].freeze
+REFERENCE_COLOR = [0, 0.75, 0, 0.25].freeze
+
+EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY = LatexTesting::Boundary.new(
+  left: EXPECTED_PAGE_BORDER,
+  top: EXPECTED_PAGE_BORDER,
+  width: 121.0,
+  height: 15.0
+).freeze
+EXPECTED_REFERENCE_BOUNDARY = LatexTesting::Boundary.new(
+  left: EXPECTED_PAGE_BORDER + EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.width + EXPECTED_AREA_MARGIN,
+  top: EXPECTED_PAGE_BORDER,
+  width: 15.0,
+  height: 15.0
+).freeze
 
 fixture 'Page Splitting' do
   file '01-page-splitting.tex'
@@ -473,12 +487,351 @@ end
 fixture 'Card Delegation' do
   file '06-card-delegation.tex'
 
-  test 'The Card command delegates its title and content to the card environment.' do
+  test 'The Card command preserves legacy calls and delegates its optional reference, title, and content.' do
     begin_marker = 'CARD-DELEGATION-BEGIN:Delegation title'
     end_marker = 'CARD-DELEGATION-END:Delegation title'
 
-    expect(log).to include(begin_marker, end_marker)
+    expect(log).to include(
+      'CARD-DELEGATION-REFERENCE:',
+      'CARD-DELEGATION-BEGIN:Legacy title',
+      'CARD-DELEGATION-END:Legacy title',
+      'CARD-DELEGATION-REFERENCE:Delegation reference',
+      begin_marker,
+      end_marker
+    )
     expect(log.index(begin_marker)).to be < log.index(end_marker)
-    expect(generated_pdf.pages.flat_map(&:text_lines).map(&:text).join).to include('DELEGATEDCONTENTMARKER')
+    expect(generated_pdf.pages.flat_map(&:text_lines).map(&:text).join).to include(
+      'LEGACYCONTENTMARKER', 'DELEGATEDCONTENTMARKER'
+    )
+  end
+end
+
+fixture 'Card Reference State' do
+  file '07-card-reference-state.tex'
+
+  test 'Missing, empty, whitespace-only, and relax-only references are absent.' do
+    expect(log.scan(/^CARD-REFERENCE:ABSENT$/)).to eq(Array.new(5, 'CARD-REFERENCE:ABSENT'))
+  end
+
+  test 'Visible, formatted, macro-generated, and command references are present per card.' do
+    expect(log).to include(
+      'CARD-REFERENCE:PRESENT:Visible reference',
+      'CARD-REFERENCE:PRESENT:\\textbf {Formatted reference}',
+      'CARD-REFERENCE:PRESENT:\\VisibleReference ',
+      'CARD-REFERENCE:PRESENT:Command reference',
+      'CARD-REFERENCE:PRESENT:First reference',
+      'CARD-REFERENCE:ABSENT',
+      'CARD-REFERENCE:PRESENT:Second reference'
+    )
+  end
+end
+
+fixture 'Reference Rendering' do
+  file '08-reference-rendering.tex'
+
+  test 'Normal and debug reference cards keep their page count and front/back order.' do
+    expect(generated_pdf.pages.count).to eq(22)
+    [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21].each do |back_page_index|
+      expect(generated_pdf.pages[back_page_index].text_lines).to be_empty
+    end
+  end
+
+  test 'A single-line reference prints completely within its own area.' do
+    page = generated_pdf.pages[2]
+    reference_line = page.text_lines.find { |line| line.text.gsub(/\s+/, '') == 'WdZ.567' }
+    expect(reference_line).not_to be_nil
+    return if reference_line.nil?
+
+    reference_boundary = page.convert_unit(reference_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(reference_boundary).to be_within(LAYOUT_BOUNDARY_WITH_TOLERANCE.call(EXPECTED_REFERENCE_BOUNDARY))
+  end
+
+  test 'An explicit two-line reference keeps both lines in order and within the reference area.' do
+    page = generated_pdf.pages[4]
+    reference_lines = page.text_lines.select do |line|
+      %w[WdZ.567 Wdz.567].include?(line.text.gsub(/\s+/, ''))
+    end
+    expect(reference_lines.map { |line| line.text.gsub(/\s+/, '') }).to eq(%w[WdZ.567 Wdz.567])
+    return unless reference_lines.length == 2
+
+    boundaries = reference_lines.map do |line|
+      page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    end
+    boundaries.each do |boundary|
+      expect(boundary).to be_within(LAYOUT_BOUNDARY_WITH_TOLERANCE.call(EXPECTED_REFERENCE_BOUNDARY))
+    end
+    expect(boundaries[1].top).to be > boundaries[0].top
+  end
+
+  test 'A naturally wrapped reference remains complete on two lines.' do
+    lines = generated_pdf.pages[6].text_lines.map(&:text)
+    expect(lines).to include('WdZ. 567', 'Wdz. 567')
+  end
+
+  test 'Formatted and macro-generated references are rendered, and their active size is 9 pt with 11 pt leading.' do
+    formatted_lines = generated_pdf.pages[8].text_lines.map(&:text)
+    expect(formatted_lines.join(' ')).to include('Bold ref')
+    expect(generated_pdf.pages[10].text_lines.map(&:text)).to include('MacroRef')
+    expect(log).to include('REFERENCE-FONT:9pt:11.0pt')
+  end
+
+  test 'A nonempty title and its reference both appear on the same front.' do
+    lines = generated_pdf.pages[12].text_lines.map(&:text).join(' ')
+    expect(lines).to include('Title beside reference', 'Command', 'reference')
+    expect(generated_pdf.pages[13].text_lines).to be_empty
+  end
+
+  test 'References only appear on their own fronts, and normal mode has no frames.' do
+    expect(generated_pdf.pages[0].text_lines.map { |line| line.text.gsub(/\s+/, '') }).not_to include('WdZ.567', 'Wdz.567')
+    expect(generated_pdf.pages[2].text_lines.map { |line| line.text.gsub(/\s+/, '') }).to include('WdZ.567')
+    expect(generated_pdf.pages[4].text_lines.map { |line| line.text.gsub(/\s+/, '') }).to include('WdZ.567', 'Wdz.567')
+    14.times do |page_index|
+      expect(generated_pdf.pages[page_index].frames.to_a).to be_empty
+    end
+  end
+
+  test 'The front content position is unchanged by a reference.' do
+    no_reference_page = generated_pdf.pages[0]
+    reference_page = generated_pdf.pages[2]
+    no_reference_line = no_reference_page.text_lines.find { |line| line.text.gsub(/\s+/, '') == 'REFERENCECONTENTPOSITIONMARKER' }
+    reference_line = reference_page.text_lines.find { |line| line.text.gsub(/\s+/, '') == 'REFERENCECONTENTPOSITIONMARKER' }
+    expect(no_reference_line).not_to be_nil
+    expect(reference_line).not_to be_nil
+    return if no_reference_line.nil? || reference_line.nil?
+
+    no_reference_boundary = no_reference_page.convert_unit(no_reference_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    reference_boundary = reference_page.convert_unit(reference_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    %i[left top right bottom].each do |edge|
+      expect(reference_boundary[edge]).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(no_reference_boundary[edge])
+    end
+    expect(reference_boundary).to be_within(EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE)
+  end
+
+  test 'Debug frames identify the reference area only when a reference exists.' do
+    no_reference_frames = generated_pdf.pages[14].frames.map(&:color)
+    expect(no_reference_frames).to contain_exactly(HEADER_COLOR, CONTENT_COLOR)
+
+    [16, 18].each do |page_index|
+      frames = generated_pdf.pages[page_index].frames
+      expect(frames.map(&:color)).to contain_exactly(HEADER_COLOR, REFERENCE_COLOR, CONTENT_COLOR)
+      expect(frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(1)
+    end
+  end
+
+  test 'Debug frames have the required header widths, reference size, gap, and page inset.' do
+    page = generated_pdf.pages[18]
+    title_frame = page.frames.single { |frame| frame.color == HEADER_COLOR }
+    reference_frame = page.frames.single { |frame| frame.color == REFERENCE_COLOR }
+    frame_boundary = lambda do |frame|
+      LatexTesting::Boundary.new(
+        left: page.convert_unit(frame.left, LatexTesting::TargetUnit::MILLIMETERS),
+        top: page.convert_unit(page.boundary.top - frame.top, LatexTesting::TargetUnit::MILLIMETERS),
+        right: page.convert_unit(frame.right, LatexTesting::TargetUnit::MILLIMETERS),
+        bottom: page.convert_unit(page.boundary.top - frame.bottom, LatexTesting::TargetUnit::MILLIMETERS)
+      )
+    end
+    title_boundary = frame_boundary.call(title_frame)
+    reference_boundary = frame_boundary.call(reference_frame)
+
+    expect(title_boundary).to be_within(LAYOUT_BOUNDARY_WITH_TOLERANCE.call(EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY))
+    expect(reference_boundary).to be_within(LAYOUT_BOUNDARY_WITH_TOLERANCE.call(EXPECTED_REFERENCE_BOUNDARY))
+    expect(reference_boundary.left - title_boundary.right).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_AREA_MARGIN)
+
+    full_page = generated_pdf.pages[14]
+    full_frame = full_page.frames.single { |frame| frame.color == HEADER_COLOR }
+    expect(full_page.convert_unit(full_frame.right - full_frame.left, LatexTesting::TargetUnit::MILLIMETERS))
+      .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(138.0)
+  end
+
+  test 'Debug and normal reference cards have identical text and positions.' do
+    [[2, 16], [4, 18], [4, 20]].each do |normal_page_index, debug_page_index|
+      normal_page = generated_pdf.pages[normal_page_index]
+      debug_page = generated_pdf.pages[debug_page_index]
+      expect(debug_page.text_lines.map(&:text)).to eq(normal_page.text_lines.map(&:text))
+
+      normal_page.text_lines.zip(debug_page.text_lines).each do |normal_line, debug_line|
+        normal_boundary = normal_page.convert_unit(normal_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+        debug_boundary = debug_page.convert_unit(debug_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+        %i[left top right bottom].each do |edge|
+          expect(debug_boundary[edge]).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(normal_boundary[edge])
+        end
+      end
+    end
+  end
+end
+
+fixture 'Reference Three Lines' do
+  file '09-reference-three-lines.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Reference exceeds two lines'
+end
+
+fixture 'Reference Too Wide' do
+  file '10-reference-too-wide.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Reference does not fit horizontally'
+end
+
+fixture 'Reference Too High' do
+  file '11-reference-too-high.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Reference does not fit vertically'
+end
+
+fixture 'Reference First Line Too Wide' do
+  file '13-reference-first-line-too-wide.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Reference does not fit horizontally'
+end
+
+fixture 'Reference Three Paragraphs' do
+  file '16-reference-three-paragraphs.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Reference exceeds two lines'
+end
+
+fixture 'Reference Near Boundary' do
+  file '14-reference-near-boundary.tex'
+  test('Near-width one- and two-line references compile on their own fronts.') do
+    expect(generated_pdf.pages.count).to eq(4)
+  end
+end
+
+fixture 'Reference Card Sequence' do
+  file '15-reference-card-sequence.tex'
+  test 'Each card has only its own reference and reference frame, never on the back.' do
+    expect(generated_pdf.pages.count).to eq(18)
+    expected = [nil, nil, nil, nil, 'Alpha', 'Bravo', 'MacroRef', nil, 'Charlie']
+    titles = %w[One Two Three Four Five Six Seven Eight Nine]
+    expected.each_with_index do |reference, index|
+      front = generated_pdf.pages[index * 2]
+      back = generated_pdf.pages[index * 2 + 1]
+      expect(front.text_lines.map(&:text).join.gsub(/\s+/, '')).to eq(titles[index] + reference.to_s + 'Body')
+      expect(front.frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(reference.nil? ? 0 : 1)
+      expect(back.text_lines).to be_empty
+      expect(back.frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(0)
+    end
+  end
+end
+
+fixture 'Empty Cards' do
+  file '17-empty-cards.tex'
+
+  test 'Fully empty cards from both APIs each retain their own front and back pages.' do
+    expect(generated_pdf.pages.count).to eq(24)
+    [2, 4, 6, 8, 14, 16, 18, 20].each do |index|
+      expect(generated_pdf.pages[index].text_lines).to be_empty
+      expect(generated_pdf.pages[index + 1].text_lines).to be_empty
+    end
+    [[0, 'Before'], [10, 'After'], [12, 'Debugbefore'], [22, 'Debugafter']].each do |index, title|
+      expect(generated_pdf.pages[index].text_lines.map(&:text).join.gsub(/\s+/, '')).to eq(title + 'Body')
+      expect(generated_pdf.pages[index + 1].text_lines).to be_empty
+    end
+  end
+end
+
+fixture 'Title Boundaries' do
+  file '18-title-boundaries.tex'
+
+  test 'Normal titles are one unchanged 10 pt bold line with or without a reference.' do
+    expect(generated_pdf.pages.count).to eq(10)
+    expect(log.scan('TITLE-FONT:10pt').size).to eq(2)
+    control = log[/TITLE-CONTROL:([\d.]+pt)/, 1]
+    measured = log.scan(/TITLE-MEASURED:([\d.]+pt)/).flatten
+    expect(control).not_to be_nil
+    expect(measured.first(2)).to eq([control, control])
+    [0, 2].each do |index|
+      lines = generated_pdf.pages[index].text_lines
+      expect(lines.count { |line| line.text.include?('Control Title') }).to eq(1)
+      expect(generated_pdf.pages[index + 1].text_lines).to be_empty
+    end
+  end
+
+  test 'Titles just inside each width and the shared intermediate title are accepted.' do
+    [[4, 'Full width title'], [6, 'Narrow title'], [8, 'Only without reference']].each do |index, title|
+      page = generated_pdf.pages[index]
+      title_line = page.text_lines.find { |line| line.text.include?(title) }
+      expect(title_line).not_to be_nil
+      next if title_line.nil?
+
+      boundary = page.convert_unit(title_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+      expect(boundary).to be_within(EXPECTED_TITLE_BOUNDARY_WITH_TOLERANCE) unless index == 6
+    end
+  end
+end
+
+fixture 'Title Too Wide' do
+  file '19-title-too-wide.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Title does not fit horizontally'
+end
+
+fixture 'Title Too Wide With Reference' do
+  file '20-title-too-wide-with-reference.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Title does not fit horizontally'
+end
+
+fixture 'Title Too High' do
+  file '21-title-too-high.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Title does not fit vertically'
+end
+
+fixture 'Title Too High With Reference' do
+  file '22-title-too-high-with-reference.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Title does not fit vertically'
+end
+
+fixture 'Reference Page Splitting' do
+  file '12-reference-page-splitting.tex'
+
+  test 'References remain on their own fronts for explicit and natural breaks.' do
+    expect(generated_pdf.pages.count).to eq(16)
+    8.times do |card|
+      front = generated_pdf.pages[card * 2].text_lines.map(&:text).join(' ')
+      back = generated_pdf.pages[card * 2 + 1].text_lines.map(&:text).join(' ')
+      expect(front.gsub(/\s+/, '')).to include('Ref123', 'CONTENTLINE01')
+      expect(back.gsub(/\s+/, '')).not_to include('Ref123')
+      expect(back.gsub(/\s+/, '')).to include(card.even? ? 'CONTENTLINE03' : 'CONTENTLINE12')
+    end
+  end
+
+  test 'Both APIs and debug mode preserve all text and positions on each side.' do
+    [[0, 4], [2, 6], [0, 8], [2, 10], [4, 12], [6, 14]].each do |first, second|
+      [0, 1].each do |offset|
+        left_page = generated_pdf.pages[first + offset]
+        right_page = generated_pdf.pages[second + offset]
+        left_lines = left_page.text_lines
+        right_lines = right_page.text_lines
+        expect(right_lines.map(&:text)).to eq(left_lines.map(&:text))
+        left_lines.zip(right_lines).each do |left, right|
+          left_boundary = left_page.convert_unit(left.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+          right_boundary = right_page.convert_unit(right.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+          %i[left top right bottom].each do |edge|
+            expect(right_boundary[edge]).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(left_boundary[edge])
+          end
+        end
+      end
+    end
+  end
+
+  test 'Every content line is preserved in order within its front or back area.' do
+    [0, 2].each do |front_index|
+      front = generated_pdf.pages[front_index]
+      back = generated_pdf.pages[front_index + 1]
+      lines = [front, back].flat_map do |page|
+        page.text_lines.select { |line| line.text.gsub(/\s+/, '').start_with?('CONTENTLINE') }
+      end
+      expected = front_index.zero? ? 4 : 12
+      expect(lines.map { |line| line.text.gsub(/\s+/, '') }).to eq((1..expected).map { |i| format('CONTENTLINE%02d', i) })
+      [front, back].each_with_index do |page, index|
+        boundary = index.zero? ? EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE : EXPECTED_BACK_CONTENT_BOUNDARY_WITH_TOLERANCE
+        page.text_lines.select { |line| line.text.gsub(/\s+/, '').start_with?('CONTENTLINE') }.each do |line|
+          expect(page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)).to be_within(boundary)
+        end
+      end
+    end
   end
 end

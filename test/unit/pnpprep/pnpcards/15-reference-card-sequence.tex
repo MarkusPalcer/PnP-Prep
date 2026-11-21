@@ -1,0 +1,14 @@
+\documentclass{pnpcards}
+\newcommand{\VisibleReference}{MacroRef}
+\begin{document}
+\EnableCardDebugFrames
+\begin{card}{One}Body\end{card}
+\Card[]{Two}{Body}
+\begin{card}[   ]{Three}Body\end{card}
+\Card[\relax]{Four}{Body}
+\begin{card}[Alpha]{Five}Body\end{card}
+\Card[\textbf{Bravo}]{Six}{Body}
+\begin{card}[\VisibleReference]{Seven}Body\end{card}
+\Card{Eight}{Body}
+\Card[Charlie]{Nine}{Body}
+\end{document}
