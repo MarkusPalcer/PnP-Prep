@@ -29,6 +29,10 @@ Dies ist Text in der Karte. Wenn der Text lang genug ist, wird er auf die andre 
 
 \Card[WdZ. 567]{Überschrift}{Dies ist der Karteninhalt.}
 
+\begin{card}{Codebeispiel}
+Inline-Code: \verb|a_b%|
+\end{card}
+
 \begin{card}{Überschrift}
 Dies ist Text auf der Vorderseite der Karte
 \newpage
@@ -71,6 +75,8 @@ Verboten: Seite 5
 ### Aktueller Stand
 
 Die Referenz steht optional vor dem Titel und erscheint nur auf der eigenen Vorderseite in einem eigenen 15 × 15 mm großen Bereich innerhalb des 5-mm-Rands. Der Titelbereich misst ohne Referenz 138 mm, mit Referenz 121 mm; der Abstand beträgt 2 mm. Referenzen werden mit 9 pt und 11 pt Zeilenabstand ein- oder zweizeilig gesetzt, auch mit `\linebreak`; bei Überlauf folgt ein Fehler. Der Debug-Modus zeigt einen eigenen Referenzrahmen. Zu breite oder zu hohe Titel werden vorläufig abgewiesen; die automatische Verkleinerung auf 10 bis mindestens 7 pt bleibt in Ticket 11 offen.
+
+Das `card`-Environment setzt seinen Body beim Einlesen direkt in eine Box; die Ausgabe beginnt nach `\end{card}`. Text, Absätze, Formatierung, Listen, Tabellen und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` ist in der Umgebung getestet, nicht als rohes Inhaltsargument von `\Card`; der gespeicherte `fancyvrb`-Workaround ist positiv geprüft. Floats, Fußnoten und Randnotizen werden nicht unterstützt.
 
 Für alle Varianten gelten dieselben festen Layoutregeln: A6-Seitenformat im Querformat, höchstens 0,5 cm Rand, ein Titelbereich nur auf der ersten Seite einer Karte und kein Titelbereich auf den Folgeseiten. Eine leere Rückseite muss als echte leere PDF-Seite ausgegeben werden. Der wesentliche Unterschied ist, **wann und wie der Karteninhalt in Seiten aufgeteilt wird**.
 

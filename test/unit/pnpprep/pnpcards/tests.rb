@@ -432,6 +432,98 @@ fixture 'Card Environment' do
   end
 end
 
+fixture 'Inline Verbatim' do
+  file '23-inline-verbatim.tex'
+
+  test 'Inline verbatim preserves special characters and renders after the complete body is read.' do
+    expect(generated_pdf.pages.count).to eq(2)
+
+    text = generated_pdf.pages[0].text_lines.map(&:text).join.gsub(/\s+/, '')
+    expect(text).to include('BEFOREMARKER', 'a_b%{}\\#$&_^~', 'AFTERMARKER')
+    expect(log.index('CARD-BODY-COMPLETE')).to be < log.index('CARD-OUTPUT-BEGIN')
+  end
+end
+
+fixture 'Supported Card Contents' do
+  file '24-supported-card-contents.tex'
+
+  test 'Both APIs preserve text, paragraphs, formatting, lists, and tables in card order.' do
+    expect(generated_pdf.pages.count).to eq(8)
+
+    expected_titles = ['Environment without reference', 'Command with reference',
+                       'Command without reference', 'Environment with reference']
+    expected_references = [nil, 'Ref 123', nil, 'Ref 456']
+    expected_markers = ['TEXT INTRODUCTION', 'SECOND PARAGRAPH', 'BOLD CONTENT MARKER',
+                        'LIST ITEM ALPHA', 'LIST ITEM BRAVO', 'TABLE LEFT', 'TABLE RIGHT',
+                        'IMAGE-LEFT', 'IMAGE-RIGHT', 'CONTENT FINISH']
+    front_indices = [0, 2, 4, 6]
+
+    front_indices.each_with_index do |page_index, card_index|
+      front = generated_pdf.pages[page_index]
+      back = generated_pdf.pages[page_index + 1]
+      lines = front.text_lines
+      text = lines.map(&:text).join(' ')
+      normalized_text = text.gsub(/\s+/, '')
+
+      expect(normalized_text).to include(expected_titles[card_index].gsub(/\s+/, ''))
+      if expected_references[card_index]
+        expect(normalized_text).to include(expected_references[card_index].gsub(/\s+/, ''))
+      else
+        expect(normalized_text).not_to include('Ref123', 'Ref456')
+      end
+      expected_markers.each { |marker| expect(normalized_text).to include(marker.gsub(/\s+/, '')) }
+      expect(expected_markers.map { |marker| normalized_text.index(marker.gsub(/\s+/, '')) })
+        .to eq(expected_markers.map { |marker| normalized_text.index(marker.gsub(/\s+/, '')) }.sort)
+      expect(back.text_lines).to be_empty
+
+      lines.drop(1).each do |line|
+        boundary = front.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+        expect(boundary).to be_within(EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE)
+      end
+    end
+
+    baseline_lines = generated_pdf.pages[0].text_lines.drop(1)
+    front_indices.drop(1).each do |page_index|
+      lines = generated_pdf.pages[page_index].text_lines.drop(1)
+      expect(lines.map(&:text)).to eq(baseline_lines.map(&:text))
+      lines.zip(baseline_lines).each do |line, baseline_line|
+        boundary = generated_pdf.pages[page_index].convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+        baseline_boundary = generated_pdf.pages[0].convert_unit(baseline_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+        %i[left top right bottom].each do |edge|
+          expect(boundary[edge]).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(baseline_boundary[edge])
+        end
+      end
+    end
+  end
+
+  test 'The included PDF image is placed in the card body with its visible width reflected between text markers.' do
+    page = generated_pdf.pages[0]
+    xobjects = page.resources[:XObject]
+    expect(xobjects).not_to be_nil
+    expect(xobjects.to_hash.values.any? { |object| object[:Subtype] == :Form }).to be(true)
+
+    image_line = page.text_lines.find do |line|
+      line.text.include?('IMAGE-LEFT') && line.text.include?('IMAGE-RIGHT')
+    end
+    expect(image_line).not_to be_nil
+    return if image_line.nil?
+
+    boundary = page.convert_unit(image_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(boundary.width).to be > 50.0
+  end
+end
+
+fixture 'Saved Verbatim Workaround' do
+  file '25-saved-verbatim-workaround.tex'
+
+  test 'Saved fancyvrb content with special characters renders between surrounding card text.' do
+    expect(generated_pdf.pages.count).to eq(2)
+
+    text = generated_pdf.pages[0].text_lines.map(&:text).join.gsub(/\s+/, '')
+    expect(text).to include('BEFORE-SAVED-VERBATIM', 'saved_a_b%{}\\#$&_^~', 'secondline', 'AFTER-SAVED-VERBATIM')
+  end
+end
+
 fixture 'Debug Frame Equivalence' do
   file '05-debug-frame-equivalence.tex'
 

@@ -2,14 +2,14 @@
 
 ← [pnpcards Index](index.md)
 
-Alle Tickets liegen in `tex/latex/pnpcards/Tickets/`.
+Die Ticketdateien liegen in `tex/latex/pnpcards/Tickets/`.
 
 ## Übersicht
 
 | Nr | Datei | Ziel | Abhängigkeit |
 |---|---|---|---|
-| 05 | `05-karteninhalt-sammeln.md` | `card`-Environment, Inhalt sammeln, Vorderseite rendern | — |
-| 06 | `06-titel-referenz-und-leere-rueckseite.md` | Titel- und Referenzbereich, leere Rückseite | 05 |
+| 05 | — (abgeschlossen) | `card`-Environment, Inhalt sammeln, Vorderseite rendern | — |
+| 06 | `06-titel-referenz-und-leere-rueckseite.md` | Titel- und Referenzbereich, leere Rückseite | 05 (abgeschlossen) |
 | 07 | `07-natuerlicher-ueberlauf.md` | Automatischer Überlauf Vorderseite → Rückseite | 06 |
 | 08 | `08-expliziter-seitenwechsel.md` | `\newpage` innerhalb einer Karte | 07 |
 | 09 | `09-seitenlimit-und-fehlermeldungen.md` | Fehler bei >2 Seiten | 08 |
@@ -21,16 +21,17 @@ Alle Tickets liegen in `tex/latex/pnpcards/Tickets/`.
 
 ## Ticket-Details
 
-### Ticket 05 – Karteninhalt sammeln
+### Ticket 05 – Karteninhalt sammeln (abgeschlossen)
 - `card`-Environment mit `[Referenz]` (optional) vor `{Titel}`
-- Inhalt sammeln, erst am Ende ausgeben
-- Fixture mit beiden Syntaxformen
-- Referenz wird in diesem historischen Sammelschritt erfasst, aber noch nicht gedruckt
+- Body direkt in einer offenen `\vbox` sammeln und erst nach vollständigem Einlesen ausgeben
+- beide Syntaxformen und die zugesagten Inhaltsarten sind automatisiert geprüft
+- Inline-`\verb` ist im Environment geprüft; rohes Verbatim im tokenisierten `\Card`-Argument ist nicht zugesagt
+- die alte Aussage, die Referenz werde noch nicht gedruckt, ist überholt; siehe Ticket 06
 
-### Ticket 06 – Titel, Referenz, leere Rückseite
+### Ticket 06 – Titel, Referenz, leere Rückseite (offen)
 - Titel in Titelbereich
 - Karte ohne Überlauf → 2 PDF-Seiten (Vorderseite + leere Rückseite)
-- Fixture mit 2 aufeinanderfolgenden Karten
+- Fixtures prüfen beide APIs, Referenzzuordnung und -geometrie, aufeinanderfolgende Karten sowie leere Rückseiten
 - Optionaler Referenzbereich 15 × 15 mm mit 2 mm Abstand, nur auf der eigenen Vorderseite; ein bis zwei Zeilen mit 9 pt/11 pt und eigenem Debug-Rahmen
 
 ### Ticket 07 – Natürlicher Überlauf

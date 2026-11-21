@@ -1,0 +1,18 @@
+\documentclass{pnpcards}
+
+\makeatletter
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \typeout{CARD-OUTPUT-BEGIN}%
+    \OriginalPrintFront{#1}{#2}%
+}
+\makeatother
+
+\begin{document}
+
+\begin{card}{Inline verbatim}
+BEFOREMARKER \verb|a_b%{}\#$&_^~| AFTERMARKER
+\typeout{CARD-BODY-COMPLETE}
+\end{card}
+
+\end{document}

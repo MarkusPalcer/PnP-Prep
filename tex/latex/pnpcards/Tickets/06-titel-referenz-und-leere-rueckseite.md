@@ -24,7 +24,7 @@ Die optionale Referenz steht vor dem Titel: `\begin{card}[Referenz]{Titel} … \
 
 ## Fixture
 
-Ein `.tex`-Fixture mit zwei aufeinanderfolgenden Karten ohne Referenz. `% Expected Output` beschreibt alle vier Seiten. Manuelle Abnahme.
+Fixtures prüfen beide APIs mit und ohne Referenz, Referenzzuordnung über aufeinanderfolgende Karten, Vorder-/Rückseiten, Referenz- und Titelgrenzen sowie Debug-Rahmen. Die Referenz-Fixtures decken ein- und zweizeilige Referenzen, den Mindesttext `WdZ. 567` sowie gezielte Überlauffehler automatisiert ab.
 
 ## Nicht Bestandteil
 

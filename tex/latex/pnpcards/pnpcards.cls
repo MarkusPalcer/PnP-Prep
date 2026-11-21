@@ -260,19 +260,21 @@
 % Usage: \begin{card}[Referenz]{Titel} ... \end{card}
 %   #1 (optional) = short reference shown top-right on the front (e.g. "WdZ 102")
 %   #2            = card title
-% The body is collected in full before rendering begins.
+% The body is typeset in an open box; rendering begins after it is fully read.
 % \newpage inside the body is treated as an explicit page break to the back side.
-\NewDocumentEnvironment{card}{+O{} m +b}{%
+\NewDocumentEnvironment{card}{+O{} m}{%
     \begingroup
         \pnpcards@SetReference{#1}%
+        \def\pnpcards@cardtitle{#2}%
         \setlength{\pnpcards@cardtextwidth}{\textwidth}%
-        \setbox\pnpcards@cardcontent=\vbox{%
+        \setbox\pnpcards@cardcontent=\vbox\bgroup
             \hsize=\pnpcards@cardtextwidth
             \parindent=0pt
             \parskip=0pt
             \let\newpage\pnpcards@CardExplicitBreak
-            #3\par
-        }%
+}{%
+        \par
+        \egroup
         \setbox\pnpcards@frontcontent=\vsplit\pnpcards@cardcontent to \pnpcards@frontbodyheight
         \edef\pnpcards@actualbreak{\splitbotmark}%
         \def\pnpcards@expectedbreak{EXPLICIT-CARD-BREAK}%
@@ -281,7 +283,7 @@
         \ifx\pnpcards@actualbreak\pnpcards@expectedbreak
             \pnpcards@explicitbreaktrue
         \fi
-        \pnpcards@PrintFront{#2}{\pnpcards@frontcontent}%
+        \pnpcards@PrintFront{\pnpcards@cardtitle}{\pnpcards@frontcontent}%
         \ifpnpcards@explicitbreak
             % Explicit \newpage: back side holds the content after the break.
             % The remainder box may be void if \newpage was the last thing.

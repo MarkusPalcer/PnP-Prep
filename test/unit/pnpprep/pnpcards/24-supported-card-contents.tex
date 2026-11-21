@@ -1,0 +1,35 @@
+\documentclass{pnpcards}
+\usepackage{graphicx}
+
+\newcommand{\SupportedCardContent}{%
+TEXT INTRODUCTION\par
+SECOND PARAGRAPH\par
+\textbf{BOLD CONTENT MARKER}\par
+\begin{itemize}
+    \item LIST ITEM ALPHA
+    \item LIST ITEM BRAVO
+\end{itemize}
+\begin{tabular}{|l|l|}
+    \hline
+    TABLE LEFT & TABLE RIGHT \\
+    \hline
+\end{tabular}\par
+IMAGE-LEFT\hspace{2mm}\includegraphics[width=20mm,height=12mm]{example-image-a}\hspace{2mm}IMAGE-RIGHT\par
+CONTENT FINISH
+}
+
+\begin{document}
+
+\begin{card}{Environment without reference}
+    \SupportedCardContent
+\end{card}
+
+\Card[Ref 123]{Command with reference}{\SupportedCardContent}
+
+\Card{Command without reference}{\SupportedCardContent}
+
+\begin{card}[Ref 456]{Environment with reference}
+    \SupportedCardContent
+\end{card}
+
+\end{document}

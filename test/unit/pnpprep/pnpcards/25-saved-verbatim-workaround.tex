@@ -1,0 +1,17 @@
+\documentclass{pnpcards}
+\usepackage{fancyvrb}
+
+\begin{SaveVerbatim}{SavedCardContent}
+saved_a_b%{}\#$&_^~
+second line
+\end{SaveVerbatim}
+
+\begin{document}
+
+\begin{card}{Saved verbatim workaround}
+BEFORE-SAVED-VERBATIM
+\UseVerbatim{SavedCardContent}
+AFTER-SAVED-VERBATIM
+\end{card}
+
+\end{document}

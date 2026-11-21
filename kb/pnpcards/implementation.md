@@ -8,8 +8,8 @@
 
 | Befehl / Umgebung | Beschreibung |
 |---|---|
-| `\begin{card}[Referenz]{Titel} ... \end{card}` | Öffentlich – sammelt den Inhalt und rendert eine Karte; Referenz optional |
-| `\Card[Referenz]{Titel}{Inhalt}` | Öffentliche Kurzform, die an die `card`-Umgebung delegiert; Referenz optional |
+| `\begin{card}[Referenz]{Titel} ... \end{card}` | Öffentlich – setzt den Body beim Einlesen direkt in eine Box und rendert nach `\end{card}`; Referenz optional |
+| `\Card[Referenz]{Titel}{Inhalt}` | Öffentliche Kurzform, die an die `card`-Umgebung delegiert; das Inhaltsargument wird vorher tokenisiert |
 | `\EnableCardDebugFrames` | Zeigt farbige Rahmen: Titel rot, Referenz magenta, Vorderseiteninhalt blau, Rückseiteninhalt grün |
 
 ### Interne Helfer
@@ -35,7 +35,7 @@
 
 ### Kernmechanismus (`card`-Umgebung)
 
-1. Argumente und Inhalt werden gesammelt, Referenzzustand wird lokal bestimmt; Inhalt wird in `\pnpcards@cardcontent` als `\vbox` gesetzt
+1. `card` sichert Titel und Referenz lokal und liest den Body direkt in eine offene `\vbox` (`\pnpcards@cardcontent`); erst nach dem vollständigen Body beginnt die Kartenausgabe. `\Card` delegiert, sein Inhaltsargument wird davor normal tokenisiert.
 2. `\vsplit` teilt bei `\pnpcards@frontbodyheight` → `\pnpcards@frontcontent`
 3. `\splitbotmark` prüft ob ein expliziter Break (`EXPLICIT-CARD-BREAK`) vorlag
 4. Vorderseite wird gedruckt
@@ -46,12 +46,14 @@
 
 - Referenzen verwenden 9 pt mit 11 pt Zeilenabstand; mehr als zwei Zeilen oder Überlauf sind Fehler.
 - Titel werden derzeit nicht automatisch verkleinert: Überlauf verursacht einen Fehler. Die Anpassung auf 10 bis 7 pt bleibt in Ticket 11 offen.
+- Text, Absätze, Formatierung, Listen, Tabellen und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` ist im Environment geprüft, nicht allgemein im `\Card`-Inhaltsargument.
+- `fancyvrb` mit `\SaveVerbatim`/`\UseVerbatim` ist als Verbatim-Workaround positiv geprüft. Floats, Fußnoten und Randnotizen erhalten keine Unterstützungsgarantie.
 
 ### Ticket-Status
 
 | Ticket | Thema | Status |
 |---|---|---|
-| 05 | Karteninhalt sammeln | Offen |
+| 05 | Karteninhalt sammeln | **Fertig** |
 | 06 | Titel, Referenz, leere Rückseite | Offen |
 | 07 | Natürlicher Überlauf | Offen |
 | 08 | Expliziter Seitenwechsel | **Fertig** |

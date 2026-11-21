@@ -40,6 +40,8 @@
 
 Der Referenzbereich erscheint nur für eine nicht leere Referenz auf der eigenen Vorderseite und hat im Debug-Modus einen eigenen Rahmen. Die Referenz wird mit 9 pt und 11 pt Zeilenabstand auf höchstens zwei Zeilen gesetzt; explizites `\linebreak` und automatischer Umbruch sind möglich. Nicht passende Referenzen werden abgewiesen. Titel werden vorläufig einzeilig und unverkleinert gesetzt und bei Überlauf abgewiesen; automatische Anpassung ist in Ticket 11 offen.
 
+Der Body des `card`-Environments wird beim Einlesen direkt in eine offene `\vbox` gesetzt und erst nach vollständigem Einlesen geteilt und ausgegeben. Text, Absätze, Formatierung, Listen, `tabular` und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` ist im Environment getestet; die Kurzform `\Card` tokenisiert ihr Inhaltsargument vorher und verspricht dafür kein rohes `\verb`. `fancyvrb`-gespeicherter Verbatim-Inhalt ist als Workaround geprüft. Floats, Fußnoten und Randnotizen erhalten keine Unterstützungsgarantie.
+
 ## Entscheidung: Implementierungsvariante
 
 Drei Varianten wurden verglichen (→ `Planung.md`):
