@@ -2,6 +2,7 @@
 
 ## Knowledge Base
 
+- Keep a hemmingway-bridge at `.junie/bridge.md` and keep it up to date. 
 - At the start of every task, read `kb/index.md` and use it as the project's
   knowledge-base entry point.
 - Before changing project files or answering project-specific questions, read

@@ -6,13 +6,16 @@
 \renewcommand{\pnpcards@PrintFront}[2]{%
     \OriginalPrintFront{#1}{#2}%
     \typeout{TITLE-MEASURED:\the\wd\pnpcards@titlebox}%
+    \typeout{TITLE-HEIGHT-MEASURED:\the\dimexpr\ht\pnpcards@titlebox+\dp\pnpcards@titlebox\relax}%
+    \typeout{TITLE-AVAILABLE-WIDTH:\the\pnpcards@titleavailablewidth}%
+    \typeout{TITLE-AVAILABLE-HEIGHT:\the\pnpcards@titleheight}%
 }
 \makeatother
 \begin{document}
-\sbox{\TitleControl}{\textbf{Control Title}}
+\sbox{\TitleControl}{\textbf{Title}}
 \typeout{TITLE-CONTROL:\the\wd\TitleControl}
-\Card{\TitleFontDiagnostic Control Title}{Body}
-\Card[Ref]{\TitleFontDiagnostic Control Title}{Body}
+\Card{\TitleFontDiagnostic Title}{Body}
+\Card[Ref]{\TitleFontDiagnostic Title}{Body}
 \Card{\makebox[137.9mm][l]{Full width title}}{Body}
 \EnableCardDebugFrames
 \Card[Ref]{\makebox[120.9mm][l]{Narrow title}}{Body}

@@ -8,6 +8,7 @@
 \LoadClass{article}
 \RequirePackage[a6paper,landscape,margin=5mm,noheadfoot]{geometry}
 \RequirePackage{environ}
+\RequirePackage{graphicx}
 \RequirePackage{xcolor}
 
 \pagestyle{empty}
@@ -19,6 +20,8 @@
 \newlength{\pnpcards@contentwidth}
 \newlength{\pnpcards@cardtextwidth}
 \newlength{\pnpcards@titleheight}
+\newdimen\pnpcards@titleavailablewidth
+\newdimen\pnpcards@titleboxheight
 \newlength{\pnpcards@frontgap}
 \newlength{\pnpcards@referencewidth}
 \newlength{\pnpcards@titlewithreferencewidth}
@@ -56,16 +59,95 @@
 \newbox\pnpcards@referenceline
 \newbox\pnpcards@referenceinspection
 \newbox\pnpcards@titlebox
+\newbox\pnpcards@minimumtitlebox
 \newif\ifpnpcards@referencewide
 \newif\ifpnpcards@hasreference
+\newif\ifpnpcards@titleminimumwidthfailure
+\newif\ifpnpcards@titleminimumheightfailure
 \def\pnpcards@reference{}
 
 \ExplSyntaxOn
+\fp_new:N \l_pnpcards_title_width_scale_fp
+\fp_new:N \l_pnpcards_title_height_scale_fp
+\fp_new:N \l_pnpcards_title_scale_fp
+\bool_new:N \l_pnpcards_title_overflow_bool
+
 \cs_new_protected:Npn \pnpcards@IfBlank #1#2#3
     {
         \tl_set:Nn \l_tmpa_tl {#1}
         \tl_remove_all:Nn \l_tmpa_tl {\relax}
         \tl_if_blank:VTF \l_tmpa_tl {#2} {#3}
+    }
+
+\cs_new_protected:Npn \pnpcards@ScaleTitleBox
+    {
+        \pnpcards@titleboxheight=\dimexpr
+            \ht\pnpcards@titlebox+\dp\pnpcards@titlebox
+        \relax
+        \pnpcards@CheckTitleMinimum
+        \fp_set:Nn \l_pnpcards_title_width_scale_fp { 1000000000 }
+        \fp_set:Nn \l_pnpcards_title_height_scale_fp { 1000000000 }
+        \dim_compare:nNnT { \wd\pnpcards@titlebox } > { 0pt }
+            {
+                \fp_set:Nn \l_pnpcards_title_width_scale_fp
+                    {
+                        \dim_to_fp:n { \pnpcards@titleavailablewidth }
+                        / \dim_to_fp:n { \wd\pnpcards@titlebox }
+                    }
+            }
+        \dim_compare:nNnT { \pnpcards@titleboxheight } > { 0pt }
+            {
+                \fp_set:Nn \l_pnpcards_title_height_scale_fp
+                    {
+                        \dim_to_fp:n { \pnpcards@titleheight }
+                        / \dim_to_fp:n { \pnpcards@titleboxheight }
+                    }
+            }
+        \dim_compare:nNnTF { \wd\pnpcards@titlebox } = { 0pt }
+            {
+                \dim_compare:nNnTF { \pnpcards@titleboxheight } = { 0pt }
+                    { \fp_set:Nn \l_pnpcards_title_scale_fp { 1 } }
+                    { \fp_set_eq:NN \l_pnpcards_title_scale_fp \l_pnpcards_title_height_scale_fp }
+            }
+            {
+                \fp_set:Nn \l_pnpcards_title_scale_fp
+                    {
+                        \fp_min:nn
+                            { \l_pnpcards_title_width_scale_fp }
+                            { \l_pnpcards_title_height_scale_fp }
+                    }
+            }
+        \bool_set_true:N \l_pnpcards_title_overflow_bool
+        \bool_while_do:Nn \l_pnpcards_title_overflow_bool
+            {
+                \edef\pnpcards@titlescalefactor
+                    { \fp_eval:n { round(\l_pnpcards_title_scale_fp, 10) } }
+                \fp_compare:nNnTF { \l_pnpcards_title_scale_fp } > { 16000 }
+                    {
+                        \edef\pnpcards@titleouterfactor
+                            { \fp_eval:n { round(\l_pnpcards_title_scale_fp / 4096, 10) } }
+                        \setbox\pnpcards@minimumtitlebox=\hbox{%
+                            \scalebox{\pnpcards@titleouterfactor}{%
+                                \scalebox{4096}{\copy\pnpcards@titlebox}%
+                            }%
+                        }%
+                    }
+                    {
+                        \setbox\pnpcards@minimumtitlebox=\hbox{%
+                            \scalebox{\pnpcards@titlescalefactor}{\copy\pnpcards@titlebox}%
+                        }%
+                    }
+                \bool_set_false:N \l_pnpcards_title_overflow_bool
+                \dim_compare:nNnT { \wd\pnpcards@minimumtitlebox } > { \pnpcards@titleavailablewidth }
+                    { \bool_set_true:N \l_pnpcards_title_overflow_bool }
+                \dim_compare:nNnT
+                    { \ht\pnpcards@minimumtitlebox + \dp\pnpcards@minimumtitlebox }
+                    > { \pnpcards@titleheight }
+                    { \bool_set_true:N \l_pnpcards_title_overflow_bool }
+                \bool_if:NT \l_pnpcards_title_overflow_bool
+                    { \fp_sub:Nn \l_pnpcards_title_scale_fp { 1 / 65536 } }
+            }
+        \setbox\pnpcards@titlebox=\box\pnpcards@minimumtitlebox
     }
 \ExplSyntaxOff
 
@@ -98,6 +180,41 @@
     \ifnum\badness>10000
         \pnpcards@PageLimitError
     \fi
+}
+
+\newcommand{\pnpcards@TitleMinimumError}[1]{%
+    \PackageError{pnpcards}%
+        {Card \the\pnpcards@cardindex: Title requires less than 7 pt\MessageBreak
+         Cause: #1}%
+        {Shorten the title or reduce its height so it fits at 7 pt or larger.}%
+}
+
+\newcommand{\pnpcards@CheckTitleMinimum}{%
+    \pnpcards@titleminimumwidthfailurefalse
+    \pnpcards@titleminimumheightfailurefalse
+    \setbox\pnpcards@minimumtitlebox=\hbox{%
+        \scalebox{0.7}{\copy\pnpcards@titlebox}%
+    }%
+    \ifdim\wd\pnpcards@titlebox>0pt
+        \ifdim\wd\pnpcards@minimumtitlebox>\dimexpr\pnpcards@titleavailablewidth+1sp\relax
+            \pnpcards@titleminimumwidthfailuretrue
+        \fi
+    \fi
+    \ifdim\pnpcards@titleboxheight>0pt
+        \ifdim\dimexpr\ht\pnpcards@minimumtitlebox+\dp\pnpcards@minimumtitlebox\relax
+            >\dimexpr\pnpcards@titleheight+1sp\relax
+            \pnpcards@titleminimumheightfailuretrue
+        \fi
+    \fi
+    \ifpnpcards@titleminimumwidthfailure
+        \ifpnpcards@titleminimumheightfailure
+            \pnpcards@TitleMinimumError{horizontally and vertically}
+        \else
+            \pnpcards@TitleMinimumError{horizontally}
+        \fi
+    \else\ifpnpcards@titleminimumheightfailure
+        \pnpcards@TitleMinimumError{vertically}
+    \fi\fi
 }
 
 \newcommand{\pnpcards@FrameBox}[1]{%
@@ -209,23 +326,15 @@
 }
 
 \newcommand{\pnpcards@PrepareTitle}[1]{%
-    \setbox\pnpcards@titlebox=\hbox{\textbf{#1}}%
+    \setbox\pnpcards@titlebox=\hbox{%
+        \fontsize{10pt}{12pt}\selectfont\bfseries #1%
+    }%
     \ifpnpcards@hasreference
-        \dimen@=\pnpcards@titlewithreferencewidth
+        \pnpcards@titleavailablewidth=\pnpcards@titlewithreferencewidth
     \else
-        \dimen@=\pnpcards@contentwidth
+        \pnpcards@titleavailablewidth=\pnpcards@contentwidth
     \fi
-    \ifdim\wd\pnpcards@titlebox>\dimen@
-        \PackageError{pnpcards}%
-            {Title does not fit horizontally}%
-            {Shorten the title to fit within the available title area.}%
-    \fi
-    \dimen@=\dimexpr\ht\pnpcards@titlebox+\dp\pnpcards@titlebox\relax
-    \ifdim\dimen@>\pnpcards@titleheight
-        \PackageError{pnpcards}%
-            {Title does not fit vertically}%
-            {Reduce the title height to fit within 15 mm.}%
-    \fi
+    \pnpcards@ScaleTitleBox
 }
 
 \newcommand{\pnpcards@PrintFront}[2]{%
@@ -239,7 +348,7 @@
         \hbox to \textwidth{%
             \ifpnpcards@hasreference
                 \pnpcards@Area{\pnpcards@titlewithreferencewidth}{\pnpcards@titleheight}{c}{red!75!black}{%
-                    \copy\pnpcards@titlebox
+                    \vbox to \pnpcards@titleheight{\vfil\hbox{\copy\pnpcards@titlebox}\vfil}%
                 }%
                 \hskip\pnpcards@frontgap
                 \pnpcards@Area{\pnpcards@referencewidth}{\pnpcards@titleheight}{c}{magenta!75!black}{%
@@ -247,7 +356,7 @@
                 }%
             \else
                 \pnpcards@Area{\pnpcards@contentwidth}{\pnpcards@titleheight}{c}{red!75!black}{%
-                    \copy\pnpcards@titlebox
+                    \vbox to \pnpcards@titleheight{\vfil\hbox{\copy\pnpcards@titlebox}\vfil}%
                 }%
             \fi
         }%

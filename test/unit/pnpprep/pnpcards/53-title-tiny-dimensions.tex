@@ -1,0 +1,19 @@
+\documentclass{pnpcards}
+\makeatletter
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \OriginalPrintFront{#1}{#2}%
+    \typeout{TINY-TITLE-WIDTH-\the\pnpcards@cardindex:\the\wd\pnpcards@titlebox}%
+    \typeout{TINY-TITLE-HEIGHT-\the\pnpcards@cardindex:\the\dimexpr\ht\pnpcards@titlebox+\dp\pnpcards@titlebox\relax}%
+    \ifdim\wd\pnpcards@titlebox>\pnpcards@titleavailablewidth
+        \PackageError{title-test}{Tiny title exceeds width}{}%
+    \fi
+    \ifdim\dimexpr\ht\pnpcards@titlebox+\dp\pnpcards@titlebox\relax>\pnpcards@titleheight
+        \PackageError{title-test}{Tiny title exceeds height}{}%
+    \fi
+}
+\makeatother
+\begin{document}
+\Card{\rule{1sp}{0pt}}{Body}
+\Card{\rule{0pt}{1sp}}{Body}
+\end{document}

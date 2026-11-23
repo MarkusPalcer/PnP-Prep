@@ -44,7 +44,7 @@ CONTENT_COLOR = [0, 0, 0.75].freeze
 CONTINUATION_COLOR = [0, 0.5, 0].freeze
 REFERENCE_COLOR = [0, 0.75, 0, 0.25].freeze
 
-RASTERIZED_PAGE_HAS_NONWHITE_PIXELS = lambda do |pdf_path, page_number|
+RASTERIZED_PAGE_HAS_NONWHITE_PIXELS = lambda do |pdf_path, page_number, forbidden_title_width: nil|
   Dir.mktmpdir('pnpcards-raster-') do |directory|
     image_path = File.join(directory, 'page.ppm')
     _stdout, stderr, status = Open3.capture3(
@@ -94,7 +94,23 @@ RASTERIZED_PAGE_HAS_NONWHITE_PIXELS = lambda do |pdf_path, page_number|
       raise "Ghostscript produced an incomplete PPM raster for PDF page #{page_number}"
     end
 
-    pixels.each_byte.any? { |channel| channel < 255 }
+    if forbidden_title_width
+      width = header_tokens[1].to_i
+      points_per_mm = 300.0 / 25.4
+      (0...(21.8 * points_per_mm).floor).any? do |y|
+        (0...width).any? do |x|
+          x_mm = (x + 0.5) / points_per_mm
+          y_mm = (y + 0.5) / points_per_mm
+          forbidden = y_mm < 4.8 || x_mm < 4.8 ||
+                      (y_mm > 20.2 && x_mm < 5.0 + forbidden_title_width) ||
+                      (forbidden_title_width == 121.0 && x_mm > 126.2 && x_mm < 127.8)
+          offset = 3 * (y * width + x)
+          forbidden && pixels.getbyte(offset) < 70 && pixels.getbyte(offset + 1) < 70 && pixels.getbyte(offset + 2) < 70
+        end
+      end
+    else
+      pixels.each_byte.any? { |channel| channel < 255 }
+    end
   end
 end
 
@@ -104,6 +120,74 @@ EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY = LatexTesting::Boundary.new(
   width: 121.0,
   height: 15.0
 ).freeze
+PDF_TEST_TEXT_LINE = Struct.new(:text, :boundary)
+PDF_TEXT_IN_DRAW_ORDER = lambda do |page|
+  processor = HexaPDF::Content::SmartTextExtractor::TextRunProcessor.new
+  page.process_contents(processor)
+  processor.text_runs.map(&:string).join.gsub(/\s+/, '')
+end
+PDF_BODY_LINES = lambda do |page, first_marker|
+  page.text_lines
+  processor = HexaPDF::Content::SmartTextExtractor::TextRunProcessor.new
+  page.process_contents(processor)
+  runs = processor.text_runs.reject { |run| run.string.empty? }
+  start = runs.each_index.find do |index|
+    runs[index..].map(&:string).join.gsub(/\s+/, '').start_with?(first_marker)
+  end
+  raise "Missing body marker #{first_marker}" unless start
+
+  LatexTesting::Assertion::Execution::PDFExecution::TextLineExtractor.new(page).send(:build_lines, runs[start..])
+end
+TITLE_TEXT_BOUNDARY_TOLERANCE = LAYOUT_BOUNDARY_TOLERANCE # Millimeters
+TITLE_TEXT_BOUNDARY_WITH_TOLERANCE = lambda do |boundary|
+  LatexTesting::Boundary.new(
+    left: boundary.left - TITLE_TEXT_BOUNDARY_TOLERANCE,
+    top: boundary.top - TITLE_TEXT_BOUNDARY_TOLERANCE,
+    right: boundary.right + TITLE_TEXT_BOUNDARY_TOLERANCE,
+    bottom: boundary.bottom + TITLE_TEXT_BOUNDARY_TOLERANCE
+  ).freeze
+end
+PDF_TEXT_LINE_IN_AREA = lambda do |page, expected_text, left_mm:, right_mm:, top_mm:, bottom_mm:|
+  processor = HexaPDF::Content::SmartTextExtractor::TextRunProcessor.new
+  page.process_contents(processor)
+  media_box = page.box(:media)
+  points_per_mm = 72.0 / 25.4
+  left = left_mm * points_per_mm - 0.01
+  right = right_mm * points_per_mm + 0.01
+  top = media_box.top - top_mm * points_per_mm
+  bottom = media_box.top - bottom_mm * points_per_mm
+  candidates = processor.text_runs.select do |run|
+    run.left >= left && run.left < right && run.baseline <= top && run.baseline >= bottom
+  end
+  runs = nil
+  candidates.each_index do |index|
+    line = []
+    text = ''
+    candidates[index..].each do |run|
+      break unless line.empty? || (run.baseline - line.first.baseline).abs < 0.01
+
+      line << run
+      text += run.string
+      break unless expected_text.start_with?(text)
+      if text == expected_text
+        runs = line
+        break
+      end
+    end
+    break if runs
+  end
+  return nil unless runs
+
+  PDF_TEST_TEXT_LINE.new(
+    text: expected_text,
+    boundary: LatexTesting::Boundary.new(
+      left: runs.map(&:left).min - media_box.left,
+      top: media_box.top - runs.map(&:top).max,
+      right: runs.map(&:right).max - media_box.left,
+      bottom: media_box.top - runs.map(&:bottom).min
+    )
+  )
+end
 EXPECTED_REFERENCE_BOUNDARY = LatexTesting::Boundary.new(
   left: EXPECTED_PAGE_BORDER + EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.width + EXPECTED_AREA_MARGIN,
   top: EXPECTED_PAGE_BORDER,
@@ -123,7 +207,7 @@ fixture 'Page Splitting' do
   end
 
   test 'Page 1 contains the short-content title and its content.' do
-    expect(generated_pdf.pages[0].text_lines.map(&:text)).to eq(['Short content', 'SHORTCONTENTFITSONFRONT'])
+    expect(PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[0])).to eq('ShortcontentSHORTCONTENTFITSONFRONT')
   end
 
   test 'Page 2 is a blank back page.' do
@@ -197,8 +281,7 @@ fixture 'A6 Geometry' do
     title_lines = page.text_lines.select { |line| line.text == 'A6 geometry' }
     expect(title_lines.count).to eq(1)
 
-    boundary = page.convert_unit(title_lines.first.boundary, LatexTesting::TargetUnit::MILLIMETERS)
-    expect(boundary).to be_within(EXPECTED_TITLE_BOUNDARY_WITH_TOLERANCE)
+    expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, 5, forbidden_title_width: 138.0)).to be(false)
   end
 
   test 'All front content lines are within the page 1 content boundary.' do
@@ -465,9 +548,8 @@ fixture 'Card Environment' do
   test('The PDF has four pages.') { expect(generated_pdf.pages.count).to eq(4) }
 
   test 'Card one front contains its title and both content markers only.' do
-    lines = generated_pdf.pages[0].text_lines
-    text = lines.map(&:text).join(' ')
-    expect(lines.map(&:text)).to include('Card One')
+    text = PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[0])
+    expect(text).to include('CardOne')
     expect(text).to include('CARDONEFIRSTMARKER', 'CARDONESECONDMARKER')
     expect(text).not_to include('CARDTWOFIRSTMARKER', 'CARDTWOSECONDMARKER')
   end
@@ -477,9 +559,8 @@ fixture 'Card Environment' do
   end
 
   test 'Card two front contains its title and both content markers only.' do
-    lines = generated_pdf.pages[2].text_lines
-    text = lines.map(&:text).join(' ')
-    expect(lines.map(&:text)).to include('Card Two')
+    text = PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[2])
+    expect(text).to include('CardTwo')
     expect(text).to include('CARDTWOFIRSTMARKER', 'CARDTWOSECONDMARKER')
     expect(text).not_to include('CARDONEFIRSTMARKER', 'CARDONESECONDMARKER')
   end
@@ -525,9 +606,8 @@ fixture 'Supported Card Contents' do
     front_indices.each_with_index do |page_index, card_index|
       front = generated_pdf.pages[page_index]
       back = generated_pdf.pages[page_index + 1]
-      lines = front.text_lines
-      text = lines.map(&:text).join(' ')
-      normalized_text = text.gsub(/\s+/, '')
+      lines = PDF_BODY_LINES.call(front, 'TEXTINTRODUCTION')
+      normalized_text = PDF_TEXT_IN_DRAW_ORDER.call(front)
 
       expect(normalized_text).to include(expected_titles[card_index].gsub(/\s+/, ''))
       if expected_references[card_index]
@@ -540,15 +620,15 @@ fixture 'Supported Card Contents' do
         .to eq(expected_markers.map { |marker| normalized_text.index(marker.gsub(/\s+/, '')) }.sort)
       expect(back.text_lines).to be_empty
 
-      lines.drop(1).each do |line|
+      lines.each do |line|
         boundary = front.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
         expect(boundary).to be_within(EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE)
       end
     end
 
-    baseline_lines = generated_pdf.pages[0].text_lines.drop(1)
+    baseline_lines = PDF_BODY_LINES.call(generated_pdf.pages[0], 'TEXTINTRODUCTION')
     front_indices.drop(1).each do |page_index|
-      lines = generated_pdf.pages[page_index].text_lines.drop(1)
+      lines = PDF_BODY_LINES.call(generated_pdf.pages[page_index], 'TEXTINTRODUCTION')
       expect(lines.map(&:text)).to eq(baseline_lines.map(&:text))
       lines.zip(baseline_lines).each do |line, baseline_line|
         boundary = generated_pdf.pages[page_index].convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
@@ -760,8 +840,8 @@ fixture 'Reference Rendering' do
   end
 
   test 'A nonempty title and its reference both appear on the same front.' do
-    lines = generated_pdf.pages[12].text_lines.map(&:text).join(' ')
-    expect(lines).to include('Title beside reference', 'Command', 'reference')
+    text = PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[12])
+    expect(text).to include('Titlebesidereference', 'Command', 'reference')
     expect(generated_pdf.pages[13].text_lines).to be_empty
   end
 
@@ -911,7 +991,7 @@ fixture 'Reference Card Sequence' do
     expected.each_with_index do |reference, index|
       front = generated_pdf.pages[index * 2]
       back = generated_pdf.pages[index * 2 + 1]
-      expect(front.text_lines.map(&:text).join.gsub(/\s+/, '')).to eq(titles[index] + reference.to_s + 'Body')
+      expect(PDF_TEXT_IN_DRAW_ORDER.call(front)).to eq(titles[index] + reference.to_s + 'Body')
       expect(front.frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(reference.nil? ? 0 : 1)
       expect(back.text_lines).to be_empty
       expect(back.frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(0)
@@ -945,7 +1025,7 @@ fixture 'Empty Cards' do
       expect(generated_pdf.pages[index + 1].text_lines).to be_empty
     end
     [[0, 'Before'], [10, 'After'], [12, 'Debugbefore'], [22, 'Debugafter']].each do |index, title|
-      expect(generated_pdf.pages[index].text_lines.map(&:text).join.gsub(/\s+/, '')).to eq(title + 'Body')
+      expect(PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[index])).to eq(title + 'Body')
       expect(generated_pdf.pages[index + 1].text_lines).to be_empty
     end
   end
@@ -954,16 +1034,34 @@ end
 fixture 'Title Boundaries' do
   file '18-title-boundaries.tex'
 
-  test 'Normal titles are one unchanged 10 pt bold line with or without a reference.' do
+  test 'Normal titles scale from one 10 pt bold line and are height-limited with or without a reference.' do
     expect(generated_pdf.pages.count).to eq(10)
     expect(log.scan('TITLE-FONT:10pt').size).to eq(2)
     control = log[/TITLE-CONTROL:([\d.]+pt)/, 1]
     measured = log.scan(/TITLE-MEASURED:([\d.]+pt)/).flatten
+    measured_heights = log.scan(/TITLE-HEIGHT-MEASURED:([\d.]+pt)/).flatten
+    available_widths = log.scan(/TITLE-AVAILABLE-WIDTH:([\d.]+pt)/).flatten
+    available_heights = log.scan(/TITLE-AVAILABLE-HEIGHT:([\d.]+pt)/).flatten
     expect(control).not_to be_nil
-    expect(measured.first(2)).to eq([control, control])
+    expect(measured.length).to eq(5)
+    expect(measured_heights.length).to eq(5)
+    expect(available_widths.length).to eq(5)
+    expect(available_heights.length).to eq(5)
+    expect(measured.first(2).map(&:to_f).first).to be > control.to_f
+    expect(measured.first(2).map(&:to_f).first).to be_within(0.01).of(measured[1].to_f)
+    measured_heights.first(2).each do |height|
+      expect(height.to_f).to be_within(0.05).of(available_heights.first.to_f)
+    end
+    [2, 3, 4].each do |index|
+      expect(measured[index].to_f).to be_within(0.05).of(available_widths[index].to_f)
+    end
     [0, 2].each do |index|
-      lines = generated_pdf.pages[index].text_lines
-      expect(lines.count { |line| line.text.include?('Control Title') }).to eq(1)
+      width = index.zero? ? 138.0 : 121.0
+      title = PDF_TEXT_LINE_IN_AREA.call(
+        generated_pdf.pages[index], 'Title', left_mm: 5.0, right_mm: 5.0 + width,
+        top_mm: 5.0, bottom_mm: 30.0
+      )
+      expect(title).not_to be_nil
       expect(generated_pdf.pages[index + 1].text_lines).to be_empty
     end
   end
@@ -996,28 +1094,378 @@ fixture 'Title Boundaries' do
   end
 end
 
-fixture 'Title Too Wide' do
+fixture 'Title Width Fitting' do
   file '19-title-too-wide.tex'
-  expect_compilation_failure
-  requires_log 'Package pnpcards Error: Title does not fit horizontally'
+
+  test 'A title 0.1 mm wider than its area is scaled to fit.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    title = PDF_TEXT_LINE_IN_AREA.call(
+      generated_pdf.pages[0], 'Toowide', left_mm: 5.0, right_mm: 143.0, top_mm: 5.0, bottom_mm: 21.0
+    )
+    expect(title).not_to be_nil
+    return if title.nil?
+
+    boundary = generated_pdf.pages[0].convert_unit(title.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(boundary).to be_within(TITLE_TEXT_BOUNDARY_WITH_TOLERANCE.call(EXPECTED_TITLE_BOUNDARY))
+    expect(generated_pdf.pages[1].text_lines).to be_empty
+  end
 end
 
-fixture 'Title Too Wide With Reference' do
+fixture 'Title Width Fitting With Reference' do
   file '20-title-too-wide-with-reference.tex'
-  expect_compilation_failure
-  requires_log 'Package pnpcards Error: Title does not fit horizontally'
+
+  test 'A referenced title 0.1 mm wider than its area stays separate from the reference.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    page = generated_pdf.pages[0]
+    title = PDF_TEXT_LINE_IN_AREA.call(
+      page, 'Onlywithoutreference', left_mm: 5.0, right_mm: 126.0, top_mm: 5.0, bottom_mm: 21.0
+    )
+    reference = PDF_TEXT_LINE_IN_AREA.call(page, 'Ref', left_mm: 128.0, right_mm: 143.0, top_mm: 5.0, bottom_mm: 21.0)
+    expect(title).not_to be_nil
+    expect(reference).not_to be_nil
+    return if title.nil? || reference.nil?
+
+    title_boundary = page.convert_unit(title.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    reference_boundary = page.convert_unit(reference.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(title_boundary.right).to be < reference_boundary.left
+    expect(page.text_lines.map(&:text).join.gsub(/\s+/, '')).to include('Onlywithoutreference', 'Ref')
+    expect(generated_pdf.pages[1].text_lines).to be_empty
+  end
 end
 
-fixture 'Title Too High' do
+fixture 'Title Height Fitting' do
   file '21-title-too-high.tex'
-  expect_compilation_failure
-  requires_log 'Package pnpcards Error: Title does not fit vertically'
+
+  test 'A title 0.1 mm higher than its area is scaled to fit.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, 1)).to be(true)
+    expect(generated_pdf.pages[1].text_lines).to be_empty
+  end
 end
 
-fixture 'Title Too High With Reference' do
+fixture 'Title Height Fitting With Reference' do
   file '22-title-too-high-with-reference.tex'
+
+  test 'A referenced title 0.1 mm higher than its area is scaled to fit.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    expect(generated_pdf.pages[0].text_lines.map(&:text).join.gsub(/\s+/, '')).to include('Ref')
+    expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, 1)).to be(true)
+    expect(generated_pdf.pages[1].text_lines).to be_empty
+  end
+end
+
+fixture 'Title Below Minimum With Reference Only' do
+  file '43-title-below-minimum-reference-only.tex'
   expect_compilation_failure
-  requires_log 'Package pnpcards Error: Title does not fit vertically'
+  requires_log 'Card 2'
+
+  test 'The error identifies the 7 pt minimum and the horizontal cause.' do
+    expect(log).to include('Title requires less than 7 pt', 'Cause: horizontally')
+  end
+end
+
+fixture 'Title Below Minimum Width' do
+  file '44-title-below-minimum-width.tex'
+  expect_compilation_failure
+
+  test 'The error identifies the 7 pt minimum and the horizontal cause.' do
+    expect(log).to include('Title requires less than 7 pt', 'Cause: horizontally')
+  end
+end
+
+fixture 'Title Below Minimum Width With Reference' do
+  file '45-title-below-minimum-width-with-reference.tex'
+  expect_compilation_failure
+
+  test 'The error identifies the 7 pt minimum and the horizontal cause.' do
+    expect(log).to include('Title requires less than 7 pt', 'Cause: horizontally')
+  end
+end
+
+fixture 'Title Below Minimum Height' do
+  file '46-title-below-minimum-height.tex'
+  expect_compilation_failure
+
+  test 'The error identifies the 7 pt minimum and the vertical cause.' do
+    expect(log).to include('Title requires less than 7 pt', 'Cause: vertically')
+  end
+end
+
+fixture 'Title Exact 10 pt' do
+  file '47-title-exact-10-pt.tex'
+
+  test 'A title exactly at the 10 pt horizontal boundary keeps its base size.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    page = generated_pdf.pages[0]
+    title = PDF_TEXT_LINE_IN_AREA.call(page, 'EXACTTEN', left_mm: 5.0, right_mm: 143.0, top_mm: 5.0, bottom_mm: 21.0)
+    body = page.text_lines.find { |line| line.text.gsub(/\s+/, '') == 'BODY' }
+    expect(title).not_to be_nil
+    expect(body).not_to be_nil
+    return if title.nil? || body.nil?
+
+    title_boundary = page.convert_unit(title.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    body_boundary = page.convert_unit(body.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(title_boundary.height).to be_within(0.01).of(body_boundary.height)
+    expect(generated_pdf.pages[1].text_lines).to be_empty
+  end
+end
+
+fixture 'Title Exact 7 pt' do
+  file '48-title-exact-7-pt.tex'
+
+  test 'Exactly 7 pt remains valid and fills each available title width.' do
+    expect(generated_pdf.pages.count).to eq(4)
+    measured = log.scan(/EXACT-SEVEN-BOX-WIDTH-\d+:([\d.]+pt)/).flatten
+    available = log.scan(/EXACT-SEVEN-AVAILABLE-WIDTH-\d+:([\d.]+pt)/).flatten
+    expect(measured.length).to eq(2)
+    expect(available.length).to eq(2)
+    measured.zip(available).each do |actual, expected|
+      expect(actual.to_f).to be_within(0.01).of(expected.to_f)
+    end
+
+    [0, 2].each_with_index do |page_index, index|
+      width = index.zero? ? 138.0 : 121.0
+      title = PDF_TEXT_LINE_IN_AREA.call(
+        generated_pdf.pages[page_index], 'EXACTSEVEN', left_mm: 5.0, right_mm: 5.0 + width,
+        top_mm: 5.0, bottom_mm: 21.0
+      )
+      expect(title).not_to be_nil
+      next if title.nil?
+
+      boundary = generated_pdf.pages[page_index].convert_unit(title.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+      expected_height = 10.0 * 0.7 * 25.4 / 72.0
+      expect(boundary.height).to be_within(0.05).of(expected_height)
+      expect(generated_pdf.pages[page_index + 1].text_lines).to be_empty
+    end
+  end
+end
+
+fixture 'Title Just Below 7 pt' do
+  file '49-title-just-below-7-pt.tex'
+  expect_compilation_failure
+
+  test 'A just-under-7-pt title reports the horizontal minimum.' do
+    expect(log).to include('Title requires less than 7 pt', 'Cause: horizontally')
+  end
+end
+
+fixture 'Title Empty Dimensions And Formatting' do
+  file '50-title-empty-dimensions-and-formatting.tex'
+
+  test 'Empty titles stay empty and one-dimensional and formatted titles scale safely.' do
+    expect(generated_pdf.pages.count).to eq(10)
+    dimensions = log.scan(/TITLE-EDGE-DIMS-(\d+):([\d.]+pt):([\d.]+pt):([\d.]+pt)/).to_h do |index, width, height, depth|
+      [index.to_i, [width.to_f, height.to_f, depth.to_f]]
+    end
+    expect(dimensions[1]).to eq([0.0, 0.0, 0.0])
+    expect(dimensions[2]).to eq([0.0, 0.0, 0.0])
+    expect(dimensions[3][0]).to eq(0.0)
+    expect(dimensions[3][1] + dimensions[3][2]).to be_within(0.05 * 72.27 / 25.4).of(15.0 * 72.27 / 25.4)
+    expect(dimensions[4][1] + dimensions[4][2]).to eq(0.0)
+    expect(dimensions[5][0]).to be > 0.0
+    expect(log).to include('TITLE-MACRO-EXECUTION-COUNT:1')
+    expect(generated_pdf.pages[0].text_lines.map(&:text).join.gsub(/\s+/, '')).to include('EMPTYBODY')
+    expect(generated_pdf.pages[2].text_lines.map(&:text).join.gsub(/\s+/, '')).to include('REF', 'EMPTYREFERENCEBODY')
+    [[4, 'ZEROWIDTH'], [6, 'ZEROHEIGHT'], [8, 'FORMATTED']].each do |page_index, text|
+      processor = HexaPDF::Content::SmartTextExtractor::TextRunProcessor.new
+      generated_pdf.pages[page_index].process_contents(processor)
+      expect(processor.text_runs.map(&:string).join.gsub(/\s+/, '')).to include(text)
+    end
+    [1, 3, 5, 7, 9].each { |page_index| expect(generated_pdf.pages[page_index].text_lines).to be_empty }
+  end
+end
+
+fixture 'Title Rounded Box Bounds' do
+  file '51-title-rounded-box-bounds.tex'
+
+  test 'Scaled box dimensions never exceed their available areas.' do
+    expect(generated_pdf.pages.count).to eq(238)
+    expect(log).not_to include('Package title-test Error')
+  end
+end
+
+fixture 'Title Scaling Twelve Point' do
+  file '52-title-scaling-twelve-point.tex'
+
+  test 'The 10 pt base is independent of the document default and long text shrinks above 7 pt.' do
+    expect(generated_pdf.pages.count).to eq(6)
+    expect(log.scan('TWELVE-DOC-TITLE-BASE:10pt').size).to eq(2)
+    factors = log.scan(/TWELVE-DOC-TITLE-FACTOR-\d+:([\d.]+)/).flatten.map(&:to_f)
+    expect(factors.length).to eq(3)
+    expect(factors[0]).to be_between(0.7, 1.0)
+    expect(factors[1]).to be_between(0.7, factors[0])
+    expect(factors[2]).to be_within(0.0001).of(15.0 / 21.0)
+    [0, 2].each do |index|
+      processor = HexaPDF::Content::SmartTextExtractor::TextRunProcessor.new
+      generated_pdf.pages[index].process_contents(processor)
+      expect(processor.text_runs.map(&:string).join).to include('M' * 45)
+    end
+    [1, 3, 5].each { |index| expect(generated_pdf.pages[index].text_lines).to be_empty }
+  end
+end
+
+fixture 'Title Tiny Dimensions' do
+  file '53-title-tiny-dimensions.tex'
+
+  test 'A single scaled point grows to fill its nonzero dimension without arithmetic overflow.' do
+    expect(generated_pdf.pages.count).to eq(4)
+    widths = log.scan(/TINY-TITLE-WIDTH-\d+:([\d.]+)pt/).flatten.map(&:to_f)
+    heights = log.scan(/TINY-TITLE-HEIGHT-\d+:([\d.]+)pt/).flatten.map(&:to_f)
+    expect(widths.length).to eq(2)
+    expect(heights.length).to eq(2)
+    expect(widths[0]).to be_within(0.01).of(138.0 * 72.27 / 25.4)
+    expect(heights[0]).to eq(0.0)
+    expect(widths[1]).to eq(0.0)
+    expect(heights[1]).to be_within(0.01).of(15.0 * 72.27 / 25.4)
+  end
+end
+
+fixture 'Title Halt On Error Compilation' do
+  file '47-title-exact-10-pt.tex'
+
+  test 'Ticket fixtures have the expected exit status with halt-on-error.' do
+    positive = %w[18-title-boundaries 19-title-too-wide 20-title-too-wide-with-reference
+                  21-title-too-high 22-title-too-high-with-reference 41-title-scaling
+                  42-card-specific-title-scaling 47-title-exact-10-pt 48-title-exact-7-pt
+                  50-title-empty-dimensions-and-formatting 51-title-rounded-box-bounds
+                  52-title-scaling-twelve-point 53-title-tiny-dimensions]
+    negative = {
+      '43-title-below-minimum-reference-only' => 'horizontally',
+      '44-title-below-minimum-width' => 'horizontally',
+      '45-title-below-minimum-width-with-reference' => 'horizontally',
+      '46-title-below-minimum-height' => 'vertically',
+      '49-title-just-below-7-pt' => 'horizontally'
+    }
+    root = File.expand_path('../../../..', __dir__)
+    env = { 'TEXINPUTS' => "#{File.join(root, 'tex/latex/pnpcards')}:" }
+    Dir.mktmpdir('pnpcards-halt-', File.join(root, 'out')) do |directory|
+      (positive + negative.keys).each do |name|
+        source = File.join(__dir__, "#{name}.tex")
+        output, status = Open3.capture2e(
+          env, 'latexmk', '-pdf', '-interaction=nonstopmode', '-halt-on-error', "-outdir=#{directory}", source
+        )
+        expect([name, status.success?]).to eq([name, positive.include?(name)])
+        next unless negative.key?(name)
+
+        log_path = File.join(directory, "#{name}.log")
+        expect(File.file?(log_path)).to be(true)
+        log_content = File.file?(log_path) ? File.read(log_path) : output
+        expect(log_content).to include('Package pnpcards Error:', 'Title requires less than 7 pt', "Cause: #{negative[name]}")
+      end
+    end
+  end
+end
+
+fixture 'Title Scaling' do
+  file '41-title-scaling.tex'
+
+  test 'Short titles grow beyond 10 pt and remain height-limited with or without a reference.' do
+    expect(generated_pdf.pages.count).to eq(8)
+    short_pages = [generated_pdf.pages[0], generated_pdf.pages[2]]
+    short_lines = short_pages.each_with_index.map do |page, index|
+      width = index.zero? ? 138.0 : 121.0
+      PDF_TEXT_LINE_IN_AREA.call(page, 'M', left_mm: 5.0, right_mm: 5.0 + width, top_mm: 5.0, bottom_mm: 30.0)
+    end
+    controls = short_pages.map do |page|
+      PDF_TEXT_LINE_IN_AREA.call(page, 'CONTROLM', left_mm: 5.0, right_mm: 143.0, top_mm: 21.5, bottom_mm: 35.0)
+    end
+    expect(short_lines).not_to include(nil)
+    expect(controls).not_to include(nil)
+    return if short_lines.include?(nil) || controls.include?(nil)
+
+    short_boundaries = short_pages.zip(short_lines).map do |page, line|
+      page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    end
+    control_boundaries = short_pages.zip(controls).map do |page, line|
+      page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    end
+    short_boundaries.each_with_index do |boundary, index|
+      expect(boundary.height).to be > control_boundaries[index].height + 0.05
+    end
+    expect(short_boundaries[0].height).to be_within(0.05).of(short_boundaries[1].height)
+  end
+
+  test 'Long titles scale down uniformly to their available widths and stay clear of references.' do
+    no_reference_page = generated_pdf.pages[4]
+    reference_page = generated_pdf.pages[6]
+    long_text = 'M' * 28
+    title_lines = [no_reference_page, reference_page].each_with_index.map do |page, index|
+      width = index.zero? ? 138.0 : 121.0
+      PDF_TEXT_LINE_IN_AREA.call(page, long_text, left_mm: 5.0, right_mm: 5.0 + width, top_mm: 5.0, bottom_mm: 21.0)
+    end
+    expect(title_lines).not_to include(nil)
+    return if title_lines.include?(nil)
+
+    title_boundaries = [no_reference_page, reference_page].zip(title_lines).map do |page, line|
+      page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    end
+    expect(title_boundaries[1].width).to be < title_boundaries[0].width
+    expect(title_boundaries[1].height).to be < title_boundaries[0].height
+    expect(title_boundaries[0].width / title_boundaries[1].width)
+      .to be_within(0.03).of(title_boundaries[0].height / title_boundaries[1].height)
+
+    reference_line = PDF_TEXT_LINE_IN_AREA.call(
+      reference_page, 'Ref', left_mm: 128.0, right_mm: 143.0, top_mm: 5.0, bottom_mm: 21.0
+    )
+    expect(reference_line).not_to be_nil
+    return if reference_line.nil?
+
+    reference_boundary = reference_page.convert_unit(reference_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(title_boundaries[1].right).to be < reference_boundary.left
+  end
+
+  test 'Scaled title text remains inside its fixed header area in normal and debug mode.' do
+    [0, 2, 4, 6].each do |page_index|
+      page = generated_pdf.pages[page_index]
+      title_text = page_index < 4 ? 'M' : 'M' * 28
+      width = [0, 4].include?(page_index) ? 138.0 : 121.0
+      title = PDF_TEXT_LINE_IN_AREA.call(
+        page, title_text, left_mm: 5.0, right_mm: 5.0 + width, top_mm: 5.0, bottom_mm: 30.0
+      )
+      expect(title).not_to be_nil
+      next if title.nil?
+
+      boundary = page.convert_unit(title.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+      area = [0, 4].include?(page_index) ? EXPECTED_TITLE_BOUNDARY : EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY
+      expect(boundary.left).to be >= area.left - LAYOUT_BOUNDARY_TOLERANCE
+      expect(boundary.right).to be <= area.right + LAYOUT_BOUNDARY_TOLERANCE
+      expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, page_index + 1, forbidden_title_width: width)).to be(false)
+      expect(page.text_lines.select { |line| line.text.gsub(/\s+/, '') == 'LONGBODY' }.length).to eq(page_index >= 4 ? 1 : 0)
+    end
+    expect(generated_pdf.pages[1].text_lines).to be_empty
+    expect(generated_pdf.pages[3].text_lines).to be_empty
+    expect(generated_pdf.pages[4].frames.map(&:color)).to contain_exactly(HEADER_COLOR, CONTENT_COLOR)
+    expect(generated_pdf.pages[6].frames.map(&:color)).to contain_exactly(HEADER_COLOR, REFERENCE_COLOR, CONTENT_COLOR)
+    [5, 7].each do |page_index|
+      expect(generated_pdf.pages[page_index].text_lines).to be_empty
+      expect(generated_pdf.pages[page_index].frames.to_a).to be_empty
+    end
+  end
+end
+
+fixture 'Card Specific Title Scaling' do
+  file '42-card-specific-title-scaling.tex'
+
+  test 'Short and long titles keep per-card sizes in both orders and through both APIs.' do
+    expect(generated_pdf.pages.count).to eq(8)
+    pages = generated_pdf.pages
+    expected_titles = ['M', 'M' * 28, 'M' * 28, 'M']
+    title_boundaries = expected_titles.each_with_index.map do |title, card_index|
+      page = pages[card_index * 2]
+      title_line = page.text_lines.find { |line| line.text.gsub(/\s+/, '') == title }
+      expect(title_line).not_to be_nil
+      next if title_line.nil?
+
+      page.convert_unit(title_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    end
+    return if title_boundaries.include?(nil)
+
+    expect(title_boundaries[0].height).to be > title_boundaries[1].height
+    expect(title_boundaries[3].height).to be > title_boundaries[2].height
+    expect(title_boundaries[0].height).to be_within(0.05).of(title_boundaries[3].height)
+    expect(title_boundaries[1].height).to be_within(0.05).of(title_boundaries[2].height)
+    [1, 3, 5, 7].each { |page_index| expect(pages[page_index].text_lines).to be_empty }
+  end
 end
 
 fixture 'Reference Page Splitting' do
@@ -1026,11 +1474,11 @@ fixture 'Reference Page Splitting' do
   test 'References remain on their own fronts for explicit and natural breaks.' do
     expect(generated_pdf.pages.count).to eq(16)
     8.times do |card|
-      front = generated_pdf.pages[card * 2].text_lines.map(&:text).join(' ')
-      back = generated_pdf.pages[card * 2 + 1].text_lines.map(&:text).join(' ')
-      expect(front.gsub(/\s+/, '')).to include('Ref123', 'CONTENTLINE01')
-      expect(back.gsub(/\s+/, '')).not_to include('Ref123')
-      expect(back.gsub(/\s+/, '')).to include(card.even? ? 'CONTENTLINE03' : 'CONTENTLINE12')
+      front = PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[card * 2])
+      back = PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[card * 2 + 1])
+      expect(front).to include('Ref123', 'CONTENTLINE01')
+      expect(back).not_to include('Ref123')
+      expect(back).to include(card.even? ? 'CONTENTLINE03' : 'CONTENTLINE12')
     end
   end
 
@@ -1057,16 +1505,22 @@ fixture 'Reference Page Splitting' do
     [0, 2].each do |front_index|
       front = generated_pdf.pages[front_index]
       back = generated_pdf.pages[front_index + 1]
-      lines = [front, back].flat_map do |page|
-        page.text_lines.select { |line| line.text.gsub(/\s+/, '').start_with?('CONTENTLINE') }
-      end
       expected = front_index.zero? ? 4 : 12
-      expect(lines.map { |line| line.text.gsub(/\s+/, '') }).to eq((1..expected).map { |i| format('CONTENTLINE%02d', i) })
-      [front, back].each_with_index do |page, index|
-        boundary = index.zero? ? EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE : EXPECTED_BACK_CONTENT_BOUNDARY_WITH_TOLERANCE
-        page.text_lines.select { |line| line.text.gsub(/\s+/, '').start_with?('CONTENTLINE') }.each do |line|
-          expect(page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)).to be_within(boundary)
+      text = [front, back].map { |page| PDF_TEXT_IN_DRAW_ORDER.call(page) }.join
+      expect(text.scan(/CONTENTLINE\d\d/)).to eq((1..expected).map { |i| format('CONTENTLINE%02d', i) })
+      (1..expected).each do |number|
+        marker = format('CONTENTLINE%02d', number)
+        lines = [front, back].each_with_index.filter_map do |page, index|
+          line = PDF_TEXT_LINE_IN_AREA.call(
+            page, marker, left_mm: 5.0, right_mm: 143.0, top_mm: index.zero? ? 22.0 : 5.0, bottom_mm: 100.0
+          )
+          next unless line
+
+          area = index.zero? ? EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE : EXPECTED_BACK_CONTENT_BOUNDARY_WITH_TOLERANCE
+          expect(page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)).to be_within(area)
+          line
         end
+        expect(lines.length).to eq(1)
       end
     end
   end
@@ -1133,7 +1587,7 @@ fixture 'Page Limit Shrinkable Glue' do
   file '31-page-limit-shrinkable-glue.tex'
   test 'Shrinkable spacing at the boundary remains valid.' do
     expect(generated_pdf.pages.count).to eq(2)
-    expect(generated_pdf.pages[0].text_lines.map(&:text)).to eq(['Shrinkable', 'SHRINKTOP', 'SHRINKBOTTOM'])
+    expect(PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[0])).to eq('ShrinkableSHRINKTOPSHRINKBOTTOM')
     expect(generated_pdf.pages[1].text_lines.map(&:text)).to eq(['BACKCONTENT'])
   end
 end
@@ -1158,9 +1612,9 @@ fixture 'Page Limit Valid Breaks' do
   file '38-page-limit-valid-breaks.tex'
   test 'Empty cards and single beginning or ending breaks stay on their own two pages.' do
     expect(generated_pdf.pages.count).to eq(10)
-    pages = generated_pdf.pages.map { |page| page.text_lines.map(&:text).join(' ') }
-    expect(pages).to eq(['Beginning', 'STARTBACK', 'Ending FRONTEND', '', 'Empty', '',
-                         'Middle FRONTMIDDLE', 'BACKMIDDLE', 'After AFTERCONTENT', ''])
+    pages = generated_pdf.pages.map { |page| PDF_TEXT_IN_DRAW_ORDER.call(page) }
+    expect(pages).to eq(['Beginning', 'STARTBACK', 'EndingFRONTEND', '', 'Empty', '',
+                         'MiddleFRONTMIDDLE', 'BACKMIDDLE', 'AfterAFTERCONTENT', ''])
   end
 end
 
@@ -1168,7 +1622,7 @@ fixture 'Page Limit Exact Break And Structure' do
   file '39-page-limit-exact-break-and-structure.tex'
   test 'An exact front with one break and trailing structure remains valid.' do
     expect(generated_pdf.pages.count).to eq(2)
-    expect(generated_pdf.pages[0].text_lines.map(&:text)).to eq(['Exact break', 'FRONT'])
+    expect(PDF_TEXT_IN_DRAW_ORDER.call(generated_pdf.pages[0])).to eq('ExactbreakFRONT')
     expect(generated_pdf.pages[1].text_lines.map(&:text)).to eq(['BACK'])
   end
 end

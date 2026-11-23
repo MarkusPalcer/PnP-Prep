@@ -1,0 +1,27 @@
+\documentclass{pnpcards}
+
+\newcount\TitleMacroExecutionCount
+\newcommand{\FormattedTitle}{%
+    \global\advance\TitleMacroExecutionCount by 1
+    \textit{FORMATTED}%
+}
+
+\makeatletter
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \OriginalPrintFront{#1}{#2}%
+    \typeout{TITLE-EDGE-DIMS-\the\pnpcards@cardindex:\the\wd\pnpcards@titlebox:\the\ht\pnpcards@titlebox:\the\dp\pnpcards@titlebox}%
+}
+\makeatother
+
+\begin{document}
+
+\Card{}{EMPTY BODY}
+\Card[Ref]{}{EMPTY REFERENCE BODY}
+\Card{\makebox[0pt][l]{ZERO WIDTH}}{ZERO WIDTH BODY}
+\Card{\raisebox{0pt}[0pt][0pt]{\makebox[69mm][l]{ZERO HEIGHT}}}{ZERO HEIGHT BODY}
+\Card{\FormattedTitle}{FORMATTED BODY}
+
+\typeout{TITLE-MACRO-EXECUTION-COUNT:\the\TitleMacroExecutionCount}
+
+\end{document}

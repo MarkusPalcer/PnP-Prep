@@ -1,0 +1,14 @@
+\documentclass[12pt]{pnpcards}
+\makeatletter
+\newcommand{\FontDiagnostic}{\typeout{TWELVE-DOC-TITLE-BASE:\f@size pt}}
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \OriginalPrintFront{#1}{#2}%
+    \typeout{TWELVE-DOC-TITLE-FACTOR-\the\pnpcards@cardindex:\pnpcards@titlescalefactor}%
+}
+\makeatother
+\begin{document}
+\Card{\FontDiagnostic MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM}{Body}
+\Card[Ref]{\FontDiagnostic MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM}{Body}
+\Card{\rule{1mm}{21mm}}{Tall rule still above minimum.}
+\end{document}

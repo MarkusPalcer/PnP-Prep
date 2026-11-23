@@ -25,7 +25,7 @@ Rückseite
 
 - Mehr als 2 Seiten in `card` oder `\Card` → Kompilierungsfehler mit dokumentweit fortlaufendem Kartenindex ab 1 und Titel als nicht expandiertem Text. Zwei `\newpage` zählen auch bei leeren Bereichen oder am Kartenende; ein Umbruch nach natürlichem Überlauf auf die Rückseite verlangt ebenfalls eine dritte Seite.
 - Ein bei einem solchen Fehler entstandenes PDF ist ungültig; sein Inhalt und sein Vorhandensein sind nicht zugesichert.
-- Überbreite oder überhohe Titel → vorläufig Kompilierungsfehler (automatisches Einpassen bleibt Ticket 11)
+- Titel, die selbst bei effektiven 7 pt zu breit oder zu hoch sind → Kompilierungsfehler mit Kartenindex und Ursache
 - Referenzen mit mehr als zwei Zeilen oder Überlauf → Kompilierungsfehler
 
 ## Aktuell implementiert
@@ -44,7 +44,7 @@ Karteninhalt
 
 Referenzen erscheinen ausschließlich auf der eigenen Vorderseite im separaten, unskalierten 15 × 15 mm großen Bereich innerhalb des 5-mm-Rands. Sie verwenden 9 pt mit 11 pt Zeilenabstand und dürfen ein- oder zweizeilig sein: `WdZ. 567` sowie `WdZ. 567 \linebreak Wdz. 567` passen; automatischer Umbruch ist ebenfalls möglich. Mehr als zwei Zeilen oder horizontaler bzw. vertikaler Überlauf führen zu einem Kompilierungsfehler. Der Referenzbereich hat im Debug-Modus eine eigene Rahmenfarbe.
 
-Der Titelbereich ist ohne Referenz 138 mm, mit Referenz 121 mm breit; der Abstand zum Referenzbereich beträgt 2 mm. Titel bleiben einzeilig und überschneiden die Referenz nicht. Bis Ticket 11 werden zu breite oder zu hohe Titel mit einem Kompilierungsfehler abgewiesen.
+Der Titelbereich ist ohne Referenz 138 mm, mit Referenz 121 mm breit und 15 mm hoch; der Abstand zum Referenzbereich beträgt 2 mm. Titel bleiben einzeilig und werden pro Karte proportional so weit vergrößert oder verkleinert, wie es Breite und Höhe erlauben. Die Titelbasis ist unabhängig von der Dokumentgrundschrift 10 pt; die effektive Mindestgröße beträgt 7 pt, nach oben gibt es keine 10-pt-Grenze. Passt der Titel auch bei 7 pt nicht, folgt ein Kompilierungsfehler. Ein leerer Titel bleibt leer; Referenz und Body bleiben unskaliert.
 
 Der Body der `card`-Umgebung wird beim Einlesen direkt in eine Box gesetzt; die Kartenausgabe beginnt nach `\end{card}`. Text, mehrere Absätze, Formatierungen wie `\textbf`, Listen, `tabular` und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` mit Sonderzeichen funktioniert in der `card`-Umgebung, nicht jedoch allgemein im bereits tokenisierten Inhaltsargument von `\Card`.
 

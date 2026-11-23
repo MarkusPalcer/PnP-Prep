@@ -1,0 +1,24 @@
+\documentclass{pnpcards}
+\makeatletter
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \OriginalPrintFront{#1}{#2}%
+    \ifdim\wd\pnpcards@titlebox>\pnpcards@titleavailablewidth
+        \PackageError{title-test}{Scaled title width exceeds its area}{}%
+    \fi
+    \ifdim\dimexpr\ht\pnpcards@titlebox+\dp\pnpcards@titlebox\relax>\pnpcards@titleheight
+        \PackageError{title-test}{Scaled title height exceeds its area}{}%
+    \fi
+}
+\newcount\WidthIndex
+\newcommand{\WidthTitle}{\makebox[\dimexpr\WidthIndex mm\relax][l]{BOUNDARY}}
+\makeatother
+
+\begin{document}
+\WidthIndex=80
+\loop\ifnum\WidthIndex<198
+    \Card{\WidthTitle}{}
+    \advance\WidthIndex by 1
+\repeat
+\Card{M}{}
+\end{document}

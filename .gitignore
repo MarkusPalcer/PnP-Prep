@@ -427,3 +427,5 @@ TSWLatexianTemp*
 # End of https://www.toptal.com/developers/gitignore/api/latex,intellij
 
 *.pdf
+
+.junie

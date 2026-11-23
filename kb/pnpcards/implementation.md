@@ -23,7 +23,9 @@
 | `\pnpcards@PageLimitError` | Meldet das Zwei-Seiten-Limit mit Kartenindex und nicht expandiertem Titeltext |
 | `\pnpcards@CheckSplitHeight` | Prüft die gesplitteten Inhalte einschließlich schrumpfbarer Abstände auf Überhöhe |
 | `\pnpcards@PrepareReference` | Setzt und validiert Referenztext und Zeilenzahl |
-| `\pnpcards@PrepareTitle{titel}` | Misst den einzeiligen Titel und meldet Überlauf |
+| `\pnpcards@PrepareTitle{titel}` | Setzt den Titel einmal fett mit 10 pt und wählt die verfügbare Breite |
+| `\pnpcards@ScaleTitleBox` | Skaliert die gesetzte Titelbox gleichmäßig und kontrolliert abschließend ihre Abmessungen |
+| `\pnpcards@CheckTitleMinimum` | Prüft die 7-pt-Untergrenze und meldet horizontale oder vertikale Ursachen |
 
 ### Interne Boxen
 
@@ -33,7 +35,8 @@
 | `\pnpcards@frontcontent` | Per `\vsplit` abgespaltener Vorderseiten-Teil |
 | `\pnpcards@backcontent` | Per `\vsplit` abgespaltener Rückseiten-Teil |
 | `\pnpcards@referencebox` | Referenzabsatz, maximal zwei Zeilen in 15 × 15 mm |
-| `\pnpcards@titlebox` | Unverkleinerter, fett gesetzter Titel |
+| `\pnpcards@titlebox` | Einmalig gesetzter und proportional eingepasster Titel |
+| `\pnpcards@minimumtitlebox` | Temporäre Kopie für Mindestgrößen- und Skalierungsprüfung |
 
 ### Kernmechanismus (`card`-Umgebung)
 
@@ -46,18 +49,8 @@
 ### Bekannte Einschränkungen
 
 - Referenzen verwenden 9 pt mit 11 pt Zeilenabstand; mehr als zwei Zeilen oder Überlauf sind Fehler.
-- Titel werden derzeit nicht automatisch verkleinert: Überlauf verursacht einen Fehler. Die Anpassung auf 10 bis 7 pt bleibt in Ticket 11 offen.
+- Titelboxen werden einzeilig ausgehend von 10 pt proportional auf Breite und Höhe eingepasst, auch oberhalb von 10 pt. Unter 7 pt folgt ein Fehler; exakt 7 pt sind zulässig. Formatierungen und feste Boxen werden mitskaliert, Titelmakros nur einmal ausgeführt. Eine Nulldimension begrenzt den Faktor nicht.
 - Text, Absätze, Formatierung, Listen, Tabellen und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` ist im Environment geprüft, nicht allgemein im `\Card`-Inhaltsargument.
 - `fancyvrb` mit `\SaveVerbatim`/`\UseVerbatim` ist als Verbatim-Workaround positiv geprüft. Floats, Fußnoten und Randnotizen erhalten keine Unterstützungsgarantie.
 
-### Ticket-Status
 
-| Ticket | Thema | Status |
-|---|---|---|
-| 05 | Karteninhalt sammeln | **Fertig** |
-| 06 | Titel, Referenz, leere Rückseite | **Fertig** |
-| 07 | Natürlicher Überlauf | **Fertig** |
-| 08 | Expliziter Seitenwechsel | **Fertig** |
-| 09 | Seitenlimit + Fehlermeldungen | **Fertig** |
-| 10 | Integration + Vier-Seiten-Vorbereitung | Offen |
-| 11 | Titeltext-Schriftgröße anpassen | Offen |

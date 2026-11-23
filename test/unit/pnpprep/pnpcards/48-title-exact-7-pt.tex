@@ -1,0 +1,22 @@
+\documentclass{pnpcards}
+\makeatletter
+\let\OriginalPrintFront\pnpcards@PrintFront
+\renewcommand{\pnpcards@PrintFront}[2]{%
+    \OriginalPrintFront{#1}{#2}%
+    \typeout{EXACT-SEVEN-BOX-WIDTH-\the\pnpcards@cardindex:\the\wd\pnpcards@titlebox}%
+    \typeout{EXACT-SEVEN-AVAILABLE-WIDTH-\the\pnpcards@cardindex:\the\pnpcards@titleavailablewidth}%
+}
+\newcommand{\ExactSevenNoReference}{%
+    \makebox[\dimexpr\pnpcards@contentwidth*10/7\relax][l]{EXACT SEVEN}%
+}
+\newcommand{\ExactSevenWithReference}{%
+    \makebox[\dimexpr\pnpcards@titlewithreferencewidth*10/7\relax][l]{EXACT SEVEN}%
+}
+\makeatother
+
+\begin{document}
+
+\Card{\ExactSevenNoReference}{Body}
+\Card[Ref]{\ExactSevenWithReference}{Body}
+
+\end{document}
