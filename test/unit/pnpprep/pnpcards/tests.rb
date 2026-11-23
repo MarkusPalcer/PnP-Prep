@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'open3'
+require 'tmpdir'
+
 EXPECTED_PAGE_BORDER = 5.0 # Millimeters
 EXPECTED_AREA_MARGIN = 2.0 # Millimeters
 
@@ -40,6 +43,60 @@ HEADER_COLOR = [0.75, 0, 0].freeze
 CONTENT_COLOR = [0, 0, 0.75].freeze
 CONTINUATION_COLOR = [0, 0.5, 0].freeze
 REFERENCE_COLOR = [0, 0.75, 0, 0.25].freeze
+
+RASTERIZED_PAGE_HAS_NONWHITE_PIXELS = lambda do |pdf_path, page_number|
+  Dir.mktmpdir('pnpcards-raster-') do |directory|
+    image_path = File.join(directory, 'page.ppm')
+    _stdout, stderr, status = Open3.capture3(
+      'gs', '-q', '-dSAFER', '-dBATCH', '-dNOPAUSE', '-sDEVICE=ppmraw', '-r300',
+      "-dFirstPage=#{page_number}", "-dLastPage=#{page_number}", "-sOutputFile=#{image_path}", pdf_path
+    )
+    raise "Ghostscript failed to rasterize PDF page #{page_number}: #{stderr}" unless status.success?
+    raise "Ghostscript did not produce a raster for PDF page #{page_number}" unless File.file?(image_path)
+
+    image = File.binread(image_path)
+    header_position = 0
+    header_tokens = []
+    header_delimiters = [9, 10, 11, 12, 13, 32, 35]
+    while header_tokens.length < 4
+      loop do
+        raise "Ghostscript produced an invalid PPM raster for PDF page #{page_number}" if header_position >= image.bytesize
+
+        byte = image.getbyte(header_position)
+        if [9, 10, 11, 12, 13, 32].include?(byte)
+          header_position += 1
+        elsif byte == 35
+          header_position += 1 while header_position < image.bytesize && ![10, 13].include?(image.getbyte(header_position))
+          raise "Ghostscript produced an invalid PPM raster for PDF page #{page_number}" if header_position >= image.bytesize
+        else
+          break
+        end
+      end
+
+      token_start = header_position
+      header_position += 1 while header_position < image.bytesize && !header_delimiters.include?(image.getbyte(header_position))
+      raise "Ghostscript produced an invalid PPM raster for PDF page #{page_number}" if token_start == header_position
+
+      header_tokens << image.byteslice(token_start, header_position - token_start)
+    end
+    unless header_tokens[0] == 'P6' && header_tokens[1].match?(/\A\d+\z/) &&
+           header_tokens[2].match?(/\A\d+\z/) && header_tokens[3] == '255'
+      raise "Ghostscript produced an invalid PPM raster for PDF page #{page_number}"
+    end
+
+    delimiter = image.getbyte(header_position)
+    raise "Ghostscript produced an invalid PPM raster for PDF page #{page_number}" unless [9, 10, 11, 12, 13, 32].include?(delimiter)
+
+    header_position += delimiter == 13 && image.getbyte(header_position + 1) == 10 ? 2 : 1
+    expected_pixel_bytes = header_tokens[1].to_i * header_tokens[2].to_i * 3
+    pixels = image.byteslice(header_position, expected_pixel_bytes)
+    unless pixels&.bytesize == expected_pixel_bytes
+      raise "Ghostscript produced an incomplete PPM raster for PDF page #{page_number}"
+    end
+
+    pixels.each_byte.any? { |channel| channel < 255 }
+  end
+end
 
 EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY = LatexTesting::Boundary.new(
   left: EXPECTED_PAGE_BORDER,
@@ -430,6 +487,13 @@ fixture 'Card Environment' do
   test 'Card two back is blank.' do
     expect(generated_pdf.pages[3].text_lines).to be_empty
   end
+
+  test 'A printed front is visible and both short-card backs are raster-white.' do
+    expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, 1)).to be(true)
+    [2, 4].each do |page_number|
+      expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, page_number)).to be(false)
+    end
+  end
 end
 
 fixture 'Inline Verbatim' do
@@ -493,6 +557,22 @@ fixture 'Supported Card Contents' do
           expect(boundary[edge]).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(baseline_boundary[edge])
         end
       end
+    end
+  end
+
+  test 'All pages from both APIs retain A6 landscape dimensions.' do
+    generated_pdf.pages.each do |page|
+      expect(page.convert_unit(page.boundary.width, LatexTesting::TargetUnit::MILLIMETERS))
+        .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_PAGE_BOUNDARY.width)
+      expect(page.convert_unit(page.boundary.height, LatexTesting::TargetUnit::MILLIMETERS))
+        .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_PAGE_BOUNDARY.height)
+    end
+  end
+
+  test 'A printed front is visible and every short-card back is raster-white.' do
+    expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, 1)).to be(true)
+    [2, 4, 6, 8].each do |page_number|
+      expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, page_number)).to be(false)
     end
   end
 
@@ -622,8 +702,8 @@ fixture 'Reference Rendering' do
   file '08-reference-rendering.tex'
 
   test 'Normal and debug reference cards keep their page count and front/back order.' do
-    expect(generated_pdf.pages.count).to eq(22)
-    [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21].each do |back_page_index|
+    expect(generated_pdf.pages.count).to eq(24)
+    [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23].each do |back_page_index|
       expect(generated_pdf.pages[back_page_index].text_lines).to be_empty
     end
   end
@@ -665,6 +745,18 @@ fixture 'Reference Rendering' do
     expect(formatted_lines.join(' ')).to include('Bold ref')
     expect(generated_pdf.pages[10].text_lines.map(&:text)).to include('MacroRef')
     expect(log).to include('REFERENCE-FONT:9pt:11.0pt')
+  end
+
+  test 'A rendered reference has the same width as the same text set directly at 9 pt.' do
+    reference_line = generated_pdf.pages[2].text_lines.find { |line| line.text.gsub(/\s+/, '') == 'WdZ.567' }
+    control_line = generated_pdf.pages[22].text_lines.find { |line| line.text.gsub(/\s+/, '') == 'WdZ.567' }
+    expect(reference_line).not_to be_nil
+    expect(control_line).not_to be_nil
+    return if reference_line.nil? || control_line.nil?
+
+    reference_boundary = generated_pdf.pages[2].convert_unit(reference_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    control_boundary = generated_pdf.pages[22].convert_unit(control_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+    expect(reference_boundary.width).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(control_boundary.width)
   end
 
   test 'A nonempty title and its reference both appear on the same front.' do
@@ -787,6 +879,27 @@ fixture 'Reference Near Boundary' do
   test('Near-width one- and two-line references compile on their own fronts.') do
     expect(generated_pdf.pages.count).to eq(4)
   end
+
+  test 'Near-width reference text is visible at the right edge of its own reference area.' do
+    [[0, 'NEARWIDTHONEBODY', ['WdZ.567']], [2, 'NEARWIDTHTWOBODY', %w[WdZ.567 Wdz.567]]].each do |page_index, body, expected_lines|
+      page = generated_pdf.pages[page_index]
+      expect(page.text_lines.map { |line| line.text.gsub(/\s+/, '') }).to include(body)
+      actual_lines = page.text_lines.select do |line|
+        %w[WdZ.567 Wdz.567].include?(line.text.gsub(/\s+/, ''))
+      end
+      expect(actual_lines.map { |line| line.text.gsub(/\s+/, '') }).to eq(expected_lines)
+
+      actual_lines.each do |line|
+        boundary = page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
+        expect(boundary.left).to be >= EXPECTED_REFERENCE_BOUNDARY.left - LAYOUT_BOUNDARY_TOLERANCE
+        expect(boundary.right).to be <= EXPECTED_REFERENCE_BOUNDARY.right + LAYOUT_BOUNDARY_TOLERANCE
+        expect(boundary.right).to be_within(1.5).of(EXPECTED_REFERENCE_BOUNDARY.right)
+        expect(boundary.top).to be >= EXPECTED_REFERENCE_BOUNDARY.top - LAYOUT_BOUNDARY_TOLERANCE
+        expect(boundary.bottom).to be <= EXPECTED_REFERENCE_BOUNDARY.bottom + LAYOUT_BOUNDARY_TOLERANCE
+      end
+    end
+    [1, 3].each { |page_index| expect(generated_pdf.pages[page_index].text_lines).to be_empty }
+  end
 end
 
 fixture 'Reference Card Sequence' do
@@ -802,6 +915,22 @@ fixture 'Reference Card Sequence' do
       expect(front.frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(reference.nil? ? 0 : 1)
       expect(back.text_lines).to be_empty
       expect(back.frames.count { |frame| frame.color == REFERENCE_COLOR }).to eq(0)
+    end
+  end
+
+  test 'All pages in the normal and debug reference sequence retain A6 landscape dimensions.' do
+    generated_pdf.pages.each do |page|
+      expect(page.convert_unit(page.boundary.width, LatexTesting::TargetUnit::MILLIMETERS))
+        .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_PAGE_BOUNDARY.width)
+      expect(page.convert_unit(page.boundary.height, LatexTesting::TargetUnit::MILLIMETERS))
+        .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_PAGE_BOUNDARY.height)
+    end
+  end
+
+  test 'A printed debug front is visible and all short-card backs are raster-white.' do
+    expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, 1)).to be(true)
+    (2..18).step(2) do |page_number|
+      expect(RASTERIZED_PAGE_HAS_NONWHITE_PIXELS.call(pdf_path, page_number)).to be(false)
     end
   end
 end
@@ -847,7 +976,22 @@ fixture 'Title Boundaries' do
       next if title_line.nil?
 
       boundary = page.convert_unit(title_line.boundary, LatexTesting::TargetUnit::MILLIMETERS)
-      expect(boundary).to be_within(EXPECTED_TITLE_BOUNDARY_WITH_TOLERANCE) unless index == 6
+      if index == 6
+        title_frame = page.frames.single { |frame| frame.color == HEADER_COLOR }
+        expect(boundary.left).to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.left)
+        expect(page.convert_unit(title_frame.left - page.boundary.left, LatexTesting::TargetUnit::MILLIMETERS))
+          .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.left)
+        expect(page.convert_unit(title_frame.width, LatexTesting::TargetUnit::MILLIMETERS))
+          .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.width)
+        expect(page.convert_unit(page.boundary.top - title_frame.top, LatexTesting::TargetUnit::MILLIMETERS))
+          .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.top)
+        expect(page.convert_unit(title_frame.height, LatexTesting::TargetUnit::MILLIMETERS))
+          .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.height)
+        expect(page.convert_unit(page.boundary.right - title_frame.right, LatexTesting::TargetUnit::MILLIMETERS))
+          .to be_within(LAYOUT_BOUNDARY_TOLERANCE).of(EXPECTED_PAGE_BOUNDARY.right - EXPECTED_TITLE_WITH_REFERENCE_BOUNDARY.right)
+      else
+        expect(boundary).to be_within(EXPECTED_TITLE_BOUNDARY_WITH_TOLERANCE)
+      end
     end
   end
 end
@@ -926,4 +1070,112 @@ fixture 'Reference Page Splitting' do
       end
     end
   end
+end
+
+fixture 'Natural Overflow Repeated Title' do
+  file '27-page-limit-natural-repeated-title.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Card 3'
+  requires_log 'two-page limit'
+  test 'The error identifies the repeated title.' do
+    expect(log[/! Package pnpcards Error:.*?(?=\n\s*\n)/m]).to include('Repeated title')
+  end
+end
+
+fixture 'Natural Overflow Empty Title' do
+  file '28-page-limit-natural-empty-title.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Card 3'
+  requires_log 'two-page limit'
+end
+
+fixture 'Natural Overflow Formatted Title' do
+  file '29-page-limit-natural-formatted-title.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Card 2'
+  requires_log 'two-page limit'
+  test 'The title is reported without executing its macro again.' do
+    expect(log[/! Package pnpcards Error:.*?(?=\n\s*\n)/m]).to include('\\TitleEffect')
+    expect(log.scan('TITLE-EXECUTED').size).to eq(1)
+  end
+end
+
+fixture 'Page Limit Boundary' do
+  file '26-page-limit-boundary.tex'
+
+  test 'Exactly two pages contain all boundary markers in order.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    expect(generated_pdf.pages[0].text_lines.map(&:text)).to eq(['Boundary', 'FRONTTOP', 'FRONTBOTTOM'])
+    expect(generated_pdf.pages[1].text_lines.map(&:text)).to eq(['BACKTOP', 'BACKBOTTOM'])
+  end
+
+  test 'Each marker remains within its respective page area.' do
+    generated_pdf.pages.each_with_index do |page, index|
+      area = index.zero? ? EXPECTED_FRONT_CONTENT_BOUNDARY_WITH_TOLERANCE : EXPECTED_BACK_CONTENT_BOUNDARY_WITH_TOLERANCE
+      page.text_lines.select { |line| line.text.start_with?('FRONT', 'BACK') }.each do |line|
+        expect(page.convert_unit(line.boundary, LatexTesting::TargetUnit::MILLIMETERS)).to be_within(area)
+      end
+    end
+  end
+
+  requires_log 'BOUNDARY-FRONT-EXACT'
+  requires_log 'BOUNDARY-BACK-EXACT'
+end
+
+fixture 'Page Limit Unbreakable' do
+  file '30-page-limit-unbreakable.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Card 1'
+  requires_log 'two-page limit'
+end
+
+fixture 'Page Limit Shrinkable Glue' do
+  file '31-page-limit-shrinkable-glue.tex'
+  test 'Shrinkable spacing at the boundary remains valid.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    expect(generated_pdf.pages[0].text_lines.map(&:text)).to eq(['Shrinkable', 'SHRINKTOP', 'SHRINKBOTTOM'])
+    expect(generated_pdf.pages[1].text_lines.map(&:text)).to eq(['BACKCONTENT'])
+  end
+end
+
+[
+  ['Page Limit Two Breaks', '32-page-limit-two-breaks.tex', 2],
+  ['Page Limit Consecutive Breaks', '33-page-limit-consecutive-breaks.tex', 1],
+  ['Page Limit Trailing Breaks', '34-page-limit-trailing-breaks.tex', 1],
+  ['Page Limit Break Then Natural', '35-page-limit-break-then-natural.tex', 1],
+  ['Page Limit Natural Then Trailing Break', '36-page-limit-natural-then-trailing-break.tex', 2],
+  ['Page Limit Natural Then Break', '37-page-limit-natural-then-break.tex', 1]
+].each do |name, filename, index|
+  fixture name do
+    file filename
+    expect_compilation_failure
+    requires_log "Package pnpcards Error: Card #{index}"
+    requires_log 'two-page limit'
+  end
+end
+
+fixture 'Page Limit Valid Breaks' do
+  file '38-page-limit-valid-breaks.tex'
+  test 'Empty cards and single beginning or ending breaks stay on their own two pages.' do
+    expect(generated_pdf.pages.count).to eq(10)
+    pages = generated_pdf.pages.map { |page| page.text_lines.map(&:text).join(' ') }
+    expect(pages).to eq(['Beginning', 'STARTBACK', 'Ending FRONTEND', '', 'Empty', '',
+                         'Middle FRONTMIDDLE', 'BACKMIDDLE', 'After AFTERCONTENT', ''])
+  end
+end
+
+fixture 'Page Limit Exact Break And Structure' do
+  file '39-page-limit-exact-break-and-structure.tex'
+  test 'An exact front with one break and trailing structure remains valid.' do
+    expect(generated_pdf.pages.count).to eq(2)
+    expect(generated_pdf.pages[0].text_lines.map(&:text)).to eq(['Exact break', 'FRONT'])
+    expect(generated_pdf.pages[1].text_lines.map(&:text)).to eq(['BACK'])
+  end
+end
+
+fixture 'Page Limit Back One Sp Too High' do
+  file '40-page-limit-back-one-sp-too-high.tex'
+  expect_compilation_failure
+  requires_log 'Package pnpcards Error: Card 1'
+  requires_log 'two-page limit'
 end

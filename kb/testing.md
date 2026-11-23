@@ -9,6 +9,10 @@ alongside the code they describe:
   the main repository loads and runs the local gem.
 - [Repository Testing Practices](../doc/Testing.md) covers fixture design,
   expected output, negative tests, and visual review.
+- [TDD](semantic-anchors.md#tdd) explains the test-driven development approach.
+- [Red-Green-Refactor](semantic-anchors.md#red-green-refactor) defines the
+  iterative cycle and how to distinguish behavioral failures from test or
+  infrastructure problems.
 
 The LatexTesting repository must be checked out at `gems/latextesting/`.
 The root `Gemfile` evaluates nested `gems/*/Gemfile` files.

@@ -1,0 +1,18 @@
+\documentclass{pnpcards}
+
+\newcount\PageLimitLine
+\newcommand{\TooMuchContent}{%
+    \PageLimitLine=0
+    \loop\ifnum\PageLimitLine<40
+        \rule{1pt}{6mm}\par
+        \advance\PageLimitLine by 1
+    \repeat
+}
+
+\begin{document}
+
+\Card{Repeated title}{Short content.}
+\Card{Other title}{Short content.}
+\Card{Repeated title}{\TooMuchContent}
+
+\end{document}

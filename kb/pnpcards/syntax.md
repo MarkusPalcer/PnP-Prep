@@ -23,7 +23,8 @@ Rückseite
 
 ## Fehlerfall
 
-- Mehr als 2 Seiten in `card` → Kompilierungsfehler
+- Mehr als 2 Seiten in `card` oder `\Card` → Kompilierungsfehler mit dokumentweit fortlaufendem Kartenindex ab 1 und Titel als nicht expandiertem Text. Zwei `\newpage` zählen auch bei leeren Bereichen oder am Kartenende; ein Umbruch nach natürlichem Überlauf auf die Rückseite verlangt ebenfalls eine dritte Seite.
+- Ein bei einem solchen Fehler entstandenes PDF ist ungültig; sein Inhalt und sein Vorhandensein sind nicht zugesichert.
 - Überbreite oder überhohe Titel → vorläufig Kompilierungsfehler (automatisches Einpassen bleibt Ticket 11)
 - Referenzen mit mehr als zwei Zeilen oder Überlauf → Kompilierungsfehler
 
@@ -39,7 +40,11 @@ Karteninhalt
 \end{card}
 ```
 
-`\Card[Referenz]{Titel}{Inhalt}` ist die Kurzform der `card`-Umgebung. Das optionale Argument kann bei beiden Formen entfallen; Leerraum und `\relax` allein gelten als fehlende Referenz. Beide Schreibweisen unterstützen natürliche und explizite Seitenumbrüche. Referenzen erscheinen ausschließlich auf der eigenen Vorderseite im separaten 15 × 15 mm großen Bereich, gesetzt mit 9 pt und 11 pt Zeilenabstand über höchstens zwei Zeilen; `\linebreak` ist möglich.
+`\Card[Referenz]{Titel}{Inhalt}` ist die Kurzform der `card`-Umgebung. Das optionale Argument kann bei beiden Formen entfallen; fehlende, leere, reine Leerraum- und `\relax`-Referenzen gelten als nicht gesetzt. Beide Schreibweisen unterstützen natürliche und explizite Seitenumbrüche. Eine Karte ohne Überlauf erzeugt genau zwei A6-Querformat-PDF-Seiten; ihre Rückseite bleibt vollständig unbedruckt, auch vor der nächsten Karte und im Debug-Modus.
+
+Referenzen erscheinen ausschließlich auf der eigenen Vorderseite im separaten, unskalierten 15 × 15 mm großen Bereich innerhalb des 5-mm-Rands. Sie verwenden 9 pt mit 11 pt Zeilenabstand und dürfen ein- oder zweizeilig sein: `WdZ. 567` sowie `WdZ. 567 \linebreak Wdz. 567` passen; automatischer Umbruch ist ebenfalls möglich. Mehr als zwei Zeilen oder horizontaler bzw. vertikaler Überlauf führen zu einem Kompilierungsfehler. Der Referenzbereich hat im Debug-Modus eine eigene Rahmenfarbe.
+
+Der Titelbereich ist ohne Referenz 138 mm, mit Referenz 121 mm breit; der Abstand zum Referenzbereich beträgt 2 mm. Titel bleiben einzeilig und überschneiden die Referenz nicht. Bis Ticket 11 werden zu breite oder zu hohe Titel mit einem Kompilierungsfehler abgewiesen.
 
 Der Body der `card`-Umgebung wird beim Einlesen direkt in eine Box gesetzt; die Kartenausgabe beginnt nach `\end{card}`. Text, mehrere Absätze, Formatierungen wie `\textbf`, Listen, `tabular` und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` mit Sonderzeichen funktioniert in der `card`-Umgebung, nicht jedoch allgemein im bereits tokenisierten Inhaltsargument von `\Card`.
 

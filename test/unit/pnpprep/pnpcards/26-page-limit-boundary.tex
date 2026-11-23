@@ -1,0 +1,18 @@
+\documentclass{pnpcards}
+\makeatletter
+\begin{document}
+\begin{card}{Boundary}
+\offinterlineskip
+\setbox0=\vbox to \pnpcards@frontbodyheight{%
+    \kern2mm\hbox{FRONT TOP}\vfil\hbox{FRONT BOTTOM}\kern3mm
+}
+\ifdim\ht0=\pnpcards@frontbodyheight\typeout{BOUNDARY-FRONT-EXACT}\fi
+\box0
+\vskip0pt
+\setbox0=\vbox to \pnpcards@backbodyheight{%
+    \kern2mm\hbox{BACK TOP}\vfil\hbox{BACK BOTTOM}\kern3mm
+}
+\ifdim\ht0=\pnpcards@backbodyheight\typeout{BOUNDARY-BACK-EXACT}\fi
+\box0
+\end{card}
+\end{document}

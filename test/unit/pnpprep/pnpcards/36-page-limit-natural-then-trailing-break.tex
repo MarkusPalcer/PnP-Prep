@@ -1,0 +1,15 @@
+\documentclass{pnpcards}
+\newcount\PageLimitLine
+\newcommand{\OverflowThenBreak}{%
+    \PageLimitLine=0
+    \loop\ifnum\PageLimitLine<14
+        \rule{1pt}{6mm}\par
+        \advance\PageLimitLine by 1
+    \repeat
+    \newpage
+}
+\begin{document}
+\EnableCardDebugFrames
+\Card{First}{Valid.}
+\Card{Trailing break}{\OverflowThenBreak}
+\end{document}

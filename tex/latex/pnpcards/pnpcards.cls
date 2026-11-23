@@ -27,6 +27,8 @@
 \newdimen\pnpcards@frontbodyheight
 \newdimen\pnpcards@backbodyheight
 \newcount\pnpcards@referencelines
+\newcount\pnpcards@cardindex
+\newcount\pnpcards@breakcount
 \newif\ifpnpcards@debugframes
 \pnpcards@debugframesfalse
 \setlength{\pnpcards@contentwidth}{\textwidth}
@@ -48,6 +50,7 @@
 \newbox\pnpcards@cardcontent
 \newbox\pnpcards@frontcontent
 \newbox\pnpcards@backcontent
+\newbox\pnpcards@splitinspection
 \newbox\pnpcards@area
 \newbox\pnpcards@referencebox
 \newbox\pnpcards@referenceline
@@ -78,8 +81,23 @@
 
 \newcommand{\pnpcards@CardExplicitBreak}{%
     \par
+    \global\advance\pnpcards@breakcount by 1
     \mark{EXPLICIT-CARD-BREAK}%
     \penalty-10000%
+}
+
+\newcommand{\pnpcards@PageLimitError}{%
+    \PackageError{pnpcards}%
+        {Card \the\pnpcards@cardindex\space exceeds two-page limit\MessageBreak
+         Title: \pnpcards@cardtitletext}%
+        {Reduce the card content.}%
+}
+
+\newcommand{\pnpcards@CheckSplitHeight}[2]{%
+    \setbox\pnpcards@splitinspection=\vbox to #2{\unvcopy#1}%
+    \ifnum\badness>10000
+        \pnpcards@PageLimitError
+    \fi
 }
 
 \newcommand{\pnpcards@FrameBox}[1]{%
@@ -264,8 +282,11 @@
 % \newpage inside the body is treated as an explicit page break to the back side.
 \NewDocumentEnvironment{card}{+O{} m}{%
     \begingroup
+        \global\advance\pnpcards@cardindex by 1
+        \global\pnpcards@breakcount=0
         \pnpcards@SetReference{#1}%
         \def\pnpcards@cardtitle{#2}%
+        \edef\pnpcards@cardtitletext{\detokenize{#2}}%
         \setlength{\pnpcards@cardtextwidth}{\textwidth}%
         \setbox\pnpcards@cardcontent=\vbox\bgroup
             \hsize=\pnpcards@cardtextwidth
@@ -275,7 +296,11 @@
 }{%
         \par
         \egroup
+        \ifnum\pnpcards@breakcount>1
+            \pnpcards@PageLimitError
+        \fi
         \setbox\pnpcards@frontcontent=\vsplit\pnpcards@cardcontent to \pnpcards@frontbodyheight
+        \pnpcards@CheckSplitHeight\pnpcards@frontcontent\pnpcards@frontbodyheight
         \edef\pnpcards@actualbreak{\splitbotmark}%
         \def\pnpcards@expectedbreak{EXPLICIT-CARD-BREAK}%
         \newif\ifpnpcards@explicitbreak
@@ -292,12 +317,11 @@
                 \newpage
             \else
                 \setbox\pnpcards@backcontent=\vsplit\pnpcards@cardcontent to \pnpcards@backbodyheight
+                \pnpcards@CheckSplitHeight\pnpcards@backcontent\pnpcards@backbodyheight
                 \pnpcards@PrintBack{\pnpcards@backcontent}%
                 \ifvoid\pnpcards@cardcontent
                 \else
-                    \PackageError{pnpcards}%
-                        {Card content exceeds two pages}%
-                        {Reduce the card content.}%
+                    \pnpcards@PageLimitError
                 \fi
             \fi
         \else
@@ -307,12 +331,15 @@
                 \newpage
             \else
                 \setbox\pnpcards@backcontent=\vsplit\pnpcards@cardcontent to \pnpcards@backbodyheight
+                \pnpcards@CheckSplitHeight\pnpcards@backcontent\pnpcards@backbodyheight
+                \edef\pnpcards@actualbreak{\splitbotmark}%
+                \ifx\pnpcards@actualbreak\pnpcards@expectedbreak
+                    \pnpcards@PageLimitError
+                \fi
                 \pnpcards@PrintBack{\pnpcards@backcontent}%
                 \ifvoid\pnpcards@cardcontent
                 \else
-                    \PackageError{pnpcards}%
-                        {Card content exceeds two pages}%
-                        {Reduce the card content.}%
+                    \pnpcards@PageLimitError
                 \fi
             \fi
         \fi

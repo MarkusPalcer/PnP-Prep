@@ -2,19 +2,19 @@
 
 ← [pnpcards Index](index.md)
 
-Die Ticketdateien liegen in `tex/latex/pnpcards/Tickets/`.
+Die offenen Ticketdateien liegen in `tex/latex/pnpcards/Tickets/`.
 
 ## Übersicht
 
 | Nr | Datei | Ziel | Abhängigkeit |
 |---|---|---|---|
 | 05 | — (abgeschlossen) | `card`-Environment, Inhalt sammeln, Vorderseite rendern | — |
-| 06 | `06-titel-referenz-und-leere-rueckseite.md` | Titel- und Referenzbereich, leere Rückseite | 05 (abgeschlossen) |
-| 07 | `07-natuerlicher-ueberlauf.md` | Automatischer Überlauf Vorderseite → Rückseite | 06 |
-| 08 | `08-expliziter-seitenwechsel.md` | `\newpage` innerhalb einer Karte | 07 |
-| 09 | `09-seitenlimit-und-fehlermeldungen.md` | Fehler bei >2 Seiten | 08 |
-| 10 | `10-integration-und-erweiterungspunkt.md` | Integrationstest, Erweiterbarkeit für A5-Option sicherstellen | 09 |
-| 11 | `11-titeltext-maximal-einpassen.md` | Titel-Schriftgröße automatisch anpassen (offen) | 06 |
+| 06 | — (abgeschlossen) | Titel- und Referenzbereich, leere Rückseite | 05 (abgeschlossen) |
+| 07 | — (abgeschlossen) | Automatischer Überlauf Vorderseite → Rückseite | 06 (abgeschlossen) |
+| 08 | — (abgeschlossen) | `\newpage` innerhalb einer Karte | 07 (abgeschlossen) |
+| 09 | — (abgeschlossen) | Fehler bei >2 Seiten mit Kartenkennung | 08 (abgeschlossen) |
+| 10 | `10-integration-und-erweiterungspunkt.md` | Integrationstest, Erweiterbarkeit für A5-Option sicherstellen | 09 (abgeschlossen) |
+| 11 | `11-titeltext-maximal-einpassen.md` | Titel-Schriftgröße automatisch anpassen (offen) | 06 (abgeschlossen) |
 | 12 | `12-druckreihenfolge.md` | Shell/PS-Skript für 4×A6-Duplex-Druck | 10 |
 
 **Hinweis:** Die Tickets wurden am 2026-10-21 neu geschrieben. Sie enthalten nur beobachtbares Verhalten — keine Implementierungsvorschläge.
@@ -26,28 +26,30 @@ Die Ticketdateien liegen in `tex/latex/pnpcards/Tickets/`.
 - Body direkt in einer offenen `\vbox` sammeln und erst nach vollständigem Einlesen ausgeben
 - beide Syntaxformen und die zugesagten Inhaltsarten sind automatisiert geprüft
 - Inline-`\verb` ist im Environment geprüft; rohes Verbatim im tokenisierten `\Card`-Argument ist nicht zugesagt
-- die alte Aussage, die Referenz werde noch nicht gedruckt, ist überholt; siehe Ticket 06
+- die alte Aussage, die Referenz werde noch nicht gedruckt, ist überholt; aktuelle Syntax und Layoutvorgaben stehen in `syntax.md` und `design.md`
 
-### Ticket 06 – Titel, Referenz, leere Rückseite (offen)
-- Titel in Titelbereich
-- Karte ohne Überlauf → 2 PDF-Seiten (Vorderseite + leere Rückseite)
-- Fixtures prüfen beide APIs, Referenzzuordnung und -geometrie, aufeinanderfolgende Karten sowie leere Rückseiten
-- Optionaler Referenzbereich 15 × 15 mm mit 2 mm Abstand, nur auf der eigenen Vorderseite; ein bis zwei Zeilen mit 9 pt/11 pt und eigenem Debug-Rahmen
+### Ticket 06 – Titel, Referenz, leere Rückseite (abgeschlossen)
+- Beide APIs, Kartenisolation und exakt zwei A6-Seiten pro Karte ohne Überlauf sind automatisiert geprüft.
+- Die Rückseite bleibt vollständig unbedruckt, auch in aufeinanderfolgenden Karten und mit Debug-Modus.
+- Optionaler Referenzbereich 15 × 15 mm innerhalb des 5-mm-Rands, 2 mm Abstand zum 121-mm-Titelbereich, nur auf der eigenen Vorderseite; ohne Referenz ist der Titelbereich 138 mm breit
+- Referenzen bleiben unskaliert, verwenden 9 pt/11 pt und dürfen höchstens zwei Zeilen umfassen; Überläufe sind gezielte Fehler. Der Debug-Rahmen ist nur bei vorhandener Referenz sichtbar.
+- Titel bleiben einzeilig; Überbreite und Überhöhe werden bis Ticket 11 mit einem Fehler abgewiesen.
+- Die geprüften Layout- und Referenzvorgaben sind dauerhaft in `design.md` und `syntax.md` festgehalten; die abgeschlossene Ticketdatei wurde entfernt.
 
-### Ticket 07 – Natürlicher Überlauf
+### Ticket 07 – Natürlicher Überlauf (abgeschlossen)
 - `\vsplit` bei `\pnpcards@frontbodyheight`
 - Rest auf Rückseite; kein Rest → leere Rückseite
 - Fixture mit kurzer Karte + Überlaufkarte
 
-### Ticket 08 – Expliziter Seitenwechsel
+### Ticket 08 – Expliziter Seitenwechsel (abgeschlossen)
 - `\newpage` im Inhalt → Rückseite beginnen, auch wenn Vorderseite noch Platz hat
 - Erkennungsmechanismus: `\mark{EXPLICIT-CARD-BREAK}` + `\splitbotmark`
 - Leerer Bereich vor/nach `\newpage` darf keine Geistseiten erzeugen
 
-### Ticket 09 – Seitenlimit + Fehlermeldungen
-- Inhalt für >2 Seiten → `\PackageError`
-- Gilt für natürlichen Überlauf UND explizites `\newpage`
-- Negativfixtures (erwarteter Fehler) + positives Grenzfall-Fixture
+### Ticket 09 – Seitenlimit + Fehlermeldungen (abgeschlossen)
+- Natürlicher, expliziter und gemischter Überlauf über zwei Seiten erzeugen einen `\PackageError` mit Kartenindex und nicht expandiertem Titeltext; auch leere Bereiche und abschließende Umbrüche zählen.
+- Ein potenziell erzeugtes Fehler-PDF ist ungültig; sein Inhalt und Vorhandensein werden nicht geprüft.
+- Automatisierte Negativfixtures prüfen beide APIs, Debug-Modus, Kartenkennung und unteilbare Inhalte; positive PDF-Prüfungen decken den exakten Grenzfall, einzelne Umbrüche und Kartenfolgen ohne manuelle Abnahme ab.
 
 ### Ticket 10 – Integration + Erweiterbarkeit
 - Integrationsfixture mit mehreren Karten hintereinander

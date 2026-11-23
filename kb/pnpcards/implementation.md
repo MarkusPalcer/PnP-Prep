@@ -19,7 +19,9 @@
 | `\pnpcards@Area{w}{h}{align}{rahmenfarbe}{inhalt}` | Setzt einen fixen Box-Bereich (mit/ohne farbigen Debug-Rahmen) |
 | `\pnpcards@PrintFront{titel}{frontbox}` | Gibt Vorderseite aus |
 | `\pnpcards@PrintBack{backbox}` | Gibt Rückseite aus |
-| `\pnpcards@CardExplicitBreak` | Marker für `\newpage` innerhalb einer Karte |
+| `\pnpcards@CardExplicitBreak` | Zählt und markiert `\newpage` innerhalb einer Karte |
+| `\pnpcards@PageLimitError` | Meldet das Zwei-Seiten-Limit mit Kartenindex und nicht expandiertem Titeltext |
+| `\pnpcards@CheckSplitHeight` | Prüft die gesplitteten Inhalte einschließlich schrumpfbarer Abstände auf Überhöhe |
 | `\pnpcards@PrepareReference` | Setzt und validiert Referenztext und Zeilenzahl |
 | `\pnpcards@PrepareTitle{titel}` | Misst den einzeiligen Titel und meldet Überlauf |
 
@@ -35,12 +37,11 @@
 
 ### Kernmechanismus (`card`-Umgebung)
 
-1. `card` sichert Titel und Referenz lokal und liest den Body direkt in eine offene `\vbox` (`\pnpcards@cardcontent`); erst nach dem vollständigen Body beginnt die Kartenausgabe. `\Card` delegiert, sein Inhaltsargument wird davor normal tokenisiert.
-2. `\vsplit` teilt bei `\pnpcards@frontbodyheight` → `\pnpcards@frontcontent`
-3. `\splitbotmark` prüft ob ein expliziter Break (`EXPLICIT-CARD-BREAK`) vorlag
-4. Vorderseite wird gedruckt
-5. Rest in Box → leer: leere Rückseite; nicht leer: Rückseite drucken
-6. Noch Rest übrig → `\PackageError`: "Card content exceeds two pages"
+1. `card` erhält einen dokumentweit fortlaufenden Index ab 1, sichert Titel und Referenz lokal und liest den Body direkt in eine offene `\vbox` (`\pnpcards@cardcontent`); erst nach dem vollständigen Body beginnt die Kartenausgabe. `\Card` delegiert und zählt genau einmal; sein Inhaltsargument wird davor normal tokenisiert.
+2. Explizite Umbrüche werden beim Einsammeln gezählt; bereits zwei `\newpage` erzeugen einen Seitenlimitfehler, auch wenn Bereiche leer sind oder der letzte Umbruch am Ende steht.
+3. `\vsplit` teilt bei `\pnpcards@frontbodyheight` → `\pnpcards@frontcontent`; `\splitbotmark` erkennt einen expliziten Break (`EXPLICIT-CARD-BREAK`). Die tatsächliche Packbarkeit der Splitbox wird unter Berücksichtigung schrumpfbarer Abstände geprüft.
+4. Die Vorderseite wird gedruckt. Bei leerem Rest folgt eine tatsächlich leere Rückseite; sonst wird der Rest bei `\pnpcards@backbodyheight` gesplittet und ausgegeben.
+5. Überhöhe oder Rest nach dem Rückseiten-Split sowie ein expliziter Break im Rückseiten-Split nach natürlichem Überlauf erzeugen einen `\PackageError`. Die Meldung nennt den Kartenindex und den nicht zusätzlich ausgeführten Titel als Text. Ein Fehler-PDF ist ungültig; weder sein Inhalt noch sein Vorhandensein sind zugesagt.
 
 ### Bekannte Einschränkungen
 
@@ -54,9 +55,9 @@
 | Ticket | Thema | Status |
 |---|---|---|
 | 05 | Karteninhalt sammeln | **Fertig** |
-| 06 | Titel, Referenz, leere Rückseite | Offen |
-| 07 | Natürlicher Überlauf | Offen |
+| 06 | Titel, Referenz, leere Rückseite | **Fertig** |
+| 07 | Natürlicher Überlauf | **Fertig** |
 | 08 | Expliziter Seitenwechsel | **Fertig** |
-| 09 | Seitenlimit + Fehlermeldungen | Offen |
+| 09 | Seitenlimit + Fehlermeldungen | **Fertig** |
 | 10 | Integration + Vier-Seiten-Vorbereitung | Offen |
 | 11 | Titeltext-Schriftgröße anpassen | Offen |

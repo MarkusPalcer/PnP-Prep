@@ -1,0 +1,13 @@
+\documentclass{pnpcards}
+\makeatletter
+\begin{document}
+\begin{card}{Shrinkable}
+\offinterlineskip
+\vbox to \dimexpr\pnpcards@frontbodyheight-10pt\relax{\hbox{SHRINK TOP}\vfil}
+\penalty10000
+\vskip10pt minus 10pt
+\hbox{\vrule width0pt height10pt depth0pt SHRINK BOTTOM}
+\vskip0pt
+\hbox{BACK CONTENT}
+\end{card}
+\end{document}

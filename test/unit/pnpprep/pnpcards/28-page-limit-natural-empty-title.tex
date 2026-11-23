@@ -1,0 +1,26 @@
+\documentclass{pnpcards}
+
+\newcount\PageLimitLine
+\newcommand{\TooMuchContent}{%
+    \PageLimitLine=0
+    \loop\ifnum\PageLimitLine<40
+        \rule{1pt}{6mm}\par
+        \advance\PageLimitLine by 1
+    \repeat
+}
+
+\begin{document}
+
+\begin{card}{First card}
+Short content.
+\end{card}
+
+\begin{card}{Second card}
+Short content.
+\end{card}
+
+\begin{card}{}
+\TooMuchContent
+\end{card}
+
+\end{document}

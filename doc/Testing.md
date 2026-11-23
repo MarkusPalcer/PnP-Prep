@@ -37,6 +37,11 @@ The runner prints a result for each test. All root `rake test` tasks exit with
 status 1 if any selected test fails; successful PDFs are useful for visual
 review and are not compared automatically against expected output.
 
+The `pnpcards` tests rasterize short-card backs at 300 dpi to verify they are
+visually blank, and use a printed front as a control. These checks require the
+Ghostscript `gs` executable with the `ppmraw` device available. A missing
+executable or rasterization error fails the test; it is not silently skipped.
+
 Use `rake clean` to remove generated build artifacts.
 
 ## Test Organization

@@ -1,0 +1,18 @@
+\documentclass{pnpcards}
+
+\newcommand{\TitleEffect}{\typeout{TITLE-EXECUTED}\textbf{Formatted}}
+\newcount\PageLimitLine
+\newcommand{\TooMuchContent}{%
+    \PageLimitLine=0
+    \loop\ifnum\PageLimitLine<40
+        \rule{1pt}{6mm}\par
+        \advance\PageLimitLine by 1
+    \repeat
+}
+
+\begin{document}
+\Card{First}{Short content.}
+\begin{card}{\TitleEffect}
+\TooMuchContent
+\end{card}
+\end{document}

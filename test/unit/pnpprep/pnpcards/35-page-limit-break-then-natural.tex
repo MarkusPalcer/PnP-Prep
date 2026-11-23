@@ -1,0 +1,12 @@
+\documentclass{pnpcards}
+\newcount\PageLimitLine
+\begin{document}
+\begin{card}{Break then natural}
+Front\newpage
+\PageLimitLine=0
+\loop\ifnum\PageLimitLine<22
+    \rule{1pt}{6mm}\par
+    \advance\PageLimitLine by 1
+\repeat
+\end{card}
+\end{document}

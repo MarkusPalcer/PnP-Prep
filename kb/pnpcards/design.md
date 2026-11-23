@@ -38,7 +38,9 @@
 └─────────────────────────────────────┘
 ```
 
-Der Referenzbereich erscheint nur für eine nicht leere Referenz auf der eigenen Vorderseite und hat im Debug-Modus einen eigenen Rahmen. Die Referenz wird mit 9 pt und 11 pt Zeilenabstand auf höchstens zwei Zeilen gesetzt; explizites `\linebreak` und automatischer Umbruch sind möglich. Nicht passende Referenzen werden abgewiesen. Titel werden vorläufig einzeilig und unverkleinert gesetzt und bei Überlauf abgewiesen; automatische Anpassung ist in Ticket 11 offen.
+Eine Karte ohne Überlauf erzeugt genau zwei PDF-Seiten im A6-Querformat. Die Rückseite ist vollständig unbedruckt — auch vor der nächsten Karte und im Debug-Modus; weder Text noch Grafiken oder Rahmen dürfen darauf erscheinen.
+
+Der Referenzbereich erscheint nur für eine nicht leere Referenz auf der eigenen Vorderseite und hat im Debug-Modus einen eigenen Rahmen. Fehlende, leere, reine Leerraum- und `\relax`-Referenzen gelten als nicht gesetzt. Die Referenz wird unskaliert mit 9 pt und 11 pt Zeilenabstand auf höchstens zwei Zeilen gesetzt; `WdZ. 567` passt einzeilig und `WdZ. 567 \linebreak Wdz. 567` zweizeilig. Expliziter und automatischer Umbruch sind möglich; nicht passende oder zu lange Referenzen werden abgewiesen. Titel bleiben einzeilig und unverkleinert; ohne Referenz sind 138 mm, mit Referenz 121 mm verfügbar. Überbreite oder überhohe Titel werden derzeit abgewiesen; automatische Anpassung ist in Ticket 11 offen.
 
 Der Body des `card`-Environments wird beim Einlesen direkt in eine offene `\vbox` gesetzt und erst nach vollständigem Einlesen geteilt und ausgegeben. Text, Absätze, Formatierung, Listen, `tabular` und direkt eingebundene Grafiken sind automatisiert geprüft. Inline-`\verb` ist im Environment getestet; die Kurzform `\Card` tokenisiert ihr Inhaltsargument vorher und verspricht dafür kein rohes `\verb`. `fancyvrb`-gespeicherter Verbatim-Inhalt ist als Workaround geprüft. Floats, Fußnoten und Randnotizen erhalten keine Unterstützungsgarantie.
 
